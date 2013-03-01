@@ -6,12 +6,14 @@
 using namespace std;
 using namespace arma;
 
+const double pi = atan(1)*4;
+
 class VMCSolver
 {
 public:
     VMCSolver();
     double runMonteCarloIntegration(const int &newNCycles, const double &stepLength_, const double &alpha_, const double &beta_, const bool closedform);
-    double runMonteCarloIntegrationImportanceSampling(const int &newNCycles, const double &stepLength_, const double &alpha_, const double &beta_, const bool closedform, const double timestep);
+    double runMonteCarloIntegrationImportanceSampling(const int &newNCycles, const double &stepLength_, const double &alpha_, const double &beta_, const bool closedform, const double dt);
     void setParameters(const double &newStepLength, const double &newAlpha, const double &newBeta);
     ~VMCSolver();
     friend class MainApplication;
@@ -20,7 +22,7 @@ protected:
     mat rNew;
 
     double waveFunction(const mat &r);
-    double waveFunction2(const mat &r);
+//    double waveFunction2(const mat &r);
     double localEnergy(const mat &r);
     double exactLocalEnergy(const mat &r);
     double dr(const mat &r, const int ii, const int jj);

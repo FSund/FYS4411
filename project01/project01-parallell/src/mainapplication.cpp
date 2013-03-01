@@ -214,18 +214,52 @@ void MainApplication::closedformBenchmark()
 
 void MainApplication::importanceSampling()
 {
-    int nCycles;
-    double steplength, alpha, beta, energy, timestep;
+    int nCycles, varsteps;
+    double steplength, alpha, beta, energy, timestep, acceptanceRate;
     VMCSolver solver;
 
-    bool closedform = 0;
+    bool closedform = 1;
 
     nCycles = 1e6;
     alpha = 1.8;
     beta = 0.36;
     steplength = 1.485;
-    timestep = 0.01;
 
-    energy = solver.runMonteCarloIntegrationImportanceSampling(nCycles, steplength, alpha, beta, closedform, timestep);
-    cout << "energy importance sampling = " << energy << endl;
+    FILE* file;
+    file = fopen("./dtPlot.dat","w");
+
+    timestep = 1;
+    varsteps = 100;
+    for (double nTimestep = 0; nTimestep <= varsteps; nTimestep++) {
+        timestep /= 10;
+
+        energy = solver.runMonteCarloIntegrationImportanceSampling(nCycles, steplength, alpha, beta, closedform, timestep);
+        acceptanceRate = double(solver.nAccepted)/double(solver.nAccepted + solver.nRejected);
+
+        if (solver.my_rank == 0) {
+            cout << "Timestep        = " << timestep << endl;
+            cout << "Energy          = " << energy << endl;
+            cout << "Acceptance rate = " << acceptanceRate << endl;
+        }
+
+        fprintf(file, "%f %f %f \n", timestep, energy, acceptanceRate);
+        fflush(0); // flush files (write now instead of waiting for program to finish)
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
