@@ -1,7 +1,10 @@
 #ifndef CVMCSOLVER_H
 #define CVMCSOLVER_H
+
+#include "lib.h"
+#include <mpi.h>
 #include <armadillo>
-#include "mainapplication.h"
+#include <iostream>
 
 using namespace std;
 using namespace arma;
@@ -11,22 +14,25 @@ const double pi = atan(1)*4;
 class VMCSolver
 {
 public:
-    VMCSolver();
-    double runMonteCarloIntegration(const int &newNCycles, const double &stepLength_, const double &alpha_, const double &beta_, const bool closedform);
-    double runMonteCarloIntegrationImportanceSampling(const int &newNCycles, const double &stepLength_, const double &alpha_, const double &beta_, const bool closedform, const double dt);
-    void setParameters(const double &newStepLength, const double &newAlpha, const double &newBeta);
+    VMCSolver(int my_rank, int numprocs, const int &charge, const int &nParticles);
     ~VMCSolver();
-    friend class MainApplication;
+
+//    double runMonteCarloIntegration(const int &newNCycles, const double &stepLength_, const double &alpha_, const double &beta_, const bool closedform);
+    double runMonteCarloIntegration(const int &nCycles, const bool &closedForm);
+//    double runMonteCarloIntegrationImportanceSampling(const int &newNCycles, const double &stepLength_, const double &alpha_, const double &beta_, const bool closedform, const double dt);
+    double runMonteCarloIntegrationImportanceSampling(const int &nCycles, const double &dt, const bool &closedform);
 protected:
     mat rOld;
     mat rNew;
 
-    double waveFunction(const mat &r);
-//    double waveFunction2(const mat &r);
+    virtual double wavefunction(const mat &r)=0;
+//    virtual double localEnergy(const mat &r)=0;
+    virtual double localEnergyClosedForm(const mat &r)=0;
+
     double localEnergy(const mat &r);
-    double exactLocalEnergy(const mat &r);
-    double dr(const mat &r, const int ii, const int jj);
     mat quantumForce(const mat &r, const double &wf);
+//    double waveFunction2(const mat &r);
+//    double dr(const mat &r, const int ii, const int jj);
 
     double gaussianDeviate(long *seed);
 
@@ -39,9 +45,6 @@ protected:
     double h2;
 
     long idum;
-
-    double alpha;
-    double beta;
 
     int nCycles;
     int nAccepted;

@@ -4,14 +4,18 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += main.cpp \
-    src/CVMCSolver.cpp \
     src/lib.cpp \
-    src/mainapplication.cpp
+    src/mainapplication.cpp \
+    src/CVMCSolver.cpp \
+    src/CHelium.cpp \
+    src/CBeryllium.cpp
 
 HEADERS += \
-    src/CVMCSolver.h \
     src/lib.h \
-    src/mainapplication.h
+    src/mainapplication.h \
+    src/CVMCSolver.h \
+    src/CHelium.h \
+    src/CBeryllium.h
 
 LIBS += -larmadillo
 

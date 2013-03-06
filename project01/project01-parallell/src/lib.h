@@ -1,3 +1,6 @@
+#ifndef LIB_H
+#define LIB_H
+
 #include <iostream>
 #include <new>
 #include <cstdio>
@@ -13,3 +16,5 @@ double ran0(long *);
 double ran1(long *);
 double ran2(long *);
 double ran3(long *);
+
+#endif // LIB_H

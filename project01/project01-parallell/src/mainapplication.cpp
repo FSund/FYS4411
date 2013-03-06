@@ -1,6 +1,8 @@
 #include "mainapplication.h"
 
-MainApplication::MainApplication()
+MainApplication::MainApplication(int &my_rank_, int &numprocs_):
+    my_rank(my_rank_),
+    numprocs(numprocs_)
 {
 }
 
@@ -11,7 +13,9 @@ void MainApplication::runApplication()
 //    optimal_steplength();
 //    steplength_secant();
 //    closedformBenchmark();
-    importanceSampling();
+//    importanceSampling();
+
+    beryllium_variational_parameters();
 }
 
 void MainApplication::variational_paramenters()
@@ -38,18 +42,21 @@ void MainApplication::variational_paramenters()
 
     energySurface = zeros(varsteps, varsteps);
 
-    VMCSolver solver;
+    CHelium solver(numprocs, my_rank);
 
     for (int nAlpha = 0; nAlpha < varsteps; nAlpha++)
     {
         alpha = alphamin + nAlpha*(alphamax-alphamin)/varsteps;
-        if (solver.my_rank == 0) cout << "Alpha = " << alpha << endl;
+        if (my_rank == 0) cout << "Alpha = " << alpha << endl;
         for (int nBeta = 0; nBeta < varsteps; nBeta++)
         {
             beta = betamin + nBeta*(betamax-betamin)/varsteps;
-            if (solver.my_rank == 0) cout << "Beta = " << beta << endl;
+            if (my_rank == 0) cout << "Beta = " << beta << endl;
 
-            energy = solver.runMonteCarloIntegration(nCycles, steplength, alpha, beta, closedform);
+            solver.setParameters(alpha, beta, steplength);
+            // energy = solver.runMonteCarloIntegration(nCycles, steplength, alpha, beta, closedform);
+            energy = solver.runMonteCarloIntegration(nCycles, closedform);
+
             energySurface(nAlpha, nBeta) = energy;
             fprintf(file, "%f ", energy);
             fflush(0); // flush files (write now instead of waiting for program to finish)
@@ -81,8 +88,8 @@ void MainApplication::variational_paramenters()
 //    beta = 1.0;
 //    steplength = 1.0;
 
-//    VMCSolver solver;
-
+//    CHelium solver(numprocs, my_rank);
+//    solver.setParameters(alpha, beta, steplength);
 //    energy = solver.runMonteCarloIntegration(nCycles, steplength, alpha, beta);
 //}
 
@@ -106,13 +113,16 @@ void MainApplication::optimal_steplength()
     steplengthMax = 1.6;
     dr = (steplengthMax - steplengthMin)/varsteps;
 
-    VMCSolver solver;
+    CHelium solver(numprocs, my_rank);
 
     for (double nSteplength = 0; nSteplength < varsteps; nSteplength++)
     {
         steplength = steplengthMin + nSteplength*dr;
-        if (solver.my_rank == 0) cout << "Steplength        = " << steplength << endl;
-        solver.runMonteCarloIntegration(nCycles, steplength, alpha, beta, closedform);
+        if (my_rank == 0) cout << "Steplength        = " << steplength << endl;
+
+        solver.setParameters(alpha, beta, steplength);
+        // solver.runMonteCarloIntegration(nCycles, steplength, alpha, beta, closedform);
+        solver.runMonteCarloIntegration(nCycles, closedform);
 
         fprintf(file, "%f %d %d \n", steplength, solver.nAccepted, solver.nRejected);
         fflush(0); // flush files (write now instead of waiting for program to finish)
@@ -124,7 +134,7 @@ void MainApplication::steplength_secant()
     int nCycles;
     double steplength, alpha, beta, acceptanceRate, wanted_acceptanceRate,
             steplength_p, steplength_pp, fpp, fp, tolerance;
-    VMCSolver solver;
+    CHelium solver(numprocs, my_rank);
 
 //    FILE* file;
 //    file = fopen("./drPlot.dat","w");
@@ -142,7 +152,10 @@ void MainApplication::steplength_secant()
     steplength_pp = 1;
     steplength_p = 1.1;
 
-    solver.runMonteCarloIntegration(nCycles, steplength_pp, alpha, beta, closedform);
+    solver.setParameters(alpha, beta, steplength_pp);
+    //solver.runMonteCarloIntegration(nCycles, steplength_pp, alpha, beta, closedform);
+    solver.runMonteCarloIntegration(nCycles, closedform);
+
     acceptanceRate = double(solver.nAccepted)/double(solver.nAccepted + solver.nRejected);
     fpp = acceptanceRate - wanted_acceptanceRate;
 
@@ -159,7 +172,10 @@ void MainApplication::steplength_secant()
 
     while (abs(fpp) > tolerance)
     {
-        solver.runMonteCarloIntegration(nCycles, steplength_p, alpha, beta, closedform);
+        solver.setParameters(alpha, beta, steplength_p);
+        //solver.runMonteCarloIntegration(nCycles, steplength_p, alpha, beta, closedform);
+        solver.runMonteCarloIntegration(nCycles, closedform);
+
         acceptanceRate = double(solver.nAccepted)/double(solver.nAccepted + solver.nRejected);
         fp = acceptanceRate - wanted_acceptanceRate;
 
@@ -192,7 +208,7 @@ void MainApplication::closedformBenchmark()
 {
     int nCycles;
     double steplength, alpha, beta, energy;
-    VMCSolver solver;
+    CHelium solver(numprocs, my_rank);
 
     bool closedform = 0;
 
@@ -202,7 +218,10 @@ void MainApplication::closedformBenchmark()
     steplength = 1.485;
 
     closedform = 1;
-    energy = solver.runMonteCarloIntegration(nCycles, steplength, alpha, beta, closedform);
+    solver.setParameters(alpha, beta, steplength);
+    // energy = solver.runMonteCarloIntegration(nCycles, steplength, alpha, beta, closedform);
+    energy = solver.runMonteCarloIntegration(nCycles, closedform);
+
     if (solver.my_rank == 0) cout << "Closed form energy = " << energy << endl;
 
 //    closedform = 0;
@@ -216,7 +235,7 @@ void MainApplication::importanceSampling()
 {
     int nCycles, varsteps;
     double steplength, alpha, beta, energy, timestep, acceptanceRate;
-    VMCSolver solver;
+    CHelium solver(numprocs, my_rank);
 
     bool closedform = 1;
 
@@ -233,7 +252,8 @@ void MainApplication::importanceSampling()
     for (double nTimestep = 0; nTimestep <= varsteps; nTimestep++) {
         timestep /= 10;
 
-        energy = solver.runMonteCarloIntegrationImportanceSampling(nCycles, steplength, alpha, beta, closedform, timestep);
+        solver.setParameters(alpha, beta, steplength);
+        energy = solver.runMonteCarloIntegrationImportanceSampling(nCycles, timestep, closedform);
         acceptanceRate = double(solver.nAccepted)/double(solver.nAccepted + solver.nRejected);
 
         if (solver.my_rank == 0) {
@@ -247,19 +267,63 @@ void MainApplication::importanceSampling()
     }
 }
 
+void MainApplication::beryllium_variational_parameters()
+{
+//    mat energySurface;
+    int nCycles, varsteps;
+    double steplength, dt, alpha, beta, alphamax, betamax, energy, alphamin, betamin;
 
+//    FILE* file;
+//    file = fopen("./energySurface.dat","w");
+//    FILE* xyfile;
+//    xyfile = fopen("./alpha_beta.dat","w");
 
+    nCycles = 1e5;
+    bool closedform = 0;
 
+    alphamin = 3.9; // 1.8
+    alphamax = 1.8;
+    betamin = 4.0; // 0.36
+    betamax = 0.36;
 
+    varsteps = 1;
+    steplength = 1.0;
+    dt = 0.001;
 
+//    energySurface = zeros(varsteps, varsteps);
 
+    CBeryllium solver(my_rank, numprocs);
 
+    for (int nAlpha = 0; nAlpha < varsteps; nAlpha++)
+    {
+        alpha = alphamin + nAlpha*(alphamax-alphamin)/varsteps;
+        if (my_rank == 0) cout << "Alpha = " << alpha << endl;
+        for (int nBeta = 0; nBeta < varsteps; nBeta++)
+        {
+            beta = betamin + nBeta*(betamax-betamin)/varsteps;
+            if (my_rank == 0) cout << "Beta = " << beta << endl;
 
+            solver.setParameters(alpha, beta, steplength);
+            energy = solver.runMonteCarloIntegrationImportanceSampling(nCycles, dt, closedform);
+            if (my_rank == 0) cout << "Energy = " << energy << endl;
 
+//            energySurface(nAlpha, nBeta) = energy;
+//            fprintf(file, "%f ", energy);
+//            fflush(0); // flush files (write now instead of waiting for program to finish)
+        }
+//        fprintf(file, "\n");
+    }
 
-
-
-
-
-
-
+//    for (int i = 0; i < varsteps; i++)
+//    {
+//        alpha = alphamin + i*(alphamax-alphamin)/varsteps;
+//        fprintf(xyfile, "%f ", alpha);
+//    }
+//    fprintf(xyfile, "\n");
+//    for (int i = 0; i < varsteps; i++)
+//    {
+//        beta = betamin + i*(betamax-betamin)/varsteps;
+//        fprintf(xyfile, "%f ", beta);
+//    }
+//    fprintf(xyfile, "\n");
+}
