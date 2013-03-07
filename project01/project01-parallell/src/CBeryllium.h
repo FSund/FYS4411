@@ -18,25 +18,29 @@ public:
 
     virtual double localEnergyClosedForm(const mat &r);
     virtual double wavefunction(const mat &r);
+    virtual double wavefunction(const mat &r, const mat &fij);
+    double jastrowWF(const mat &fij);
+    double phiSD(const mat &r);
 
 //    double phi1s(vec3 r);
 //    double phi2s(vec3 r);
-    double phi1s(double dr);
-    double phi2s(double dr);
+    double phi1s(double r);
+    double phi2s(double r);
+    double phi2p(double r);
 
-    void setParameters(
-            const double &alpha_,
-            const double &beta_,
-            const double &stepLength_);
-    void setParameters(
-            const double &alpha_,
-            const double &beta_,
-            const double &stepLength_,
-            const double &h_,
-            const double &h2_);
+//    void setParameters(
+//            const double &alpha_,
+//            const double &beta_,
+//            const double &stepLength_);
+//    void setParameters(
+//            const double &alpha_,
+//            const double &beta_,
+//            const double &stepLength_,
+//            const double &h_,
+//            const double &h2_);
 protected:
-    double alpha;
-    double beta;
+//    double alpha;
+//    double beta;
 //    int charge;
 //    int nParticles;
 };

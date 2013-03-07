@@ -55,7 +55,8 @@ void MainApplication::variational_paramenters()
 
             solver.setParameters(alpha, beta, steplength);
             // energy = solver.runMonteCarloIntegration(nCycles, steplength, alpha, beta, closedform);
-            energy = solver.runMonteCarloIntegration(nCycles, closedform);
+            solver.closedForm = closedform;
+            energy = solver.runMonteCarloIntegration(nCycles);
 
             energySurface(nAlpha, nBeta) = energy;
             fprintf(file, "%f ", energy);
@@ -122,7 +123,8 @@ void MainApplication::optimal_steplength()
 
         solver.setParameters(alpha, beta, steplength);
         // solver.runMonteCarloIntegration(nCycles, steplength, alpha, beta, closedform);
-        solver.runMonteCarloIntegration(nCycles, closedform);
+        solver.closedForm = closedform;
+        solver.runMonteCarloIntegration(nCycles);
 
         fprintf(file, "%f %d %d \n", steplength, solver.nAccepted, solver.nRejected);
         fflush(0); // flush files (write now instead of waiting for program to finish)
@@ -154,7 +156,8 @@ void MainApplication::steplength_secant()
 
     solver.setParameters(alpha, beta, steplength_pp);
     //solver.runMonteCarloIntegration(nCycles, steplength_pp, alpha, beta, closedform);
-    solver.runMonteCarloIntegration(nCycles, closedform);
+    solver.closedForm = closedform;
+    solver.runMonteCarloIntegration(nCycles);
 
     acceptanceRate = double(solver.nAccepted)/double(solver.nAccepted + solver.nRejected);
     fpp = acceptanceRate - wanted_acceptanceRate;
@@ -174,7 +177,8 @@ void MainApplication::steplength_secant()
     {
         solver.setParameters(alpha, beta, steplength_p);
         //solver.runMonteCarloIntegration(nCycles, steplength_p, alpha, beta, closedform);
-        solver.runMonteCarloIntegration(nCycles, closedform);
+        solver.closedForm = closedform;
+        solver.runMonteCarloIntegration(nCycles);
 
         acceptanceRate = double(solver.nAccepted)/double(solver.nAccepted + solver.nRejected);
         fp = acceptanceRate - wanted_acceptanceRate;
@@ -220,7 +224,8 @@ void MainApplication::closedformBenchmark()
     closedform = 1;
     solver.setParameters(alpha, beta, steplength);
     // energy = solver.runMonteCarloIntegration(nCycles, steplength, alpha, beta, closedform);
-    energy = solver.runMonteCarloIntegration(nCycles, closedform);
+    solver.closedForm = closedform;
+    energy = solver.runMonteCarloIntegration(nCycles);
 
     if (solver.my_rank == 0) cout << "Closed form energy = " << energy << endl;
 
@@ -253,7 +258,9 @@ void MainApplication::importanceSampling()
         timestep /= 10;
 
         solver.setParameters(alpha, beta, steplength);
-        energy = solver.runMonteCarloIntegrationImportanceSampling(nCycles, timestep, closedform);
+        solver.closedForm = closedform;
+        // NEED TO SET h = timestep SOMEHOW!!
+        energy = solver.runMonteCarloIntegration(nCycles);
         acceptanceRate = double(solver.nAccepted)/double(solver.nAccepted + solver.nRejected);
 
         if (solver.my_rank == 0) {
@@ -279,7 +286,6 @@ void MainApplication::beryllium_variational_parameters()
 //    xyfile = fopen("./alpha_beta.dat","w");
 
     nCycles = 1e5;
-    bool closedform = 0;
 
     alphamin = 3.9; // 1.8
     alphamax = 1.8;
@@ -288,11 +294,12 @@ void MainApplication::beryllium_variational_parameters()
 
     varsteps = 1;
     steplength = 1.0;
-    dt = 0.001;
 
 //    energySurface = zeros(varsteps, varsteps);
 
     CBeryllium solver(my_rank, numprocs);
+    solver.importanceSampling = 0;
+    solver.closedForm = 0;
 
     for (int nAlpha = 0; nAlpha < varsteps; nAlpha++)
     {
@@ -304,7 +311,7 @@ void MainApplication::beryllium_variational_parameters()
             if (my_rank == 0) cout << "Beta = " << beta << endl;
 
             solver.setParameters(alpha, beta, steplength);
-            energy = solver.runMonteCarloIntegrationImportanceSampling(nCycles, dt, closedform);
+            energy = solver.runMonteCarloIntegration(nCycles);
             if (my_rank == 0) cout << "Energy = " << energy << endl;
 
 //            energySurface(nAlpha, nBeta) = energy;

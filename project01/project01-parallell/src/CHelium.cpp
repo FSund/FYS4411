@@ -150,26 +150,31 @@ double CHelium::wavefunction(const mat &R)
     return exp(-alpha*rSum + r12Sum/(2.0*(1.0 + beta*r12Sum)));
 }
 
-void CHelium::setParameters(
-        const double &alpha_,
-        const double &beta_,
-        const double &stepLength_)
+double CHelium::wavefunction(const mat &R, const mat &fij)
 {
-    alpha = alpha_;
-    beta = beta_;
-    stepLength = stepLength_;
+    return 0.0;
 }
 
-void CHelium::setParameters(
-        const double &alpha_,
-        const double &beta_,
-        const double &stepLength_,
-        const double &h_,
-        const double &h2_)
-{
-    alpha = alpha_;
-    beta = beta_;
-    stepLength = stepLength_;
-    h = h_;
-    h2 = h2_;
-}
+//void CHelium::setParameters(
+//        const double &alpha_,
+//        const double &beta_,
+//        const double &stepLength_)
+//{
+//    alpha = alpha_;
+//    beta = beta_;
+//    stepLength = stepLength_;
+//}
+
+//void CHelium::setParameters(
+//        const double &alpha_,
+//        const double &beta_,
+//        const double &stepLength_,
+//        const double &h_,
+//        const double &h2_)
+//{
+//    alpha = alpha_;
+//    beta = beta_;
+//    stepLength = stepLength_;
+//    h = h_;
+//    h2 = h2_;
+//}

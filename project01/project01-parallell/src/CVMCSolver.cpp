@@ -9,8 +9,8 @@ VMCSolver::VMCSolver(
     charge(charge),
     stepLength(1.0),
     nParticles(nParticles),
-    h(0.001),
-    h2(1000000),
+    h(1e-3),
+    h2(1e6),
     idum(-1),
     nAccepted(0),
     nRejected(0),
@@ -19,141 +19,62 @@ VMCSolver::VMCSolver(
 {
     rOld = mat(nParticles, nDimensions);
     rNew = mat(nParticles, nDimensions);
+    rijOld = mat(nParticles, nParticles);
+    rijNew = mat(nParticles, nParticles);
 }
 
 VMCSolver::~VMCSolver()
 {
 }
 
-//double VMCSolver::runMonteCarloIntegration(
-//        const int &nCycles_,
-//        const double &stepLength_,
-//        const double &alpha_,
-//        const double &beta_,
-//        const bool closedform)
-double VMCSolver::runMonteCarloIntegration(const int &nCycles, const bool &closedForm)
+void VMCSolver::setParameters(
+        const double &alpha_,
+        const double &beta_,
+        const double &stepLength_)
 {
-    rOld = zeros(nParticles, nDimensions);
-    rNew = zeros(nParticles, nDimensions);
-
-    nAccepted = 0;
-    nRejected = 0;
-
-    double r12 = 0;
-    double waveFunctionOld = 0, waveFunctionNew = 0;
-    double energySum = 0, energySquaredSum = 0;
-    double deltaE = 0;
-
-    // MPI stuff
-    local_nCycles = int(nCycles/numprocs);
-    int my_start = my_rank*local_nCycles;
-    int my_end = my_start + local_nCycles;
-    idum -= my_rank;
-
-    // initial trial positions
-    for(int i = 0; i < nParticles; i++) {
-        for(int j = 0; j < nDimensions; j++) {
-            rOld(i,j) = stepLength * (ran2(&idum) - 0.5);
-        }
-    }
-    rNew = rOld;
-
-    // loop over Monte Carlo cycles
-    for (int cycle = my_start; cycle < my_end; cycle++) {
-
-        // Store the current value of the wave function
-        waveFunctionOld = wavefunction(rOld);
-
-        for (int i = 0; i < nParticles; i++) {
-            // New position to test
-            for (int j = 0; j < nDimensions; j++) {
-                rNew(i,j) = rOld(i,j) + stepLength*(ran2(&idum) - 0.5);
-            }
-
-            // Recalculate the value of the wave function
-            waveFunctionNew = wavefunction(rNew);
-
-            // Check for step acceptance (if yes, update position, if no, reset position)
-            if (ran2(&idum) <= (waveFunctionNew*waveFunctionNew) / (waveFunctionOld*waveFunctionOld)) {
-                rOld.row(i) = rNew.row(i); // update position
-                waveFunctionOld = waveFunctionNew;
-                nAccepted++;
-            } else {
-                rNew.row(i) = rOld.row(i); // reset position, throw away the test-position
-                nRejected++;
-            }
-
-            // update energies
-            if (closedForm)
-                deltaE = localEnergyClosedForm(rNew);
-            else
-                deltaE = localEnergy(rNew);
-            energySum += deltaE;
-            energySquaredSum += deltaE*deltaE;
-        }
-        // calculating the optimal value of the distance between the particles
-        r12 += norm(rNew.row(0), 2);
-    }
-
-    double energy = energySum/(local_nCycles*nParticles);
-    double energySquared = energySquaredSum/(local_nCycles*nParticles);
-    r12 = r12/local_nCycles;
-
-    double total_energy = 0.0;
-    double total_energySquared = 0.0;
-    double total_r12 = 0.0;
-    int totalnAcc, totalnRej;
-    MPI_Reduce(&energy, &total_energy, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&energySquared, &total_energySquared, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&r12, &total_r12, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&r12, &total_r12, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-    MPI_Allreduce(&nAccepted, &totalnAcc, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-    MPI_Allreduce(&nRejected, &totalnRej, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-
-    if (my_rank == 0) {
-//        cout << "Energy            = " << total_energy/numprocs << endl;
-//        cout << "Energy squared    = " << total_energySquared/numprocs << endl;
-//        cout << "r12 average       = " << total_r12/numprocs << endl;
-//        cout << "nAccepted   = " << nAccepted << endl;
-//        cout << "nReject    MPI_Finalize();ed   = " << nRejected << endl;
-//        cout << "Total tests = " << nAccepted + nRejected << endl;
-//        cout << "nAcc = " << totalnAcc << endl;
-//        cout << "nRej = " << totalnRej << endl;
-//        cout << endl;
-    }
-
-    return total_energy/numprocs;
+    alpha = alpha_;
+    beta = beta_;
+    stepLength = stepLength_;
 }
 
-//double VMCSolver::runMonteCarloIntegrationImportanceSampling(
-//        const int &nCycles_,
-//        const double &stepLength_,
-//        const double &alpha_,
-//        const double &beta_,
-//        const bool closedform,
-//        const double dt)
-double VMCSolver::runMonteCarloIntegrationImportanceSampling(
-        const int &nCycles,
-        const double &dt,
-        const bool &closedform)
+void VMCSolver::setParameters(
+        const double &alpha_,
+        const double &beta_,
+        const double &stepLength_,
+        const double &h_,
+        const double &h2_,
+        const bool &importanceSampling_,
+        const bool &closedForm_)
+{
+    alpha = alpha_;
+    beta = beta_;
+    stepLength = stepLength_;
+    h = h_;
+    h2 = h2_;
+    importanceSampling = importanceSampling_;
+    closedForm = closedForm_;
+}
+
+double VMCSolver::runMonteCarloIntegration(const int &nCycles)
 {
     rOld.zeros(nParticles, nDimensions);
     rNew.zeros(nParticles, nDimensions);
-
+    waveFunctionOld = 0;
+    waveFunctionNew = 0;
     nAccepted = 0;
     nRejected = 0;
 
     double r12 = 0;
-    double waveFunctionOld = 0, waveFunctionNew = 0;
-    double energySum = 0, energySquaredSum = 0;
+    double energySum = 0;
+    double energySquaredSum = 0;
     double deltaE = 0;
     double omegaRatio;
-    h = dt;
-    h2 = 1.0/(h*h);
-    double D = 0.5;
-    double Ddt = D*h;
-    mat qforceOld(nParticles, nDimensions);
-    mat qforceNew(nParticles, nDimensions);
+//    h = dt;
+//    h2 = 1.0/(h*h);
+    D = 0.5;
+    Ddt = D*h;
+//    mat qForceOld(nParticles, nDimensions);
+//    mat qForceNew(nParticles, nDimensions);
 
     // MPI stuff
     local_nCycles = int(nCycles/numprocs);
@@ -166,14 +87,20 @@ double VMCSolver::runMonteCarloIntegrationImportanceSampling(
     {
         for (int j = 0; j < nDimensions; j++)
         {
-            rOld(i,j) = gaussianDeviate(&idum)*sqrt(2.0*Ddt);
-//            rOld(i,j) = 2.0;
+            if (importanceSampling)
+                rOld(i,j) = gaussianDeviate(&idum)*sqrt(2.0*Ddt);
+            else
+                rOld(i,j) = stepLength*ran2(&idum) - 0.5;
         }
     }
 
     rNew = rOld;
     waveFunctionOld = wavefunction(rOld);
-    qforceOld = quantumForce(rOld, waveFunctionOld);
+    if (importanceSampling)
+    {
+        qForceOld = quantumForce(rOld, waveFunctionOld);
+        qForceNew = qForceOld;
+    }
 
     // loop over Monte Carlo cycles
     for (int cycle = my_start; cycle < my_end; cycle++) {
@@ -182,40 +109,14 @@ double VMCSolver::runMonteCarloIntegrationImportanceSampling(
         waveFunctionOld = wavefunction(rOld);
 
         for (int i = 0; i < nParticles; i++) {
-            // New position to test
-            for (int j = 0; j < nDimensions; j++) {
-                rNew(i,j) = rOld(i,j) + gaussianDeviate(&idum)*sqrt(2.0*Ddt)
-                        + qforceOld(i,j)*Ddt;
-            }
 
-            // Recalculate the value of the wave function
-            waveFunctionNew = wavefunction(rNew);
-            qforceNew = quantumForce(rNew, waveFunctionNew);
-
-            // log of the ratio of the greens function
-            // from slides
-            omegaRatio = 0.0;
-            for (int j = 0; j < nDimensions; j++) {
-                omegaRatio += (qforceOld(i,j) + qforceNew(i,j))
-                        * (2.0*(rOld(i,j) - rNew(i,j)) + Ddt*(qforceOld(i,j) - qforceNew(i,j)));
-            }
-            omegaRatio /= 4.0;
-            omegaRatio = exp(omegaRatio);
-
-            // Check for step acceptance (if yes, update position, if no, reset position)
-            if (ran2(&idum) <= omegaRatio*waveFunctionNew*waveFunctionNew/(waveFunctionOld*waveFunctionOld)) {
-                rOld.row(i) = rNew.row(i); // update position
-                qforceOld.row(i) = qforceNew.row(i);
-                waveFunctionOld = waveFunctionNew;
-                nAccepted++;
-            } else {
-                rNew.row(i) = rOld.row(i); // reset position, throw away the test-position
-                qforceNew.row(i) = qforceOld.row(i);
-                nRejected++;
-            }
+            if(importanceSampling)
+                runcycle_importanceSampling(i);
+            else
+                runcycle(i);
 
             // update energies
-            if (closedform)
+            if (closedForm)
                 deltaE = localEnergyClosedForm(rNew);
             else
                 deltaE = localEnergy(rNew);
@@ -256,10 +157,71 @@ double VMCSolver::runMonteCarloIntegrationImportanceSampling(
     return total_energy/numprocs;
 }
 
+void VMCSolver::runcycle_importanceSampling(const int &i)
+{
+    double omegaRatio = 0.0;
+
+    // New position to test
+    for (int j = 0; j < nDimensions; j++) {
+        rNew(i,j) = rOld(i,j) + gaussianDeviate(&idum)*sqrt(2.0*Ddt)
+                + qForceOld(i,j)*Ddt;
+    }
+
+    // Recalculate the value of the wave function
+    waveFunctionNew = wavefunction(rNew);
+    qForceNew = quantumForce(rNew, waveFunctionNew);
+
+    // log of the ratio of the greens function
+    // from slides
+    omegaRatio = 0.0;
+    for (int j = 0; j < nDimensions; j++) {
+        omegaRatio += (qForceOld(i,j) + qForceNew(i,j))
+                * (2.0*(rOld(i,j) - rNew(i,j)) + Ddt*(qForceOld(i,j) - qForceNew(i,j)));
+    }
+    omegaRatio /= 4.0;
+    omegaRatio = exp(omegaRatio);
+
+    // Check for step acceptance (if yes, update position, if no, reset position)
+    if (ran2(&idum) <= omegaRatio*waveFunctionNew*waveFunctionNew/(waveFunctionOld*waveFunctionOld)) {
+        rOld.row(i) = rNew.row(i); // update position
+        qForceOld.row(i) = qForceNew.row(i); // SHOULD BE JUST THE ROW !!!
+        waveFunctionOld = waveFunctionNew;
+        nAccepted++;
+    } else {
+        rNew.row(i) = rOld.row(i);
+        qForceNew.row(i) = qForceOld.row(i); // SHOULD BE JUST THE ROW !!!
+        nRejected++;
+    }
+}
+
+void VMCSolver::runcycle(const int &i)
+{
+    // New position to test
+    for (int j = 0; j < nDimensions; j++) {
+        rNew(i,j) = rOld(i,j) + stepLength*(ran2(&idum) - 0.5);
+    }
+    update_rij(rNew, rijNew, i);
+
+    // Recalculate the value of the wave function
+    waveFunctionNew = wavefunction(rNew);
+
+    // Check for step acceptance (if yes, update position, if no, reset position)
+    if (ran2(&idum) <= (waveFunctionNew*waveFunctionNew) / (waveFunctionOld*waveFunctionOld)) {
+        rOld.row(i) = rNew.row(i); // update position
+        waveFunctionOld = waveFunctionNew;
+        rijOld = rijNew;
+        nAccepted++;
+    } else {
+        rNew.row(i) = rOld.row(i); // reset position, throw away the test-position
+        rijNew = rijOld;
+        nRejected++;
+    }
+}
+
 mat VMCSolver::quantumForce(const mat &r, const double &wf) {
     double wfMinus, wfPlus;
-    mat rPlus(nParticles, nDimensions); // mat rPlus(r)
-    mat rMinus(nParticles, nDimensions);
+    mat rPlus(r);
+    mat rMinus(r);
     mat qforce(nParticles, nDimensions);
 
     // computing the first derivative
@@ -275,7 +237,78 @@ mat VMCSolver::quantumForce(const mat &r, const double &wf) {
         }
     }
     qforce = qforce/(wf*h);
+
     return qforce;
+}
+
+void VMCSolver::calculate_rij(const mat &r, mat &rij)
+{
+    rij.zeros();
+    for (int i = 0; i < nParticles; i++)
+    {
+        for (int j = i+1; j < nParticles; j++)
+        {
+            for (int k = 0; k < nDimensions; k++)
+            {
+                rij(i,j) += (r(i,k) - r(j,k))*(r(i,k) - r(j,k));
+            }
+            rij(i,j) = sqrt(rij(i,j));
+        }
+    }
+}
+
+void VMCSolver::update_rij(const mat &r, mat &rij, const int j)
+{
+    for (int i = 0; i < j; i++)
+    {
+        rij(i,j) = 0.0;
+        for (int k = 0; k < nDimensions; k++)
+        {
+            rij(i,j) += (r(i,k) - r(j,k))*(r(i,k) - r(j,k));
+        }
+        rij(i,j) = sqrt(rij(i,j));
+    }
+    for (int i = j+1; i < nParticles; i++)
+    {
+        rij(i,j) = 0.0;
+        for (int k = 0; k < nDimensions; k++)
+        {
+            rij(j,i) += (r(i,k) - r(j,k))*(r(i,k) - r(j,k));
+        }
+        rij(j,i) = sqrt(rij(j,i));
+    }
+}
+
+double VMCSolver::jastrowRatio(const int k)
+{
+    double dU = 0.0;
+    for (int i = 0; i < k; i++)
+        dU += fij(rijNew, i, k) - fij(rijOld, i, k);
+    for (int i = k+1; i < nParticles; i++)
+        dU += fij(rijNew, k, i) - fij(rijOld, k, i);
+    return exp(dU);
+}
+
+double VMCSolver::fij(const mat rij, const int i, const int j)
+{
+    double a = ((i+j)%2 == 0) ? 0.25 : 0.5;
+    double r12 = rij(i,j);
+
+    return a*r12/(1.0 + beta*r12);
+}
+
+
+
+void VMCSolver::update_slater()
+{
+//    for (int i = 0; i < nParticles; i++)
+//    {
+//        for (int j = 0; j < nParticles; j++)
+//        {
+//            S(j) = Dnew
+//        }
+//    }
+
 }
 
 double VMCSolver::gaussianDeviate(long *seed)
