@@ -19,20 +19,23 @@ public:
 //    virtual double localEnergy(const mat &r);
     virtual double localEnergyClosedForm(const mat &r);
     virtual double wavefunction(const mat &R);
+    virtual double wavefunction(const mat &R, const mat &fij);
+    virtual double jastrowRatio(const int &k);
+    virtual double slaterRatio();
 
-    void setParameters(
-            const double &alpha_,
-            const double &beta_,
-            const double &stepLength_);
-    void setParameters(
-            const double &alpha_,
-            const double &beta_,
-            const double &stepLength_,
-            const double &h_,
-            const double &h2_);
+//    void setParameters(
+//            const double &alpha_,
+//            const double &beta_,
+//            const double &stepLength_);
+//    void setParameters(
+//            const double &alpha_,
+//            const double &beta_,
+//            const double &stepLength_,
+//            const double &h_,
+//            const double &h2_);
 protected:
-    double alpha;
-    double beta;
+//    double alpha;
+//    double beta;
 //    int charge;
 //    int nParticles;
 };
