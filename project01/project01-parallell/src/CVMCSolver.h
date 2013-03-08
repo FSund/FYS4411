@@ -37,10 +37,13 @@ public:
             const double &h2_,
             const bool &importanceSampling_,
             const bool &closedForm_);
+<<<<<<< HEAD
 
     double hydrogenWF(const int &i, const vec3 &rvec);
     double phi1s(const vec3 &rvec);
     double phi2s(const vec3 &rvec);
+=======
+>>>>>>> 11f443a3f559fada5f12f377790cb7e18191ad0c
 protected:
     mat rOld;
     mat rNew;
@@ -48,6 +51,7 @@ protected:
     mat rijNew;
     mat qForceOld;
     mat qForceNew;
+<<<<<<< HEAD
     mat fijOld;
     mat fijNew;
     double waveFunctionOld;
@@ -57,6 +61,15 @@ protected:
     virtual double wavefunction(const mat&, const mat&) = 0;
 //    virtual double localEnergy(const mat &r)=0;
     virtual double localEnergyClosedForm(const mat&) = 0;
+=======
+    double waveFunctionOld;
+    double waveFunctionNew;
+
+    virtual double wavefunction(const mat&)=0;
+    virtual double wavefunction(const mat&, const mat&)=0;
+//    virtual double localEnergy(const mat &r)=0;
+    virtual double localEnergyClosedForm(const mat&)=0;
+>>>>>>> 11f443a3f559fada5f12f377790cb7e18191ad0c
 
     double localEnergy(const mat &r);
     mat quantumForce(const mat &r, const double &wf);
@@ -65,6 +78,7 @@ protected:
 
     void calculate_rij(const mat &r, mat &rij);
     void update_rij(const mat &r, mat &rij, const int j);
+<<<<<<< HEAD
     void calculate_fij(const mat &rij, mat &fij);
     double calculate_fij_element(const mat &rij, const int &i, const int &j);
     void update_slater();
@@ -72,6 +86,12 @@ protected:
     virtual double slaterRatio() = 0;
     virtual double jastrowRatio(const int &k) = 0;
 
+=======
+    double jastrowRatio(const int k);
+    double fij(const mat rij, const int i, const int j);
+    void update_slater();
+
+>>>>>>> 11f443a3f559fada5f12f377790cb7e18191ad0c
     double gaussianDeviate(long *seed);
 
     int nDimensions;

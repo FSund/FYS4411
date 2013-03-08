@@ -20,8 +20,11 @@ public:
     virtual double localEnergyClosedForm(const mat &r);
     virtual double wavefunction(const mat &R);
     virtual double wavefunction(const mat &R, const mat &fij);
+<<<<<<< HEAD
     virtual double jastrowRatio(const int &k);
     virtual double slaterRatio();
+=======
+>>>>>>> 11f443a3f559fada5f12f377790cb7e18191ad0c
 
 //    void setParameters(
 //            const double &alpha_,

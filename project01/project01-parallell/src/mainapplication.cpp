@@ -285,7 +285,11 @@ void MainApplication::beryllium_variational_parameters()
 //    FILE* xyfile;
 //    xyfile = fopen("./alpha_beta.dat","w");
 
+<<<<<<< HEAD
     nCycles = 1e6;
+=======
+    nCycles = 1e5;
+>>>>>>> 11f443a3f559fada5f12f377790cb7e18191ad0c
 
     alphamin = 3.5; // 1.8, 3.9
     alphamax = 0.0;

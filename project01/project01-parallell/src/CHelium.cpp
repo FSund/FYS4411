@@ -155,6 +155,7 @@ double CHelium::wavefunction(const mat &R, const mat &fij)
     return 0.0;
 }
 
+<<<<<<< HEAD
 double CHelium::slaterRatio()
 {
     return waveFunctionNew*waveFunctionNew/(waveFunctionOld*waveFunctionOld);
@@ -165,6 +166,8 @@ double CHelium::jastrowRatio(const int &k)
     return 1.0;
 }
 
+=======
+>>>>>>> 11f443a3f559fada5f12f377790cb7e18191ad0c
 //void CHelium::setParameters(
 //        const double &alpha_,
 //        const double &beta_,
