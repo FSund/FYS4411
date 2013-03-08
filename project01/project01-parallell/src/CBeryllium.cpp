@@ -21,14 +21,16 @@ double CBeryllium::localEnergyClosedForm(const mat &r)
     return 1.0;
 }
 
-double CBeryllium::wavefunction(const mat &r)
+double CBeryllium::wavefunction(const mat &r) const
 {
     return phiSD(r);
 }
 
-double CBeryllium::wavefunction(const mat &r, const mat &fij)
+double CBeryllium::wavefunction(const data &s) const
 {
-    return phiSD(r)*jastrowWF(fij);
+//    return phiSD(s.r);
+    return phiSD(s);
+//    return phiSD(s.r)*jastrowWF(s.fij);
 }
 
 double CBeryllium::slaterRatio()
@@ -55,6 +57,18 @@ double CBeryllium::jastrowRatio(const int &k)
     return exp(dU);
 }
 
+double CBeryllium::jastrowRatio(const data &s, const int &k) const
+{
+//    return 1.0;
+
+    double dU = 0.0;
+    for (int i = 0; i < k; i++)
+        dU += calculate_fij_element(s.rij, i, k) - calculate_fij_element(s.rij, i, k);
+    for (int i = k+1; i < nParticles; i++)
+        dU += calculate_fij_element(s.rij, k, i) - calculate_fij_element(s.rij, k, i);
+    return exp(dU);
+}
+
 double CBeryllium::jastrowWF(const mat &fij)
 {
     double arg = 0.0;
@@ -63,6 +77,19 @@ double CBeryllium::jastrowWF(const mat &fij)
         for (int j = i+1; j < nParticles; j++)
         {
             arg += fij(i,j);
+        }
+    }
+    return exp(arg);
+}
+
+double CBeryllium::jastrowWF(const data &s) const
+{
+    double arg = 0.0;
+    for (int i = 0; i < nParticles; i++)
+    {
+        for (int j = i+1; j < nParticles; j++)
+        {
+            arg += s.fij(i,j);
         }
     }
     return exp(arg);
@@ -87,7 +114,7 @@ double CBeryllium::jastrowWF(const mat &fij)
 //    return answer;
 //}
 
-double CBeryllium::phiSD(const mat &r)
+double CBeryllium::phiSD(const mat &r) const
 {
     // Wrong version (returns 0)
 //    double answerDet;
@@ -126,6 +153,35 @@ double CBeryllium::phiSD(const mat &r)
     return det(slaterUP)*det(slaterDOWN);
 }
 
+double CBeryllium::phiSD(const data &s) const
+{
+    int size = int(nParticles/2);
+    mat slaterUP(size, size);
+    mat slaterDOWN(size, size);
+
+    for (int i = 0; i < size; i++)
+    {
+        for (int j = 0; j < size; j++)
+        {
+            slaterUP(i,j)   = hydrogenWF(i, s.r.row(j));
+            slaterDOWN(i,j) = hydrogenWF(i, s.r.row(j+size));
+        }
+    }
+
+    return det(slaterUP)*det(slaterDOWN);
+}
+
+double CBeryllium::phi1sf(const double &r) const
+{
+    return exp(-alpha*r);
+}
+
+double CBeryllium::phi2sf(const double &r) const
+{
+    double arg = -alpha*r*0.5;
+    return (1.0 + arg)*exp(arg);
+}
+
 //double CBeryllium::phi1s(const vec3 &rvec)
 //{
 //    double r = 0;
@@ -150,17 +206,6 @@ double CBeryllium::phiSD(const mat &r)
 //    double arg = -alpha*r*0.5;
 //    return (1.0 + arg)*exp(arg);
 //}
-
-double CBeryllium::phi1sf(const double &r) const
-{
-    return exp(-alpha*r);
-}
-
-double CBeryllium::phi2sf(const double &r) const
-{
-    double arg = -alpha*r*0.5;
-    return (1.0 + arg)*exp(arg);
-}
 
 //void CBeryllium::setParameters(
 //        const double &alpha_,

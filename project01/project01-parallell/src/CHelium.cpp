@@ -119,7 +119,7 @@ double CHelium::localEnergyClosedForm(const mat &r)
     return EL2;
 }
 
-double CHelium::wavefunction(const mat &R)
+double CHelium::wavefunction(const mat &R) const
 {
     double r = 0.0;
     double rSum = 0.0;
@@ -150,7 +150,7 @@ double CHelium::wavefunction(const mat &R)
     return exp(-alpha*rSum + r12Sum/(2.0*(1.0 + beta*r12Sum)));
 }
 
-double CHelium::wavefunction(const mat &R, const mat &fij)
+double CHelium::wavefunction(const data &s) const
 {
     return 0.0;
 }
@@ -161,6 +161,11 @@ double CHelium::slaterRatio()
 }
 
 double CHelium::jastrowRatio(const int &k)
+{
+    return 1.0;
+}
+
+double CHelium::jastrowRatio(const data &s, const int &k) const
 {
     return 1.0;
 }

@@ -19,12 +19,15 @@ public:
     CBeryllium(int my_rank_, int numprocs_);
 
     virtual double localEnergyClosedForm(const mat &r);
-    virtual double wavefunction(const mat &r);
-    virtual double wavefunction(const mat &r, const mat &fij);
+    virtual double wavefunction(const mat &r) const;
+    virtual double wavefunction(const data &s) const;
     double jastrowWF(const mat &fij);
-    double phiSD(const mat &r);
+    double jastrowWF(const data &s) const;
+    double phiSD(const mat &r) const;
+    double phiSD(const data &s) const;
     virtual double slaterRatio();
     virtual double jastrowRatio(const int &k);
+    virtual double jastrowRatio(const data &s, const int &k) const;
 
 
 //    double (*hydrogenWF[2]) (const vec3 &position);
