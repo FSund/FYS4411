@@ -33,7 +33,8 @@ double CBeryllium::wavefunction(const mat &r, const mat &fij)
 
 double CBeryllium::slaterRatio()
 {
-    return waveFunctionNew*waveFunctionNew/(waveFunctionOld*waveFunctionOld);
+//    return waveFunctionNew*waveFunctionNew/(waveFunctionOld*waveFunctionOld);
+    return newS.waveFunction*newS.waveFunction / (oldS.waveFunction*oldS.waveFunction);
 }
 
 double CBeryllium::jastrowRatio(const int &k)
@@ -42,9 +43,15 @@ double CBeryllium::jastrowRatio(const int &k)
 
     double dU = 0.0;
     for (int i = 0; i < k; i++)
-        dU += calculate_fij_element(rijNew, i, k) - calculate_fij_element(rijOld, i, k);
+    {
+//        dU += calculate_fij_element(rijNew, i, k) - calculate_fij_element(rijOld, i, k);
+        dU += calculate_fij_element(newS.rij, i, k) - calculate_fij_element(oldS.rij, i, k);
+    }
     for (int i = k+1; i < nParticles; i++)
-        dU += calculate_fij_element(rijNew, k, i) - calculate_fij_element(rijOld, k, i);
+    {
+//        dU += calculate_fij_element(rijNew, k, i) - calculate_fij_element(rijOld, k, i);
+        dU += calculate_fij_element(newS.rij, k, i) - calculate_fij_element(oldS.rij, k, i);
+    }
     return exp(dU);
 }
 

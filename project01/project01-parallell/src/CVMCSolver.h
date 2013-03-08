@@ -96,6 +96,13 @@ protected:
     int numprocs;
     int local_nCycles;
 
+    struct data
+    {
+        mat r, rij, qForce, fij;
+        double waveFunction;
+    };
+
+    data newS, oldS;
 public:
     bool importanceSampling;
     bool closedForm;

@@ -17,6 +17,16 @@ VMCSolver::VMCSolver(
     my_rank(my_rank),
     numprocs(numprocs)
 {
+    oldS.r = mat(nParticles, nDimensions);
+    oldS.rij = mat(nParticles, nParticles);
+    oldS.qForce = mat(nParticles, nDimensions);
+    oldS.waveFunction = 0.0;
+
+    newS.r = mat(nParticles, nDimensions);
+    newS.rij = mat(nParticles, nParticles);
+    newS.qForce = mat(nParticles, nDimensions);
+    newS.waveFunction = 0.0;
+
     rOld = mat(nParticles, nDimensions);
     rNew = mat(nParticles, nDimensions);
     rijOld = mat(nParticles, nParticles);
@@ -114,10 +124,16 @@ double VMCSolver::phi2s(const vec3 &rvec)
 
 double VMCSolver::runMonteCarloIntegration(const int &nCycles)
 {
-    rOld.zeros(nParticles, nDimensions);
-    rNew.zeros(nParticles, nDimensions);
-    waveFunctionOld = 0;
-    waveFunctionNew = 0;
+//    rOld.zeros(nParticles, nDimensions);
+//    rNew.zeros(nParticles, nDimensions);
+//    waveFunctionOld = 0;
+//    waveFunctionNew = 0;
+
+    oldS.r.zeros(nParticles, nDimensions);
+    newS.r.zeros(nParticles, nDimensions);
+    oldS.waveFunction = 0;
+    newS.waveFunction = 0;
+
     nAccepted = 0;
     nRejected = 0;
 
@@ -145,45 +161,65 @@ double VMCSolver::runMonteCarloIntegration(const int &nCycles)
         for (int j = 0; j < nDimensions; j++)
         {
             if (importanceSampling)
-                rOld(i,j) = gaussianDeviate(&idum)*sqrt(2.0*Ddt);
+            {
+//                rOld(i,j) = gaussianDeviate(&idum)*sqrt(2.0*Ddt);
+                oldS.r(i,j) = gaussianDeviate(&idum)*sqrt(2.0*Ddt);
+            }
             else
-                rOld(i,j) = stepLength*ran2(&idum) - 0.5;
+            {
+//                rOld(i,j) = stepLength*ran2(&idum) - 0.5;
+                oldS.r(i,j) = stepLength*ran2(&idum) - 0.5;
+            }
         }
     }
 
-    rNew = rOld;
-    waveFunctionOld = wavefunction(rOld);
+//    rNew = rOld;
+//    waveFunctionOld = wavefunction(rOld);
+
+    newS.r = oldS.r;
+    oldS.waveFunction = wavefunction(oldS.r);
 //    calculate_rij(rOld, rijOld);
 //    fijOld = calculate_fij_element()
     if (importanceSampling)
     {
-        qForceOld = quantumForce(rOld, waveFunctionOld);
-        qForceNew = qForceOld;
+//        qForceOld = quantumForce(rOld, waveFunctionOld);
+//        qForceNew = qForceOld;
+
+        oldS.qForce = quantumForce(oldS.r, oldS.waveFunction);
+        newS.qForce = oldS.qForce;
     }
 
     // loop over Monte Carlo cycles
     for (int cycle = my_start; cycle < my_end; cycle++) {
 
         // Store the current value of the wave function
-        waveFunctionOld = wavefunction(rOld);
+//        waveFunctionOld = wavefunction(rOld);
+        oldS.waveFunction = wavefunction(oldS.r);
 
         for (int i = 0; i < nParticles; i++) {
 
-            if(importanceSampling)
+            if (importanceSampling)
                 runcycle_importanceSampling(i);
             else
                 runcycle(i);
 
             // update energies
             if (closedForm)
-                deltaE = localEnergyClosedForm(rNew);
+            {
+//                deltaE = localEnergyClosedForm(rNew);
+                deltaE = localEnergyClosedForm(newS.r);
+            }
             else
-                deltaE = localEnergy(rNew);
+            {
+//                deltaE = localEnergy(rNew);
+                deltaE = localEnergy(newS.r);
+            }
             energySum += deltaE;
             energySquaredSum += deltaE*deltaE;
         }
         // calculating the optimal value of the distance between the particles
-        r12 += norm(rNew.row(0), 2);
+//        r12 += norm(rNew.row(0), 2);
+        r12 += norm(newS.r.row(0), 2);
     }
 
     double energy = energySum/(local_nCycles*nParticles);
@@ -218,62 +254,74 @@ double VMCSolver::runMonteCarloIntegration(const int &nCycles)
 
 void VMCSolver::runcycle_importanceSampling(const int &i)
 {
-    double omegaRatio = 0.0;
+//    double omegaRatio = 0.0;
 
-    // New position to test
-    for (int j = 0; j < nDimensions; j++) {
-        rNew(i,j) = rOld(i,j) + gaussianDeviate(&idum)*sqrt(2.0*Ddt)
-                + qForceOld(i,j)*Ddt;
-    }
+//    // New position to test
+//    for (int j = 0; j < nDimensions; j++) {
+//        rNew(i,j) = rOld(i,j) + gaussianDeviate(&idum)*sqrt(2.0*Ddt)
+//                + qForceOld(i,j)*Ddt;
+//    }
 
-    // Recalculate the value of the wave function
-    waveFunctionNew = wavefunction(rNew);
-    qForceNew = quantumForce(rNew, waveFunctionNew);
+//    // Recalculate the value of the wave function
+//    waveFunctionNew = wavefunction(rNew);
+//    qForceNew = quantumForce(rNew, waveFunctionNew);
 
-    // log of the ratio of the greens function
-    // from slides
-    omegaRatio = 0.0;
-    for (int j = 0; j < nDimensions; j++) {
-        omegaRatio += (qForceOld(i,j) + qForceNew(i,j))
-                * (2.0*(rOld(i,j) - rNew(i,j)) + Ddt*(qForceOld(i,j) - qForceNew(i,j)));
-    }
-    omegaRatio /= 4.0;
-    omegaRatio = exp(omegaRatio);
+//    // log of the ratio of the greens function
+//    // from slides
+//    omegaRatio = 0.0;
+//    for (int j = 0; j < nDimensions; j++) {
+//        omegaRatio += (qForceOld(i,j) + qForceNew(i,j))
+//                * (2.0*(rOld(i,j) - rNew(i,j)) + Ddt*(qForceOld(i,j) - qForceNew(i,j)));
+//    }
+//    omegaRatio /= 4.0;
+//    omegaRatio = exp(omegaRatio);
 
-    // Check for step acceptance (if yes, update position, if no, reset position)
-    if (ran2(&idum) <= omegaRatio*slaterRatio()*jastrowRatio(i)) {
-        rOld.row(i) = rNew.row(i); // update position
-        qForceOld.row(i) = qForceNew.row(i); // SHOULD BE JUST THE ROW !!!
-        waveFunctionOld = waveFunctionNew;
-        nAccepted++;
-    } else {
-        rNew.row(i) = rOld.row(i);
-        qForceNew.row(i) = qForceOld.row(i); // SHOULD BE JUST THE ROW !!!
-        nRejected++;
-    }
+//    // Check for step acceptance (if yes, update position, if no, reset position)
+//    if (ran2(&idum) <= omegaRatio*slaterRatio()*jastrowRatio(i)) {
+//        rOld.row(i) = rNew.row(i); // update position
+//        qForceOld.row(i) = qForceNew.row(i); // SHOULD BE JUST THE ROW !!!
+//        waveFunctionOld = waveFunctionNew;
+//        nAccepted++;
+//    } else {
+//        rNew.row(i) = rOld.row(i);
+//        qForceNew.row(i) = qForceOld.row(i); // SHOULD BE JUST THE ROW !!!
+//        nRejected++;
+//    }
 }
 
 void VMCSolver::runcycle(const int &i)
 {
     // New position to test
     for (int j = 0; j < nDimensions; j++) {
-        rNew(i,j) = rOld(i,j) + stepLength*(ran2(&idum) - 0.5);
+//        rNew(i,j) = rOld(i,j) + stepLength*(ran2(&idum) - 0.5);
+        newS.r(i,j) = oldS.r(i,j) + stepLength*(ran2(&idum) - 0.5);
     }
-     update_rij(rNew, rijNew, i);
+//    update_rij(rNew, rijNew, i);
+    update_rij(newS.r, newS.rij, i);
 
     // Recalculate the value of the wave function
-    waveFunctionNew = wavefunction(rNew);
+//    waveFunctionNew = wavefunction(rNew);
+    newS.waveFunction = wavefunction(newS.r);
 
     // Check for step acceptance (if yes, update position, if no, reset position)
 //    if (ran2(&idum) <= (waveFunctionNew*waveFunctionNew) / (waveFunctionOld*waveFunctionOld)) {
     if (ran2(&idum) <= slaterRatio()*jastrowRatio(i)) {
-        rOld.row(i) = rNew.row(i); // update position SHOULD BE JUST ROW!!!
-        waveFunctionOld = waveFunctionNew;
-        rijOld = rijNew;
+//        rOld.row(i) = rNew.row(i); // update position SHOULD BE JUST ROW!!!
+//        waveFunctionOld = waveFunctionNew;
+//        rijOld = rijNew;
+
+        oldS.r.row(i) = newS.r.row(i);
+        oldS.waveFunction = newS.waveFunction;
+        oldS.rij = newS.rij;
+
         nAccepted++;
     } else {
-        rNew.row(i) = rOld.row(i); // reset position, throw away the test-position
-        rijNew = rijOld;
+//        rNew.row(i) = rOld.row(i); // reset position, throw away the test-position
+//        rijNew = rijOld;
+
+        newS.r.row(i) = oldS.r.row(i);
+        newS.rij = oldS.rij;
+
         nRejected++;
     }
 }
