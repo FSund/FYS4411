@@ -31,7 +31,6 @@ double CBeryllium::wavefunction(const mat &r, const mat &fij)
     return phiSD(r)*jastrowWF(fij);
 }
 
-<<<<<<< HEAD
 double CBeryllium::slaterRatio()
 {
     return waveFunctionNew*waveFunctionNew/(waveFunctionOld*waveFunctionOld);
@@ -52,10 +51,6 @@ double CBeryllium::jastrowRatio(const int &k)
 double CBeryllium::jastrowWF(const mat &fij)
 {
     double arg = 0.0;
-=======
-double CBeryllium::jastrowWF(const mat &fij)
-{
-    double arg = 0.0;
     for (int i = 0; i < nParticles; i++)
     {
         for (int j = i+1; j < nParticles; j++)
@@ -66,21 +61,6 @@ double CBeryllium::jastrowWF(const mat &fij)
     return exp(arg);
 }
 
-double CBeryllium::phiSD(const mat &r)
-{
-    double dist[nParticles];
->>>>>>> 11f443a3f559fada5f12f377790cb7e18191ad0c
-    for (int i = 0; i < nParticles; i++)
-    {
-        for (int j = i+1; j < nParticles; j++)
-        {
-            arg += fij(i,j);
-        }
-    }
-    return exp(arg);
-}
-
-<<<<<<< HEAD
 //double CBeryllium::phiSD(const mat &r)
 //{
 //    double dist[nParticles];
@@ -185,29 +165,6 @@ double CBeryllium::phi2sf(const double &r) const
 //    stepLength = stepLength_;
 //}
 
-=======
-double CBeryllium::phi1s(double r)
-{
-    return exp(-alpha*r);
-}
-
-double CBeryllium::phi2s(double r)
-{
-    double arg = -alpha*r*0.5;
-    return (1.0 + arg)*exp(arg);
-}
-
-//void CBeryllium::setParameters(
-//        const double &alpha_,
-//        const double &beta_,
-//        const double &stepLength_)
-//{
-//    alpha = alpha_;
-//    beta = beta_;
-//    stepLength = stepLength_;
-//}
-
->>>>>>> 11f443a3f559fada5f12f377790cb7e18191ad0c
 //void CBeryllium::setParameters(
 //        const double &alpha_,
 //        const double &beta_,

@@ -36,7 +36,6 @@ void VMCSolver::setParameters(
     beta = beta_;
     stepLength = stepLength_;
 }
-<<<<<<< HEAD
 
 void VMCSolver::setParameters(
         const double &alpha_,
@@ -111,25 +110,6 @@ double VMCSolver::phi2s(const vec3 &rvec)
 
 //    cout << "phi2s = " << (1.0 + arg)*exp(arg) << endl;
     return (1.0 + arg)*exp(arg);
-=======
-
-void VMCSolver::setParameters(
-        const double &alpha_,
-        const double &beta_,
-        const double &stepLength_,
-        const double &h_,
-        const double &h2_,
-        const bool &importanceSampling_,
-        const bool &closedForm_)
-{
-    alpha = alpha_;
-    beta = beta_;
-    stepLength = stepLength_;
-    h = h_;
-    h2 = h2_;
-    importanceSampling = importanceSampling_;
-    closedForm = closedForm_;
->>>>>>> 11f443a3f559fada5f12f377790cb7e18191ad0c
 }
 
 double VMCSolver::runMonteCarloIntegration(const int &nCycles)
@@ -145,11 +125,7 @@ double VMCSolver::runMonteCarloIntegration(const int &nCycles)
     double energySum = 0;
     double energySquaredSum = 0;
     double deltaE = 0;
-<<<<<<< HEAD
 //    double omegaRatio;
-=======
-    double omegaRatio;
->>>>>>> 11f443a3f559fada5f12f377790cb7e18191ad0c
 //    h = dt;
 //    h2 = 1.0/(h*h);
     D = 0.5;
@@ -177,11 +153,8 @@ double VMCSolver::runMonteCarloIntegration(const int &nCycles)
 
     rNew = rOld;
     waveFunctionOld = wavefunction(rOld);
-<<<<<<< HEAD
 //    calculate_rij(rOld, rijOld);
 //    fijOld = calculate_fij_element()
-=======
->>>>>>> 11f443a3f559fada5f12f377790cb7e18191ad0c
     if (importanceSampling)
     {
         qForceOld = quantumForce(rOld, waveFunctionOld);
@@ -268,11 +241,7 @@ void VMCSolver::runcycle_importanceSampling(const int &i)
     omegaRatio = exp(omegaRatio);
 
     // Check for step acceptance (if yes, update position, if no, reset position)
-<<<<<<< HEAD
     if (ran2(&idum) <= omegaRatio*slaterRatio()*jastrowRatio(i)) {
-=======
-    if (ran2(&idum) <= omegaRatio*waveFunctionNew*waveFunctionNew/(waveFunctionOld*waveFunctionOld)) {
->>>>>>> 11f443a3f559fada5f12f377790cb7e18191ad0c
         rOld.row(i) = rNew.row(i); // update position
         qForceOld.row(i) = qForceNew.row(i); // SHOULD BE JUST THE ROW !!!
         waveFunctionOld = waveFunctionNew;
@@ -290,24 +259,15 @@ void VMCSolver::runcycle(const int &i)
     for (int j = 0; j < nDimensions; j++) {
         rNew(i,j) = rOld(i,j) + stepLength*(ran2(&idum) - 0.5);
     }
-<<<<<<< HEAD
      update_rij(rNew, rijNew, i);
-=======
-    update_rij(rNew, rijNew, i);
->>>>>>> 11f443a3f559fada5f12f377790cb7e18191ad0c
 
     // Recalculate the value of the wave function
     waveFunctionNew = wavefunction(rNew);
 
     // Check for step acceptance (if yes, update position, if no, reset position)
-<<<<<<< HEAD
 //    if (ran2(&idum) <= (waveFunctionNew*waveFunctionNew) / (waveFunctionOld*waveFunctionOld)) {
     if (ran2(&idum) <= slaterRatio()*jastrowRatio(i)) {
         rOld.row(i) = rNew.row(i); // update position SHOULD BE JUST ROW!!!
-=======
-    if (ran2(&idum) <= (waveFunctionNew*waveFunctionNew) / (waveFunctionOld*waveFunctionOld)) {
-        rOld.row(i) = rNew.row(i); // update position
->>>>>>> 11f443a3f559fada5f12f377790cb7e18191ad0c
         waveFunctionOld = waveFunctionNew;
         rijOld = rijNew;
         nAccepted++;
@@ -379,7 +339,6 @@ void VMCSolver::update_rij(const mat &r, mat &rij, const int j)
     }
 }
 
-<<<<<<< HEAD
 void VMCSolver::calculate_fij(const mat &rij, mat &fij)
 {
 //    double a = ((i+j)%2 == 0) ? 0.25 : 0.5;
@@ -401,19 +360,6 @@ void VMCSolver::calculate_fij(const mat &rij, mat &fij)
 }
 
 double VMCSolver::calculate_fij_element(const mat &rij, const int &i, const int &j)
-=======
-double VMCSolver::jastrowRatio(const int k)
-{
-    double dU = 0.0;
-    for (int i = 0; i < k; i++)
-        dU += fij(rijNew, i, k) - fij(rijOld, i, k);
-    for (int i = k+1; i < nParticles; i++)
-        dU += fij(rijNew, k, i) - fij(rijOld, k, i);
-    return exp(dU);
-}
-
-double VMCSolver::fij(const mat rij, const int i, const int j)
->>>>>>> 11f443a3f559fada5f12f377790cb7e18191ad0c
 {
     double a = ((i+j)%2 == 0) ? 0.25 : 0.5;
     double r12 = rij(i,j);
@@ -421,11 +367,6 @@ double VMCSolver::fij(const mat rij, const int i, const int j)
     return a*r12/(1.0 + beta*r12);
 }
 
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 11f443a3f559fada5f12f377790cb7e18191ad0c
 void VMCSolver::update_slater()
 {
 //    for (int i = 0; i < nParticles; i++)
@@ -435,10 +376,6 @@ void VMCSolver::update_slater()
 //            S(j) = Dnew
 //        }
 //    }
-<<<<<<< HEAD
-=======
-
->>>>>>> 11f443a3f559fada5f12f377790cb7e18191ad0c
 }
 
 double VMCSolver::gaussianDeviate(long *seed)
