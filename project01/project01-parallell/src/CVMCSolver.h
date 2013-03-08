@@ -59,7 +59,7 @@ protected:
     virtual double localEnergyClosedForm(const mat&) = 0;
 
     double localEnergy(const mat &r);
-    mat quantumForce(const mat &r, const double &wf);
+    mat &quantumForce(const mat &r, const double &wf);
 //    double waveFunction2(const mat &r);
 //    double dr(const mat &r, const int ii, const int jj);
 

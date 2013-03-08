@@ -254,39 +254,55 @@ double VMCSolver::runMonteCarloIntegration(const int &nCycles)
 
 void VMCSolver::runcycle_importanceSampling(const int &i)
 {
-//    double omegaRatio = 0.0;
+    double omegaRatio = 0.0;
 
-//    // New position to test
-//    for (int j = 0; j < nDimensions; j++) {
+    // New position to test
+    for (int j = 0; j < nDimensions; j++) {
 //        rNew(i,j) = rOld(i,j) + gaussianDeviate(&idum)*sqrt(2.0*Ddt)
 //                + qForceOld(i,j)*Ddt;
-//    }
+        newS.r(i,j) = oldS.r(i,j) + gaussianDeviate(&idum)*sqrt(2.0*Ddt)
+                + oldS.qForce(i,j)*Ddt;
+    }
 
-//    // Recalculate the value of the wave function
+    // Recalculate the value of the wave function
 //    waveFunctionNew = wavefunction(rNew);
 //    qForceNew = quantumForce(rNew, waveFunctionNew);
 
-//    // log of the ratio of the greens function
-//    // from slides
-//    omegaRatio = 0.0;
-//    for (int j = 0; j < nDimensions; j++) {
+    newS.waveFunction = wavefunction(newS.r);
+    newS.qForce = quantumForce(newS.r, newS.waveFunction);
+
+    // log of the ratio of the greens function
+    // from slides
+    omegaRatio = 0.0;
+    for (int j = 0; j < nDimensions; j++) {
 //        omegaRatio += (qForceOld(i,j) + qForceNew(i,j))
 //                * (2.0*(rOld(i,j) - rNew(i,j)) + Ddt*(qForceOld(i,j) - qForceNew(i,j)));
-//    }
-//    omegaRatio /= 4.0;
-//    omegaRatio = exp(omegaRatio);
+        omegaRatio += (oldS.qForce(i,j) + newS.qForce(i,j))
+                * (2.0*(oldS.r(i,j) - newS.r(i,j)) + Ddt*(oldS.qForce(i,j) - newS.qForce(i,j)));
+    }
+    omegaRatio /= 4.0;
+    omegaRatio = exp(omegaRatio);
 
-//    // Check for step acceptance (if yes, update position, if no, reset position)
-//    if (ran2(&idum) <= omegaRatio*slaterRatio()*jastrowRatio(i)) {
+    // Check for step acceptance (if yes, update position, if no, reset position)
+    if (ran2(&idum) <= omegaRatio*slaterRatio()*jastrowRatio(i)) {
 //        rOld.row(i) = rNew.row(i); // update position
 //        qForceOld.row(i) = qForceNew.row(i); // SHOULD BE JUST THE ROW !!!
 //        waveFunctionOld = waveFunctionNew;
-//        nAccepted++;
-//    } else {
+
+        oldS.r.row(i) = newS.r.row(i); // update position
+        oldS.qForce.row(i) = newS.qForce.row(i); // SHOULD BE JUST THE ROW !!!
+        oldS.waveFunction = newS.waveFunction;
+
+        nAccepted++;
+    } else {
 //        rNew.row(i) = rOld.row(i);
 //        qForceNew.row(i) = qForceOld.row(i); // SHOULD BE JUST THE ROW !!!
-//        nRejected++;
-//    }
+
+        newS.r.row(i) = oldS.r.row(i);
+        newS.qForce.row(i) = oldS.qForce.row(i); // SHOULD BE JUST THE ROW !!!
+
+        nRejected++;
+    }
 }
 
 void VMCSolver::runcycle(const int &i)
@@ -326,7 +342,7 @@ void VMCSolver::runcycle(const int &i)
     }
 }
 
-mat VMCSolver::quantumForce(const mat &r, const double &wf) {
+mat &VMCSolver::quantumForce(const mat &r, const double &wf) {
     double wfMinus, wfPlus;
     mat rPlus(r);
     mat rMinus(r);
