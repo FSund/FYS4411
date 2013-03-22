@@ -1,0 +1,459 @@
+% \begin{abstract}
+% 
+% \end{abstract}
+
+\section*{Theory}
+Hamiltonian
+\[
+    \hat H = \hat T + \hat V,
+\]
+where
+\[
+    \hat T = \sum_{i=1}^N \frac{\bvec p_i^2}{2m_i} = \sum_{i=1}^N \left( -\frac{\hbar^2}{2m_i}\nabla_i^2 \right)
+\]
+and
+\[
+    \hat V = \sum_{i=1}^N u(\bvec r_i) + \sum_{j,i=1}^N v(\bvec r_i, r_j) + \sum_{i,j,k=1}^N u(\bvec r_i, \bvec r_j, \bvec r_k) + \dots
+\]
+The expectation value of the hamiltonian $H$
+\[
+    E[H] = \langle H \rangle \approx \frac{\int \dd\bvec R \psi_T^*(\bvec R) H(\bvec R) \psi_T(\bvec R)}{\int \dd\bvec R \psi_T^*(\bvec R) \psi_T(\bvec R)}
+\]
+
+Probability distribution function
+\[
+P(\bvec R) = \frac{|\psi_T(\bvec R)|^2}{\int|\psi_T(\bvec R)|^2 \dd\bvec R}    
+\]
+Local energy
+\begin{align*}
+    E_{LR} = \frac{1}{\psi_T(\bvec R)} H \psi_T(\bvec R),
+\end{align*}
+where $\psi_T(\bvec R)$ is our trial wavefunction. This gives
+\[
+    E[H] = \langle H \rangle \approx \int P(\bvec R) E_{LR} (\bvec R) \dd\bvec R \approx \frac{1}{N} \sum_{i=1}^N P(\bvec R_) E_{LR}(\bvec R_i),
+\]
+where $N$ is the number of Monte Carlo samples.\\
+
+Metropolis acceptance check
+\begin{align*}
+    \omega = \frac{P(\bvec R_p)}{P(\bvec R)}.
+\end{align*} \\
+
+% Correlation function or {\it linear Pad\'e-Jastrow}
+% \[
+%     \Psi_C = \exp\left( \sum_{i<j}\frac{\alpha r_{ij}}{1 + \beta r_{ij}} \right).
+% \] % moved further down
+
+\subsection*{Importance sampling}
+Quantum force
+\[
+    \bvec F = 2\frac{1}{\Psi_T}\nabla \Psi_T.
+\]
+This term is responsible for pushing the walker towards regions of configuration space where the trial wave function is large, increasing the efficiency of the simulation in contrast to the Metropolis algorithm where the walker has the same probability of moving in every direction. \\
+
+New Metropolis test
+\[
+    q(\bvec R_p, \bvec R) = \frac{G(\bvec R, \bvec R_p, \Delta t) |\Psi_T(\bvec R_p)|^2}{G(\bvec R_p, \bvec R, \Delta t) |\Psi_T(\bvec R)|^2}
+\]
+
+\section*{Efficient calculation of wave function ratios}
+Ratio of trial wave functions
+\[
+    R = \frac{\Psi_T^\text{new}}{\Psi_T^\text{curr}} = \frac{\Psi_D^\text{new}}{\Psi_D^\text{curr}} \cdot \frac{\Psi_C^\text{new}}{\Psi_C^\text{curr}} = R_D\cdot R_C,
+\]
+where $\Psi_D$ is our Slater determinant, and $\Psi_C$ is the correlation function.\\
+
+For the quantum force we need
+\[
+    \frac{\nabla \Psi_T}{\Psi_T},
+\]
+which can be rewritten as
+\[
+    \frac{\nabla \Psi_T}{\Psi_T} = \frac{\nabla(\Psi_D\Psi_C)}{\Psi_D\Psi_C} = \frac{\Psi_C\nabla\Psi_D + \Psi_D\nabla\Psi_C}{\Psi_D\Psi_C} = \frac{\nabla \Psi_D}{\Psi_D} + \frac{\nabla\Psi_C}{\Psi_C}.
+\]
+For the kinetic energy term of the local energy we need
+\[
+    \frac{\nabla^2\Psi_T}{\Psi_T},
+\]
+which can be rewritten as
+\begin{align*}
+    \frac{\nabla^2\Psi_T}{\Psi_T}
+    &= \frac{\nabla^2(\Psi_D\Psi_C)}{\Psi_D\Psi_C} = \frac{\nabla\cdot[\nabla(\Psi_D\Psi_C)]}{\Psi_D\Psi_C} \\
+    &= \frac{\nabla\cdot[\Psi_C\nabla\Psi_D + \Psi_D\nabla\Psi_C]}{\Psi_D\Psi_C} \\
+    &= \frac{\nabla\Psi_C\cdot\nabla\Psi_D + \Psi_C\nabla^2\Psi_D + \nabla\Psi_C\cdot\nabla\Psi_C + \Psi_D\nabla^2\Psi_C}{\Psi_D\Psi_C} \\
+    &= 2\frac{\nabla\Psi_C\cdot\nabla\Psi_D}{\Psi_D\Psi_C} + \frac{\nabla^2\Psi_D}{\Psi_D} + \frac{\nabla^2\Psi_C}{\Psi_D}
+    .
+\end{align*}
+
+\subsection*{The correlation function}
+We define the correlation function as
+\[
+    \Psi_C = \prod_{i<j}^N g(r_{ij}) = \prod_{i=1}^N\prod_{j=i+1}^N g(r_{ij}),
+\]
+where $r_{ij} = \sqrt{(x_i - x_j)^2 + \dots}$. For the Pad\'e-Jastrow form we have
+\[
+    g(r_{ij}) = \exp\left(\frac{\alpha r_{ij}}{1 + \beta r_{ij}}\right) = \exp(f_{ij}),
+\]
+so we can write
+\[
+    \Psi_C = \prod_{i=1}^N\prod_{j=i+1}^N \exp(f_{ij}) = \exp\left(\sum_{i=1}^N\sum_{j=i+1}^N f_{ij} \right).
+\]
+The total number of different relative distances $r_{ij}$ is $N(N-1)/2$, and they can be stored in a upper diagonal matrix:
+\[
+    \begin{pmatrix}
+    0      & r_{1,2} & r_{1,3} & \cdots & r_{1,N} \\
+    0      & 0       & r_{2,3} & \cdots & r_{2,N} \\
+    \vdots & \vdots  & \ddots  & \ddots & \vdots \\
+    0      & 0       & 0       & \ddots & r_{N-1, N} \\
+    0      & 0       & 0       & \cdots & 0
+    \end{pmatrix}.
+\]
+We see that we can also store $g(r_{ij})$ in the same way. We now see that if we only move one particle at the time, say the $k$th particle, we only change row and column $k$ of the $r_{ij}$- and $g_{ij}$-matrices. Since the diagonal and the lower diagonal parts are all zero, this means we only change $N-1$ elements of the $N\times N$ matrices.\\
+
+We then see that we get the following expression for the correlation part of the ratios of wave functions
+\[
+    R_C = \frac{\Psi_C^\text{new}}{\Psi_C^\text{curr}} = \prod_{i=1}^{k-1} \frac{g_{ik}^\text{new}}{g_{ik}^\text{curr}} \prod_{i = k+1}^{N} \frac{g_{ki}^\text{new}}{g_{ki}^\text{curr}},
+\]
+which, we for the Pad\'e-Jastrow form can write as
+\[
+    R_C = \frac{\Psi_C^\text{new}}{\Psi_C^\text{curr}} = \frac{e^{U_\text{new}}}{e^{U_\text{curr}}} = e^{\Delta U},
+\]
+where
+\[
+    \Delta U = \sum_{i = 1}^{k-1}(f_{ik}^\text{new} - f_{ik}^\text{curr}) + \sum_{i = k+1}^N(f_{ki}^\text{new} - f_{ki}^\text{curr}).
+\]
+
+\subsection*{Derivatives of the correlation}
+For the quantom force and the kinetic energy part of the local energy we need the following derivative
+\[
+    \frac{\nabla_i \Psi_C}{\Psi_C} = \frac{1}{\Psi_C}\frac{\partial \Psi_C}{\partial x_i},
+\]
+for all dimensions and for all particles $i$.\\
+
+[BLACK MAGIC, slides page 82-85, notes p. 515 (16.9)] \\
+
+\[
+    \frac{1}{\Psi_C} \frac{\partial \Psi_C}{\partial x_k}
+    = \sum_{i=1}^{k-1} \frac{\bvec r_{ik}}{r_{ik}} \frac{\partial f_{ik}}{\partial r_{ik}} - \sum_{i = k+1}^{N} \frac{\bvec r_{ki}}{r_{ki}} \frac{\partial f_{ki}}{\partial r_{ki}},
+\]
+where $\bvec r_{ij} = |\bvec r_j - \bvec r_i|$. For the {\it linear Pad\'e-Jastrow} we have
+\[
+    f_{ij} = \frac{\alpha r_{ij}}{1+\beta r_{ij}},
+\]
+which yields the close form expression
+\[
+    \frac{\partial f_{ij}}{\partial r_{ij}} = \frac{\alpha}{(1 + \beta r_{ij})^2}.
+\] \\
+
+We also need the 
+
+
+
+
+
+
+
+
+
+
+\section*{Derivatives}
+
+\begin{align*}
+    E_{L2} &= \frac{1}{\Psi_T} \hat {\bvec H} \Psi_T \notag\\
+    &= \frac{1}{\Psi_T} \left( -\frac{\nabla_1^2}{2} - \frac{\nabla_2^2}{2} - \frac{Z}{r_1} - \frac{Z}{r_2} + \frac{1}{r_{12}} \right) \exp \left( -\alpha (r_1 + r_2) + \frac{r_{12}}{2(1+\beta r_{12})} \right)
+\end{align*}
+We see that the most work-intensive parts will be the ones with the Laplacian, so we start with those. We then get
+\begin{align*}
+	\nabla^2_1 &\exp \Big(-\alpha(r_1+r_2)\Big) \exp\left(\frac{r_{12}}{2(1 + \beta r_{12})}\right)
+	= \nabla^2_1 AB \\
+	&= (\nabla^2_1 A)B + A(\nabla^2_1 B) + 2(\vec\nabla_1 A)(\vec\nabla_1 B).
+\end{align*}
+We will now focus on the Laplacian of $A$ and $B$. For $\nabla^2_1 B$ we get
+\begin{align}
+	\nabla^2_1 B
+	&= \nabla^2_1 \exp\left(\frac{r_{12}}{2(1 + \beta r_{12})}\right) \notag\\
+	&= \left(\frac{\partial^2}{\partial x_1^2} + \dots \right) \exp\left(\frac{r_{12}}{2(1 + \beta r_{12})}\right) \notag\\
+	&= \left(\frac{\partial}{\partial x_1} + \dots\right) \exp\left(\frac{r_{12}}{2(1 + \beta r_{12})}\right) \left(\frac{\partial}{\partial x_1} + \dots\right) \frac{r_{12}}{2(1 + \beta r_{12})},
+	\label{eq:nabla2B}
+\end{align}
+which we see gets pretty messy pretty fast. So we do some intermediate steps
+\begin{align}
+	\left(\frac{\partial}{\partial x_1}\right) \frac{r_{12}}{2(1 + \beta r_{12})}
+	&= \frac{ \left(\frac{\partial}{\partial x_1}r_{12}\right) \cdot 2(1+\beta r_{12}) - r_{12} \cdot 2\beta\left(\frac{\partial}{\partial x_1}r_{12}\right) } {4(1 + \beta r_{12})^2} \notag\\
+	&= \frac{ \frac{\partial}{\partial x_1}r_{12} }{ 2(1 + \beta r_{12})^2 }.
+	\label{eq:ddxfrac}
+\end{align}
+Now we're getting somewhere. We then find the needed derivative separately
+\begin{align*}
+	\frac{\partial}{\partial x_1}r_{12}
+	&= \frac{\partial}{\partial x_1} \sqrt{(x_1 - x_2)^2 + \dots} \\
+	&= \frac{1}{2r_{12}}\frac{\partial}{\partial x_1} \Big((x_1 - x_2)^2 + \dots\Big) \\
+	&= \frac{1}{r_{12}}(x_1 - x_2).
+\end{align*}
+We then insert this into equation (\ref{eq:ddxfrac}), and get
+\begin{align*}
+	\left(\frac{\partial}{\partial x_1}\right) \frac{r_{12}}{2(1 + \beta r_{12})}
+	&= \frac{ x_1-x_2 }{2r_{12}(1 + \beta r_{12})^2 }
+\end{align*}
+If we insert this into equation (\ref{eq:nabla2B}) we get
+\begin{align*}
+	\nabla^2_1 \exp\left(\frac{r_{12}}{2(1 + \beta r_{12})}\right)
+	&= \left(\frac{\partial}{\partial x_1} + \dots\right) \exp\left(\frac{r_{12}}{2(1 + \beta r_{12})}\right) \frac{ (x_1-x_2) + \dots(y,z) }{2r_{12}(1 + \beta r_{12})^2 } \\
+	&= \left[\left(\frac{\partial}{\partial x_1}+\dots\right) \frac{r_{12}}{2(1 + \beta r_{12})}\right] \cdot \exp\left(\dots\right) \\
+	&~~~~+ \exp(\dots) \cdot \left[\left(\frac{\partial}{\partial x_1}+\dots\right)\frac{ (x_1-x_2) + \dots(y,z) }{2r_{12}(1 + \beta r_{12})^2 }\right].
+\end{align*}
+The derivative in the first part we have already seen and solved in equation (\ref{eq:ddxfrac}), but the derivative in the second part needs some work:
+\begin{align*}
+	\left(\frac{\partial}{\partial x_1}+\dots\right)\frac{ (x_1-x_2) + \dots(y,z) }{2r_{12}(1 + \beta r_{12})^2 }.
+\end{align*}
+For coordinate $x_1$ we get
+\begin{align*}
+	\left(\frac{\partial}{\partial x_1}\right) \left[\frac{ {\displaystyle\frac{1}{r_{12}}}(x_1-x_2)}{2(1 + \beta r_{12})^2 }  + \dots\right]
+	&= \frac{ \left(\frac{\partial}{\partial x_1}\frac{x_1}{r_{12}}\right) \cdot 2(1+\beta r_{12})^2 
+	- \frac{1}{r_{12}}(x_1-x_2) \cdot 4(1 + \beta r_{12})\beta\left(\frac{\partial}{\partial x_1}r_{12}\right) } 
+	{ 4(1+\beta r_{12})^4 } + \dots \\
+	&= \frac{ \left(\frac{\partial}{\partial x_1}\frac{x_1}{r_{12}}\right) (1+\beta r_{12}) 
+	- {\displaystyle\frac{2\beta}{r_{12}}}(x_1-x_2) \left(\frac{\partial}{\partial x_1}r_{12}\right) } 
+	{ 2(1+\beta r_{12})^3 } + \dots \\
+\end{align*}
+
+For $\nabla^2_1A$ we get
+\begin{align*}
+	\nabla^2_1 A
+	&= \nabla^2_1 \exp \Big(-\alpha(r_1+r_2)\Big) \\
+	&= \left(\frac{\partial^2}{\partial x_1^2} + \cdots \right) \exp\Big(-\alpha(r_1+r_2)\Big) \\
+	&= 
+\end{align*}
+
+% We first do the derivative of the first half of the core of exponential
+% \begin{align*}
+    % \frac{\nabla_1^2}{2} \Big( -\alpha(r_1 + r_2) \Big)
+    % &= \frac{1}{2}\frac{1}{r_1^2} \frac{\partial}{\partial r_1} \left[ r_1^2\frac{\partial}{\partial r_1} \Big( -\alpha(r_1 + r_2) \Big) \right] \\
+    % &= \frac{1}{2r_1^2} \frac{\partial}{\partial r_1} \left[ r_1^2-\alpha \right] \\
+    % &= \frac{1}{2r_1^2} \Big( -2r_1\alpha \Big) \\
+    % &= -\frac{\alpha}{r_1}
+% \end{align*}
+% using the radial part of the Laplacian in spherical coordinates. We then do the derivative of the second part of the exponential with regards to $r_1$
+% \begin{align}
+    % \frac{\nabla_1^2}{2} \left( \frac{r_{12}}{2(1+\beta r_{12})} \right)
+    % &= \frac{1}{2}\frac{1}{r_1^2} \frac{\partial}{\partial r_1} \left[ r_1^2\frac{\partial}{\partial r_1} \left( \frac{r_{12}}{2(1+\beta r_{12})} \right) \right].
+    % \label{eq:nabla1}
+% \end{align}
+% Now we focus on just the first derivative in the equation above
+% \begin{align*}
+    % \frac{\partial}{\partial r_1} \left( \frac{r_{12}}{2(1+\beta r_{12})} \right)
+    % &= \frac{ \left(\frac{\partial}{\partial r_1}r_{12}\right) \cdot 2(1 + \beta r_{12}) - r_{12}\cdot 2\beta\left(\frac{\partial}{\partial r_1}r_{12}\right)} {4(1 + \beta r_{12})^2} \\
+    % &= \frac{\left(\frac{\partial}{\partial r_1}r_{12}\right)}{2(1+\beta r_{12})^2},
+% \end{align*}
+% where $\frac{\partial}{\partial r_1}r_{12}$ is yet do be decided. We can then continue with the second derivative in (\ref{eq:nabla1})
+% \begin{align}
+    % \frac{\partial}{\partial r_1} \left[ r_1^2\frac{\partial}{\partial r_1} \left( \frac{r_{12}}{2(1+\beta r_{12})} \right) \right] 
+    % &= \frac{\partial}{\partial r_1} \left[ \frac{r_1^2 \left(\frac{\partial}{\partial r_1}r_{12}\right)}{2(1+\beta r_{12})^2} \right].
+% %     &= \frac{ \frac{\partial}{\partial r_1} \left(r_1^2\frac{\partial}{\partial r_1} \left( \frac{r_{12}}{2(1+\beta r_{12})} \right)\right)
+% %     \cdot 2(1+\beta r_{12})^2
+% %     - r_1^2\frac{\partial}{\partial r_1} \left( \frac{r_{12}}{2(1+\beta r_{12})} \right) \frac{\partial}{\partial r_1} 2(1+\beta r_{12})^2}
+% %     {4(1+\beta r_{12})^4}
+    % \label{eq:ddr1}
+% \end{align}
+% Now we see that we need the derivatives of the numerator and denominator, which we find separately as
+% % \begin{align*}
+% %     \frac{\partial}{\partial r_1} \left[ r_1^2\frac{\partial}{\partial r_1} \left( \frac{r_{12}}{2(1+\beta r_{12})} \right) \right] 
+% %     &= \frac{\partial}{\partial r_1} \left[ \frac{r_1^2 \left(\frac{\partial}{\partial r_1}r_{12}\right)}{2(1+\beta r_{12})^2} \right]
+% %     = \frac{\partial}{\partial r_1} \frac{u}{v} \\
+% %     &= \frac{u'v - uv'}{v^2}
+% % \end{align*}
+% \begin{align*}
+    % \frac{\partial}{\partial r_1} \left[ r_1^2 \left(\frac{\partial}{\partial r_1}r_{12}\right) \right]
+    % &= 2r_1 \left(\frac{\partial}{\partial r_1}r_{12}\right) + r_1^2 \left(\frac{\partial^2}{\partial r_1^2}r_{12}\right),
+% %     &= 2r_1\frac{\partial}{\partial r_1}r_{12}
+% \end{align*}
+% and
+% \begin{align*}
+    % \frac{\partial}{\partial r_1} 2(1+\beta r_{12})^2
+    % &= 4\beta\frac{\partial}{\partial r_1}r_{12} + 2\beta^2\frac{\partial}{\partial r_1}r_{12}^2 \\
+    % &= 4\beta\frac{\partial}{\partial r_1}r_{12} + 4\beta^2r_{12}\frac{\partial}{\partial r_1}r_{12} \\
+    % &= 4\beta\left(\frac{\partial}{\partial r_1}r_{12}\right) (1 + \beta r_{12}).
+% \end{align*}
+% Now we can put this all toghether to to solve (\ref{eq:ddr1}), yelding
+% \begin{gather*}
+    % { \left[ 2r_1 \left(\frac{\partial}{\partial r_1}r_{12} \right) + r_1^2 \left(\frac{\partial^2}{\partial r_1^2}r_{12}\right) \right] \cdot 2(1+\beta r_{12})^2 - r_1^2 \left(\frac{\partial}{\partial r_1}r_{12}\right) \cdot 4\beta\left(\frac{\partial}{\partial r_1}r_{12}\right) (1 + \beta r_{12}) } 
+    % \over {4(1+\beta r_{12})^4} \\
+    % = { \left[ r_1 \left(\frac{\partial}{\partial r_1}r_{12} \right) + \frac{r_1^2}{2} \left(\frac{\partial^2}{\partial r_1^2}r_{12}\right) \right] (1+\beta r_{12}) - r_1^2 \left(\frac{\partial}{\partial r_1}r_{12}\right) \beta\left(\frac{\partial}{\partial r_1}r_{12}\right) } 
+    % \over {(1+\beta r_{12})^3}
+% \end{gather*}
+
+
+% \begin{align*}s
+%     \frac{\partial}{\partial r_1} \left[ \frac{r_1^2 \left(\frac{\partial}{\partial r_1}r_{12}\right)}{2(1+\beta r_{12})^2} \right]
+%     &= \frac{2r_1\left(\frac{\partial}{\partial r_1}r_{12}\right) \cdot 2(1+\beta r_{12})^2 - r_1^2 \left(\frac{\partial}{\partial r_1}r_{12}\right) \cdot \left(2\beta\frac{\partial}{\partial r_1}r_{12} + 4\beta^2\frac{\partial}{\partial r_1}r_{12}^2\right)}{4(1+\beta r_{12})^4} \\
+%     &= \frac{2r_1\left(\frac{\partial}{\partial r_1}r_{12}\right) \cdot 2(1+\beta r_{12})^2 - r_1^2 \left(2\beta \left(\frac{\partial}{\partial r_1}r_{12}\right)^2 + 4\beta^2 \left(\frac{\partial}{\partial r_1}r_{12}\right) \frac{\partial}{\partial r_1}r_{12}^2\right)}{4(1+\beta r_{12})^4} \\
+%     &= \frac{2r_1\left(\frac{\partial}{\partial r_1}r_{12}\right) \cdot 2(1+\beta r_{12})^2 - r_1^2 \left(2\beta + 4\beta^2 \left(\frac{\partial}{\partial r_1}r_{12}\right) \frac{\partial}{\partial r_1}r_{12}^2\right)}{4(1+\beta r_{12})^4}
+% \end{align*}
+
+% \subsection*{$r$-derivatives}
+% \begin{align*}
+    % \frac{\partial}{\partial r_1} r_{12} 
+    % &= \frac{\partial}{\partial r_1} \sqrt{(x_1 - x_2)^2 + (y_1 - y_2)^2 + (z_1 - z_2)^2} \\
+    % &= \frac{\partial}{\partial r_1} \sqrt{(r_1\sin\theta_1\cos\phi_1 - x_2)^2 + (r_1\sin\theta_1\sin\phi_1 - y_2)^2 + (r_1\cos\theta_1 - z_2)^2} \\
+    % &= \left(\frac{1}{2r_{12}}\right) \frac{\partial}{\partial r_1} \Big[ (r_1\sin\theta_1\cos\phi_1 - x_2)^2 + (r_1\sin\theta_1\sin\phi_1 - y_2)^2 + (r_1\cos\theta_1 - z_2)^2 \Big] \\
+    % &= \frac{1}{2r_{12}} \Big[ 2(x_1 - x_2)(\sin\theta_1\cos\phi_1) + 2(y_1 - y_2)(\sin\theta_1\sin\phi_1) + 2(z_1 - z_2)(\cos\theta_1) \Big] \\
+    % &= \frac{1}{r_{12}} \left[ (x_1 - x_2)\frac{x_1}{r_1} + (y_1 - y_2)\frac{y_1}{r_1} + (z_1 - z_2)\frac{z_1}{r_1} \right] \\
+    % &= \frac{1}{r_1 r_{12}} \Big[ r_1^2 - x_1x_2 - y_1y_2 - z_1z_2 \Big] \\
+    % &= \frac{1}{r_1 r_{12}} \Big[ r_1^2 - \bvec r_1 \bvec r_2 \Big] \\
+% \end{align*}
+
+% \begin{align*}
+    % \frac{\partial^2}{\partial r_1^2} r_{12}
+    % &= \frac{\partial}{\partial r_1} \left[ \frac{1}{r_{12}} \Big( r_1 - x_2\frac{x_1}{r_1} - y_2\frac{y_1}{r_1} - z_2\frac{z_1}{r_1} \Big) \right] \\
+% \end{align*}
+
+% \begin{align*}
+    % \frac{\partial}{\partial r_1} \frac{1}{r_{12}}
+    % &= \frac{\partial}{\partial r_1} \Big( (x_1 - x_2)^2 + (y_1 - y_2)^2 + (z_1 - z_2)^2 \Big)^{-1/2} \\
+    % &= \left(-\frac{1}{2r_{12}}\right) \frac{\partial}{\partial r_1} \Big( (x_1 - x_2)^2 + (y_1 - y_2)^2 + (z_1 - z_2)^2 \Big) \\
+    % &= -\frac{1}{2r_{12}} \frac{\partial}{\partial r_1} \Big( (r_1\sin\theta_1\cos\phi_1 - x_2)^2 + (r_1\sin\theta_1\sin\phi_1 - y_2)^2 + (r_1\cos\theta_1 - z_2)^2 \Big)
+% \end{align*}
+
+
+
+% \subsection*{$\theta$-derivatives}
+
+% \begin{align*}
+    % \frac{\partial}{\partial \theta_1} r_{12} &= \frac{\partial}{\partial \theta_1} \sqrt{(x_1 - x_2)^2 + (y_1 - y_2)^2 + (z_1 - z_2)^2} \\
+    % &= \left(\frac{1}{2r_{12}}\right) \frac{\partial}{\partial \theta_1} \Big[ (r_1\sin\theta_1\cos\phi_1 - x_2)^2 + (r_1\sin\theta_1\sin\phi_1 - y_2)^2 + (r_1\cos\theta_1 - z_2)^2 \Big] \\
+    % &= \frac{1}{2r_{12}} \Big[ 2(x_1 - x_2)r_1\cos\theta_1\cos\phi_1 + 2(y_1 - y_2)r_1\cos\theta_1\sin\phi_1 - 2(z_1-z_2)r_1\sin\theta_1 \Big] \\
+    % &= \frac{r_1}{r_{12}} \Big[ (x_1 - x_2)\cos\theta_1\cos\phi_1 + (y_1 - y_2)\cos\theta_1\sin\phi_1 - (z_1-z_2)\sin\theta_1 \Big]
+% \end{align*}
+
+% \begin{align*}
+    % \frac{\partial}{\partial \theta_1} \left(\sin\theta_1\frac{\partial}{\partial \theta_1} r_{12}\right)
+    % &= \frac{\partial}{\partial \theta_1} \left(\sin\theta_1\frac{r_1}{r_{12}} \Big[ (x_1 - x_2)\cos\theta_1\cos\phi_1 + (y_1 - y_2)\cos\theta_1\sin\phi_1 - (z_1-z_2)\sin\theta_1 \Big] \right) \\
+    % &= \frac{\partial}{\partial \theta_1} \left[ \frac{1}{r_{12}} \Big( (x_1 - x_2)x_1\cos\theta_1 + (y_1-y_2)y_1\cos\theta_1 - (z_1-z_2)r_1\sin^2\theta_1 \Big) \right]
+% \end{align*}
+
+% \begin{align*}
+    % \frac{\partial}{\partial\theta_1} \frac{1}{r_{12}}
+    % &= \frac{\partial}{\partial\theta_1} \Big[ (r_1\sin\theta_1\cos\phi_1 - x_2)^2 + (r_1\sin\theta_1\sin\phi_1 - y_2)^2 + (r_1\cos\theta_1 - z_2)^2 \Big]^{-1/2} \\
+    % &= \left(-\frac{1}{2r_{12}^3}\right) \frac{\partial}{\partial\theta_1} \Big[ (r_1\sin\theta_1\cos\phi_1 - x_2)^2 + (r_1\sin\theta_1\sin\phi_1 - y_2)^2 + (r_1\cos\theta_1 - z_2)^2 \Big] \\
+    % &= -\frac{1}{2r_{12}^3} \Big[ 2(x_1-x_2)r_1\cos\theta_1\cos\phi_1 + 2(y_1-y_2)r_1\cos\theta_1\sin\phi_1 - 2(z_1-z_2)r_1\sin\theta_1 \Big] \\
+    % &= -\frac{r_1}{r_{12}^3} \Big[ (x_1-x_2)\cos\theta_1\cos\phi_1 + (y_1-y_2)\cos\theta_1\sin\phi_1 - (z_1-z_2)\sin\theta_1 \Big]
+% \end{align*}
+
+% \begin{align*}
+    % &\frac{\partial}{\partial \theta_1}\Big( (x_1 - x_2)x_1\cos\theta_1 + (y_1-y_2)y_1\cos\theta_1 - (z_1-z_2)r_1\sin^2\theta_1 \Big)
+% \end{align*}
+
+% \begin{align*}
+    % \frac{\partial}{\partial \theta_1} (x_1 - x_2)x_1\cos\theta_1
+%%    = \frac{\partial}{\partial \theta_1} \cos\theta_1\Big( r_1^2\cos^2\theta_1\sin^2\phi_1 - x_2r_1\cos\theta_1\sin\phi_1 \Big) \\
+%%    = \frac{\partial}{\partial \theta_1} \cos^2\theta_1\Big( r_1^2\cos\theta_1\sin^2\phi_1 - x_2r_1\sin\phi_1 \Big) \\
+%%    = -2\sin\theta\cos\theta_1\Big( r_1^2\cos\theta_1\sin^2\phi_1 - x_2r_1\sin\phi_1 \Big)
+%%    &= -r_1\sin\theta_1\sin\phi_1 \cdot x_1\cos\theta_1 + (x_1-x_2) \cdot r_1 (-2\sin\theta_1\cos\theta_1) \sin\phi_1 \\
+%%    &= -r_1\sin\theta_1\cos\theta_1\sin\phi_1 \Big(x_1 - 2(x_1 - x_2)\Big) \\
+%%    &= y_1\cos\theta_1 (x_1 + 2x_2)
+%%    &= -r_1\sin\theta_1\sin\phi_1 \cdot x_1\cos\theta_1 + (x_1-x_2) \cdot r_1 \cos(2\theta_1)\cos\phi_1 \\
+    % &= \frac{\partial}{\partial \theta_1} \Big(x_1^2\cos\theta_1 - x_1x_2\cos\theta_1\Big) \\
+    % &= r_1^2\cos^2\phi_1\frac{\dd}{\dd \theta_1} \sin^2\theta_1\cos\theta_1 - x_2r_1\cos\phi_1\frac{\dd}{\dd \theta_1} \sin\theta_1\cos\theta_1 \\
+% \end{align*}
+
+% \begin{align*}
+    % \frac{\partial}{\partial \theta_1} (y_1 - y_2)y_1\cos\theta_1
+    % &= \frac{\partial}{\partial \theta_1} \Big(y_1^2\cos\theta_1 - y_1y_2\cos\theta_1\Big) \\
+    % &= r_1^2\sin^2\phi_1\frac{\dd}{\dd \theta_1} \sin^2\theta_1\cos\theta_1 - y_2r_1\sin\phi_1\frac{\dd}{\dd \theta_1} \sin\theta_1\cos\theta_1 \\
+% \end{align*}
+
+% \begin{align*}
+    % &\frac{\partial}{\partial \theta_1} (x_1 - x_2)x_1\cos\theta_1 +  \frac{\partial}{\partial \theta_1} (y_1 - y_2)y_1\cos\theta_1 \\
+    % &= r_1^2(\sin^2\phi_1+\cos^2\phi_1) \frac{\dd}{\dd \theta_1}\sin^2\theta_1\cos\theta_1 - r_1(x_2\cos\phi_1 + y_2\sin\phi_1) \frac{\dd}{\dd \theta_1}\sin\theta_1\cos\theta_1 \\
+    % &= r_1^2 \frac{\dd}{\dd \theta_1}\sin^2\theta_1\cos\theta_1 - r_1(x_2\cos\phi_1 + y_2\sin\phi_1) \frac{\dd}{\dd \theta_1}\sin\theta_1\cos\theta_1
+% \end{align*}
+
+% \begin{align*}
+    % \frac{\partial}{\partial \theta_1} (z_1 - z_2)r_1\sin^2\theta_1
+    % &= \frac{\dd}{\dd \theta_1} r_1\cos\theta_1 r_1\sin^2\theta_1 - \frac{\dd}{\dd \theta_1}z_2r_1\sin^2\theta_1 \\
+    % &= r_1^2 \frac{\dd}{\dd \theta_1}\sin^2\theta_1\cos\theta_1 - r_1z_2 \frac{\dd}{\dd \theta_1}\sin^2\theta
+% \end{align*}
+
+% \begin{align*}
+    % &\frac{\partial}{\partial \theta_1} (x_1 - x_2)x_1\cos\theta_1 +  \frac{\partial}{\partial \theta_1} (y_1 - y_2)y_1\cos\theta_1 - \frac{\partial}{\partial \theta_1} (z_1 - z_2)r_1\sin^2\theta_1\\
+    % &= -r_1(x_2\cos\phi_1 + y_2\sin\phi_1) \frac{\dd}{\dd \theta_1}\sin\theta_1\cos\theta_1 - r_1z_2 \frac{\dd}{\dd \theta_1}\sin^2\theta \\
+%%    &= -r_1(x_2\cos\phi_1 + y_2\sin\phi_1) \frac{\dd}{\dd \theta_1}\sin\theta_1\cos\theta_1 - r_1z_2 \frac{\dd}{\dd \theta_1}\sin^2\theta \\
+    % &= -r_1(x_2\cos\phi_1 + y_2\sin\phi_1)(\cos^2\theta_1 - \sin^2\theta_1) - z_2r_1 2\sin\theta_1\cos\theta_1
+% \end{align*}
+
+% \subsection*{$\phi$-derivatives}
+% \begin{align*}
+    % \frac{\partial}{\partial \phi_1}r_{12}
+    % &= \frac{\partial}{\partial \phi_1} \sqrt{(x_1 - x_2)^2 + (y_1 - y_2)^2 + (z_1 - z_2)^2} \\
+    % &= \frac{\partial}{\partial  \phi_1} \sqrt{(r_1\sin\theta_1\cos\phi_1 - x_2)^2 + (r_1\sin\theta_1\sin\phi_1 - y_2)^2 + (r_1\cos\theta_1 - z_2)^2} \\
+    % &= \left(\frac{1}{2r_{12}}\right) \frac{\partial}{\partial \phi_1} \Big[ (r_1\sin\theta_1\cos\phi_1 - x_2)^2 + (r_1\sin\theta_1\sin\phi_1 - y_2)^2 + (r_1\cos\theta_1 - z_2)^2 \Big] \\
+    % &= \frac{1}{2r_{12}} \Big[ -2(x_1-x_2)r_1\sin\theta_1\sin\phi_1 + 2(y_1-y_2)r_1\sin\theta_1\cos\phi_1 \Big] \\
+    % &= \frac{1}{r_{12}} \Big[ -(x_1-x_2)y_1 + (y_1-y_2)x_1 \Big] \\
+% \end{align*}
+
+% \begin{align*}
+    % \frac{\partial^2}{\partial \phi_1^2}r_{12} 
+    % &= \frac{\partial}{\partial \phi_1} \left[ \frac{1}{r_{12}} \Big( -(x_1-x_2)y_1 + (y_1-y_2)x_1 \Big) \right] \\    
+% \end{align*}
+
+% \begin{align*}
+    % \frac{\partial}{\partial \phi_1} (x_1-x_2)y_1
+    % &= \frac{\partial}{\partial \phi_1} \Big( x_1y_1 - x_2y_1 \Big) \\
+    % &= \frac{\partial}{\partial \phi_1} \Big( r_1^2 \sin\theta^2_1\sin\phi_1\cos\phi_1 - x_2r_1\sin\theta_1\sin\phi_1 \Big) \\
+    % &= r_1^2\sin\theta_1 \frac{\dd}{\dd \phi_1}\sin\phi_1\cos\phi_1 - x_2r_1\sin\theta_1 \cos\phi_1 \\
+    % &= r_1^2\sin\theta_1 \frac{\dd}{\dd \phi_1}\sin\phi_1\cos\phi_1 - x_1x_2
+% \end{align*}
+
+% \begin{align*}
+    % \frac{\partial}{\partial \phi_1} (y_1-y_2)x_1
+    % &= \frac{\partial}{\partial \phi_1} \Big( y_1x_1 - y_2x_1 \Big) \\
+    % &= \frac{\partial}{\partial \phi_1} \Big( r_1^2\sin^2\theta_1\sin\phi_1\cos\phi_1 - y_2r_1\sin\theta_1\cos\phi_1 \Big) \\
+    % &= r_1^2\sin^2\theta_1 \frac{\dd}{\dd \phi_1}\sin\phi_1\cos\phi_1 + y_2r_1\sin\theta_1\sin\phi_1 \\
+    % &= r_1^2\sin^2\theta_1 \frac{\dd}{\dd \phi_1}\sin\phi_1\cos\phi_1 + y_1y_2
+% \end{align*}
+
+% \begin{align*}
+    % \frac{\partial}{\partial \phi_1} \Big( -(x_1-x_2)y_1 + (y_1-y_2)x_1 \Big)
+    % &= x_1x_2 + y_1y_2
+% \end{align*}
+
+% \begin{align*}
+    % \frac{\partial}{\partial \phi_1} \frac{1}{r_{12}}
+    % &= \frac{\partial}{\partial \phi_1} \Big[ (r_1\sin\theta_1\cos\phi_1 - x_2)^2 + (r_1\sin\theta_1\sin\phi_1 - y_2)^2 + (r_1\cos\theta_1 - z_2)^2 \Big]^{-1/2} \\
+    % &= \left(-\frac{1}{2r_{12}^3}\right) \frac{\partial}{\partial \phi_1} \Big[ (r_1\sin\theta_1\cos\phi_1 - x_2)^2 + (r_1\sin\theta_1\sin\phi_1 - y_2)^2 + (r_1\cos\theta_1 - z_2)^2 \Big] \\
+    % &= -\frac{1}{2r_{12}^3} \Big[ -2(x_1-x_2)r_1\sin\theta_1\sin\phi_1 + 2(y_1-y_2)r_1\sin\theta_1\cos\phi_1 \Big] \\
+    % &= -\frac{1}{r_{12}^3} \Big[ -(x_1-x_2)y_1 + (y_1-y_2)x_1 \Big]
+% \end{align*}
+
+% \begin{align*}
+    % &\left(\frac{\partial}{\partial \phi_1} \frac{1}{r_{12}} \right) \cdot \Big( -(x_1-x_2)y_1 + (y_1-y_2)x_1 \Big) \\
+    % &= -\frac{1}{r_{12}^3} \Big( -(x_1-x_2)y_1 + (y_1-y_2)x_1 \Big) \cdot \Big( -(x_1-x_2)y_1 + (y_1-y_2)x_1 \Big) \\
+    % &= -\frac{1}{r_{12}^3} \Big( -(x_1-x_2)y_1 + (y_1-y_2)x_1 \Big)^2
+% \end{align*}
+
+% \begin{align*}
+    % &\frac{1}{r_{12}} \cdot \frac{\partial}{\partial \phi_1} \Big( -(x_1-x_2)y_1 + (y_1-y_2)x_1 \Big) \\
+    % &= \frac{1}{r_{12}} \cdot \Big( x_1x_2 + y_1y_2 \Big)
+% \end{align*}
+
+% \begin{align*}
+    % \frac{\partial^2}{\partial \phi_1^2}r_{12}
+    % &= \frac{1}{r_{12}} \Big( x_1x_2 + y_1y_2 \Big) - \frac{1}{r_{12}^3} \Big( (y_1-y_2)x_1 - (x_1-x_2)y_1 \Big)^2 \\
+    % &= \frac{1}{r_{12}} \Big( x_1x_2 + y_1y_2 \Big) - \frac{1}{r_{12}^3} \Big( x_2y_1 - x_1y_2 \Big)^2 \\
+% \end{align*}
+
+NEW STUFF
+
+\begin{align*}
+    \frac{\partial}{\partial x_1}r_{12}
+    &= \frac{1}{r_{12}} (x_1 - x_2)
+\end{align*}
+\begin{align*}
+    \frac{\partial^2}{\partial x_1^2}r_{12}
+    &= \frac{\partial}{\partial x_1} \frac{1}{r_{12}} (x_1 - x_2) \\
+    &= \frac{1}{r_{12}} - \frac{(x_1-x_2)^2}{r_{12}^3}
+\end{align*}
+\begin{align*}
+    \frac{\partial}{\partial x_1} \frac{1}{r_{12}}
+    &= -\frac{x_1-x_2}{r_{12}^3}
+\end{align*}
