@@ -5,8 +5,6 @@
 #include <iomanip>
 #include <cstdio>
 #include "CSolver.h"
-#include "CHelium.h"
-#include "CBeryllium.h"
 using namespace std;
 using namespace arma;
 

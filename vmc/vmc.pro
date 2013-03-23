@@ -7,13 +7,17 @@ SOURCES += main.cpp \
     src/lib.cpp \
     src/mainapplication.cpp \
     src/CWavefunction.cpp \
-    src/CSolver.cpp
+    src/CSolver.cpp \
+    src/Jastrow.cpp \
+    src/Slater.cpp
 
 HEADERS += \
     src/lib.h \
     src/mainapplication.h \
     src/CWavefunction.h \
-    src/CSolver.h
+    src/CSolver.h \
+    src/Jastrow.h \
+    src/Slater.h
 
 LIBS += -larmadillo
 

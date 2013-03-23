@@ -7,22 +7,21 @@ Wavefunction::Wavefunction(const int &nParticles, const double &charge):
     h(1e-3),
     h2(1e6)
 {
-//    alpha = 1.8;
-//    beta = 0.36;
-//    alpha = 3.9;
-//    beta = 4.0;
-
     dwavefunction = zeros<mat>(nParticles, nDimensions);
     rPlus = rMinus = zeros<mat>(nParticles, nDimensions);
     rNew = rOld = zeros(nParticles, nDimensions);
-    rijOld = rijNew = fijNew = fijOld = zeros(nParticles, nParticles);
+//    rijOld = rijNew = fijNew = fijOld = zeros(nParticles, nParticles);
+
+    jastrow = new Jastrow(nParticles);
+    slater = new Slater(nParticles);
 }
 
 void Wavefunction::initialize(mat &r)
 {
     rNew = rOld = r;
-    calculate_rij();
-    calculate_fij();
+
+    jastrow->initalize(r);
+    slater->initalize(r);
 }
 
 void Wavefunction::updatePositionAndCurrentParticle(mat &r, int &k)
@@ -30,217 +29,50 @@ void Wavefunction::updatePositionAndCurrentParticle(mat &r, int &k)
     rNew = r;
     currentParticle = k;
 
-    update_rij();
-    update_fij();
+    jastrow->updatePositionAndCurrentParticle(r, k);
+    slater->updatePositionAndCurrentParticle(r, k);
 }
 
-void Wavefunction::setAlpha(const double &alpha_)
+void Wavefunction::setAlpha(const double &newAlpha)
 {
-    alpha = alpha_;
+//    alpha = newAlpha;
+    slater->setAlpha(newAlpha);
 }
 
-void Wavefunction::setBeta(const double &beta_)
+void Wavefunction::setBeta(const double &newBeta)
 {
-    beta = beta_;
+//    beta = newBeta;
+    jastrow->setBeta(newBeta);
 }
 
 double Wavefunction::wavefunction(const mat &r)
 {
-//    return jastrowWF()*phiSD();
+//    return phiSD(r)*jastrowWF();
 
-    return phiSD(r)*jastrowWF();
+    return slater->wavefunction(r)*jastrow->wavefunction(r);
 }
 
 double Wavefunction::getRatio()
 {
-//    double phiNew, phiOld;
-//    phiNew = phiSD(rNew);
-//    phiOld = phiSD(rOld);
+//    return slaterRatio()*jastrowRatio();
 
-//    cout << "rij" << endl << rijNew;
-//    cout << "jastrowRatio = " << jastrowRatio() << endl;
-//    cout << "slaterRatio = " << slaterRatio() << endl;
-
-    return slaterRatio()*jastrowRatio();
-}
-
-void Wavefunction::calculate_rij()
-{
-    rijNew.zeros();
-    for (int i = 0; i < nParticles; i++)
-    {
-        for (int j = i+1; j < nParticles; j++)
-        {
-            for (int k = 0; k < nDimensions; k++)
-            {
-                rijNew(i,j) += (rNew(i,k) - rNew(j,k))*(rNew(i,k) - rNew(j,k));
-            }
-            rijNew(i,j) = sqrt(rijNew(i,j));
-        }
-    }
-    rijOld = rijNew;
-}
-
-void Wavefunction::update_rij()
-{
-    int k = currentParticle;
-    for (int i = 0; i < k; i++)
-    {
-        rijNew(i,k) = 0.0;
-        for (int j = 0; j < nDimensions; j++)
-        {
-            rijNew(i,k) += (rNew(i,j) - rNew(k,j))*(rNew(i,j) - rNew(k,j));
-        }
-        rijNew(i,k) = sqrt(rijNew(i,k));
-    }
-    for (int i = k+1; i < nParticles; i++)
-    {
-        rijNew(k,i) = 0.0;
-        for (int j = 0; j < nDimensions; j++)
-        {
-            rijNew(k,i) += (rNew(i,j) - rNew(k,j))*(rNew(i,j) - rNew(k,j));
-        }
-        rijNew(k,i) = sqrt(rijNew(k,i));
-    }
-}
-
-void Wavefunction::calculate_fij()
-{
-    double a;
-    double r12;
-    for (int i = 0; i < nParticles; i++)
-    {
-        for (int j = 0; j < nParticles; j++)
-        {
-            r12 = rijNew(i,j);
-            a = ((i+j)%2 == 0) ? 0.25 : 0.5;
-            fijNew(i,j) = a*r12/(1.0 + beta*r12);
-        }
-    }
-}
-
-void Wavefunction::update_fij()
-{
-//    calculate_fij();
-
-    int k = currentParticle;
-    double r12, a;
-    for (int i = 0; i < k; i++)
-    {
-        r12 = rijNew(i,k);
-        a = ((i+k)%2 == 0) ? 0.25 : 0.5;
-        fijNew(i,k) = a*r12/(1.0 + beta*r12);
-    }
-    for (int i = k+1; i < nParticles; i++)
-    {
-        r12 = rijNew(k,i);
-        a = ((k+i)%2 == 0) ? 0.25 : 0.5;
-        fijNew(k,i) = a*r12/(1.0 + beta*r12);
-    }
-}
-
-double Wavefunction::slaterRatio()
-{
-    return phiSD(rNew)*phiSD(rNew)/(phiSD(rOld)*phiSD(rOld));
-}
-
-double Wavefunction::phiSD()
-{
-    int size = int(nParticles/2);
-    mat slaterUP(size, size);
-    mat slaterDOWN(size, size);
-
-    for (int i = 0; i < size; i++)
-    {
-        for (int j = 0; j < size; j++)
-        {
-            slaterUP(i,j)   = hydrogenWF(i, rNew.row(j));
-            slaterDOWN(i,j) = hydrogenWF(i, rNew.row(j+size));
-        }
-    }
-
-    return det(slaterUP)*det(slaterDOWN);
-}
-
-double Wavefunction::phiSD(const mat &r)
-{
-    int size = int(nParticles/2);
-    mat slaterUP(size, size);
-    mat slaterDOWN(size, size);
-
-    for (int i = 0; i < size; i++)
-    {
-        for (int j = 0; j < size; j++)
-        {
-            slaterUP(i,j)   = hydrogenWF(i, r.row(j));
-            slaterDOWN(i,j) = hydrogenWF(i, r.row(j+size));
-        }
-    }
-
-    return det(slaterUP)*det(slaterDOWN);
-
-
-//    double wf;
-//    wf = (hydrogenWF(0, r.row(0))*hydrogenWF(1, r.row(1)) - hydrogenWF(0, r.row(1))*hydrogenWF(1, r.row(0)))*
-//        (hydrogenWF(0, r.row(2))*hydrogenWF(1, r.row(3)) - hydrogenWF(0, r.row(3))*hydrogenWF(1, r.row(2)));
-
-    //    return wf;
-}
-
-double Wavefunction::jastrowWF() const
-{
-    double arg = 0.0;
-    for (int i = 0; i < nParticles; i++)
-    {
-        for (int j = i+1; j < nParticles; j++)
-        {
-            arg += fijNew(i,j);
-        }
-    }
-
-    return exp(arg);
-}
-
-double Wavefunction::jastrowRatio()
-{
-//    return 1.0;
-
-    double dU = 0.0;
-    int k = currentParticle;
-    for (int i = 0; i < k; i++)
-    {
-        dU += fijNew(i, k) - fijOld(i, k);
-    }
-    for (int i = k+1; i < nParticles; i++)
-    {
-        dU += fijNew(k, i) - fijOld(k, i);
-    }
-
-    return exp(dU);
+    return slater->getRatio()*jastrow->getRatio();
 }
 
 void Wavefunction::acceptMove()
 {
     rOld.row(currentParticle) = rNew.row(currentParticle);
 
-    fijOld.row(currentParticle) = fijNew.row(currentParticle);
-    fijOld.col(currentParticle) = fijNew.col(currentParticle);
-    //    fijOld = fijNew;
-    rijOld.row(currentParticle) = rijNew.row(currentParticle);
-    rijOld.col(currentParticle) = rijNew.col(currentParticle);
-//    rijOld = rijNew;
+    jastrow->acceptMove();
+    slater->acceptMove();
 }
 
 void Wavefunction::rejectMove()
 {
     rNew.row(currentParticle) = rOld.row(currentParticle);
 
-    fijNew.row(currentParticle) = fijOld.row(currentParticle);
-    fijNew.col(currentParticle) = fijOld.col(currentParticle);
-//    fijNew = fijOld;
-    rijNew.row(currentParticle) = rijOld.row(currentParticle);
-    rijNew.col(currentParticle) = rijOld.col(currentParticle);
-//    rijOld = rijNew;
+    jastrow->rejectMove();
+    slater->rejectMove();
 }
 
 double Wavefunction::localEnergyNumerical()
@@ -297,8 +129,13 @@ double Wavefunction::electronNucleusPotential()
 {
     // potential energy
     double potentialEnergy = 0.0;
+    double r;
     for (int i = 0; i < nParticles; i++) {
-        potentialEnergy += 1.0/norm(rNew.row(i), 2);
+        r = 0.0;
+        for (int j = 0; j < nDimensions; j++)
+            r += rNew(i,j)*rNew(i,j);
+        r = sqrt(r);
+        potentialEnergy += 1.0/r;
     }
     potentialEnergy *= -charge;
 
@@ -316,69 +153,11 @@ double Wavefunction::electronElectronPotential()
             for (int k = 0; k < nDimensions; k++) {
                 rij += (rNew(i,k) - rNew(j,k))*(rNew(i,k) - rNew(j,k));
             }
-            // alternativ: rij = norm(r.row(i) - r.row(j), 2);
             potentialEnergy += 1/sqrt(rij);
         }
     }
 
     return potentialEnergy;
-}
-
-double Wavefunction::hydrogenWF(const int &i, const vec3 &rvec)
-{
-//    double wfCurrent = 0;
-
-    switch (i)
-    {
-    case 0:
-        wfCurrent = phi1s(rvec);
-//        cout << "i = " << i << ", using phi1s" << endl;
-        break;
-    case 1 :
-        wfCurrent = phi2s(rvec);
-//        cout << "i = " << i << ", using phi2s" << endl;
-        break;
-//    case 2 :
-//        wavefunction = phi2s(r);
-//        break;
-//    case 3 :
-//        wavefunction = phi2s(r);
-//        break;
-    default :
-        // Process for all other cases.
-        cout << "!!! We don't have this wavefunction yet!" << endl;
-        exit(1);
-    }
-
-    return wfCurrent;
-}
-
-double Wavefunction::phi1s(const vec3 &rvec)
-{
-    double r = 0;
-    for (int i = 0; i < nDimensions; i++)
-    {
-        r += rvec(i)*rvec(i);
-    }
-    r = sqrt(r);
-
-//    cout << "phi1s = " << exp(-alpha*r) << endl;
-    return exp(-alpha*r);
-}
-
-double Wavefunction::phi2s(const vec3 &rvec)
-{
-    double r = 0;
-    for (int i = 0; i < nDimensions; i++)
-    {
-        r += rvec(i)*rvec(i);
-    }
-    r = sqrt(r);
-
-    double arg = alpha*r*0.5;
-
-//    cout << "phi2s = " << (1.0 + arg)*exp(arg) << endl;
-    return (1.0 - arg)*exp(-arg);
 }
 
 //double Helium::localEnergyClosedForm(const mat &r) const

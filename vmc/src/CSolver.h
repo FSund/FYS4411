@@ -2,8 +2,6 @@
 #define CSOLVER_H
 
 #include "lib.h"
-#include "CHelium.h"
-#include "CBeryllium.h"
 #include "CWavefunction.h"
 #include <mpi.h>
 #include <armadillo>
