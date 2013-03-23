@@ -1,0 +1,34 @@
+I have done tasks 1a through 1c, and parts of 2a. I have not made a method for computing the onebody density and the charge density in task 1d, mostly because I don't know how to do it, and I haven't looked into it yet. I made a method that found the optimal variational parameters using Newton's method, but I have since rewritten my whole program, and have yet to re-implement this method. \\
+
+I since rewritten my whole program, now using a Jastrow and Slater class, a Wavefunction class and a Hydrogen-like orbitals-class. I have not yet implemented the 2p wavefunction, so the program can't do Neon yet, but this should be easy to implement. I am still using the numerical derivatives to find the local energy, because I haven't implemented the closed form gradient or laplacian functions in the Jastrow and Slater classes. The Slater class is also currently using the slow/stupid method for calculating the Slater-wavefunction and the Slater-ratio:
+\begin{lstlisting}
+double Slater::wavefunction(const mat &r)
+{
+    /* For use in the numerical derivative, in the numerical local energy,
+     * and in the temporary ratio function */
+
+    mat slaterUP(N, N);
+    mat slaterDOWN(N, N);
+
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < N; j++)
+        {
+            slaterUP(i,j) = orbitals->wavefunction(i, r.row(j));
+            slaterDOWN(i,j) = orbitals->wavefunction(i, r.row(j+N));
+        }
+    }
+
+    return det(slaterUP)*det(slaterDOWN);
+}
+
+double Slater::getRatio()
+{
+    return wavefunction(rNew)*wavefunction(rNew) /
+            (wavefunction(rOld)*wavefunction(rOld));
+}
+\end{lstlisting}
+
+The program is running correctly in parallel using MPI, but I haven't implemented blocking yet. \\
+
+My plan is to have a proper Slater class working before the end of easter, including proper ``smart'' updating of the inverse of the Slater determinant matrix, and closed for expressions for the gradient and laplacian ratios for both the Jastrow and the Slater classes. I'm a bit behind because I have been working a lot on FYS4460, and I have also had some trouble with the quantum mechanics.
