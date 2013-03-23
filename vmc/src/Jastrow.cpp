@@ -101,12 +101,14 @@ double Jastrow::getRatio()
 
 mat Jastrow::gradient()
 {
-
+    mat temp(nParticles, nDimensions);
+    temp.fill(1.0);
+    return temp;
 }
 
 double Jastrow::laplacian()
 {
-
+    return 1.0;
 }
 
 void Jastrow::acceptMove()

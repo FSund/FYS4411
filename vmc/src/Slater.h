@@ -2,6 +2,7 @@
 #define SLATER_H
 
 #include <armadillo>
+#include "Orbitals.h"
 
 using namespace std;
 using namespace arma;
@@ -11,8 +12,8 @@ class Slater
 public:
     Slater(const int &nParticles);
     void initalize(const mat &r);
-    void updatePositionAndCurrentParticle(mat &r, int &k);
     void setAlpha(const double &newAlpha);
+    void updatePositionAndCurrentParticle(mat &r, int &k);
 
     double wavefunction();
     double wavefunction(const mat &r);
@@ -23,15 +24,27 @@ public:
     void acceptMove();
     void rejectMove();
 
-    double hydrogenWF(const int &i, const vec3 &rvec);
-    double phi1s(const vec3 &rvec);
-    double phi2s(const vec3 &rvec);
+//    double hydrogenWF(const int &i, const vec3 &rvec);
+//    double phi1s(const vec3 &rvec);
+//    double phi2s(const vec3 &rvec);
 private:
     int nParticles;
     int nDimensions;
     mat rOld, rNew;
-    double alpha;
     int currentParticle;
+    double ratio;
+
+    int N;
+    mat slaterUPold, slaterDOWNold;
+    mat slaterUPnew, slaterDOWNnew;
+    mat slaterUPinvOld, slaterDOWNinvOld;
+    mat slaterUPinvNew, slaterDOWNinvNew;
+
+//    void update();
+    void updateSlater();
+    void updateInverse();
+
+    Orbitals* orbitals;
 };
 
 #endif // SLATER_H
