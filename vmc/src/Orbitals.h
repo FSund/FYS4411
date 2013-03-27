@@ -11,7 +11,7 @@ class Orbitals
 public:
     Orbitals();
     void setAlpha(const double &newAlpha);
-    double wavefunction(const int &qNum, const vec &rvec);
+    double wavefunction(const vec &rvec, const int &qNum);
     double phi1s(const vec &rvec);
     double phi2s(const vec &rvec);
 private:

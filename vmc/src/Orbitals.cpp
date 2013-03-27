@@ -10,7 +10,7 @@ void Orbitals::setAlpha(const double &newAlpha)
     alpha = newAlpha;
 }
 
-double Orbitals::wavefunction(const int &qNum, const vec &rvec)
+double Orbitals::wavefunction(const vec &rvec, const int &qNum)
 {
     switch (qNum)
     {
@@ -57,3 +57,5 @@ double Orbitals::phi2s(const vec &rvec)
 
     return (1.0 - arg)*exp(-arg);
 }
+
+// need gradients and laplacians of the orbitals!

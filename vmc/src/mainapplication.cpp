@@ -23,7 +23,7 @@ void MainApplication::runApplication()
     solver.setBeta(beta);
 
 
-    double energy = solver.runMonteCarloIntegration(1e6);
+    double energy = solver.runMonteCarloIntegration(1e5);
 
     if (myRank == 0) cout << "Energy = " << energy << endl;
 }

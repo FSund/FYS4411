@@ -14,7 +14,7 @@ public:
     void updatePositionAndCurrentParticle(mat &r, int &k);
     void setBeta(const double &newBeta);
 
-    double wavefunction();
+//    double wavefunction();
     double wavefunction(const mat &r);
     double getRatio();
     mat gradient();

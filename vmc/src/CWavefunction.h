@@ -37,8 +37,6 @@ protected:
 
     int currentParticle;
 
-//    double wfOld, wfNew;
-
     mat rNew, rOld;
     mat rijNew, rijOld;
     mat fijNew, fijOld;

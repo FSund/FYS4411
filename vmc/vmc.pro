@@ -9,8 +9,9 @@ SOURCES += main.cpp \
     src/CWavefunction.cpp \
     src/CSolver.cpp \
     src/Jastrow.cpp \
-    src/Slater.cpp \
-    src/Orbitals.cpp
+    src/Orbitals.cpp \
+    src/Slater_old.cpp \
+    src/Slater.cpp
 
 HEADERS += \
     src/lib.h \
@@ -19,7 +20,8 @@ HEADERS += \
     src/CSolver.h \
     src/Jastrow.h \
     src/Slater.h \
-    src/Orbitals.h
+    src/Orbitals.h \
+    src/SmallSlater.h
 
 LIBS += -larmadillo
 

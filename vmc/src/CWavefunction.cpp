@@ -10,7 +10,6 @@ Wavefunction::Wavefunction(const int &nParticles, const double &charge):
     dwavefunction = zeros<mat>(nParticles, nDimensions);
     rPlus = rMinus = zeros<mat>(nParticles, nDimensions);
     rNew = rOld = zeros(nParticles, nDimensions);
-//    rijOld = rijNew = fijNew = fijOld = zeros(nParticles, nParticles);
 
     jastrow = new Jastrow(nParticles);
     slater = new Slater(nParticles);
@@ -35,27 +34,21 @@ void Wavefunction::updatePositionAndCurrentParticle(mat &r, int &k)
 
 void Wavefunction::setAlpha(const double &newAlpha)
 {
-//    alpha = newAlpha;
     slater->setAlpha(newAlpha);
 }
 
 void Wavefunction::setBeta(const double &newBeta)
 {
-//    beta = newBeta;
     jastrow->setBeta(newBeta);
 }
 
 double Wavefunction::wavefunction(const mat &r)
 {
-//    return phiSD(r)*jastrowWF();
-
     return slater->wavefunction(r)*jastrow->wavefunction(r);
 }
 
 double Wavefunction::getRatio()
 {
-//    return slaterRatio()*jastrowRatio();
-
     return slater->getRatio()*jastrow->getRatio();
 }
 
@@ -100,6 +93,7 @@ double Wavefunction::laplaceNumerical()
             rPlus(i,j) = rMinus(i,j) = rNew(i,j);
         }
     }
+
     ddwavefunction = h2*(ddwavefunction/wf - 2.0*double(nParticles*nDimensions));
 
     return ddwavefunction;

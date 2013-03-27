@@ -15,7 +15,6 @@ public:
     void setAlpha(const double &newAlpha);
     void updatePositionAndCurrentParticle(mat &r, int &k);
 
-    double wavefunction();
     double wavefunction(const mat &r);
     double getRatio();
     mat gradient();
@@ -32,7 +31,7 @@ private:
     int nDimensions;
     mat rOld, rNew;
     int currentParticle;
-    double ratio;
+    double ratio, ratioUP, ratioDOWN;
 
     int N;
     mat slaterUPold, slaterDOWNold;

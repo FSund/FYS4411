@@ -126,6 +126,7 @@ double Solver::runMonteCarloIntegration(const int &nCycles_)
             }
             wf->updatePositionAndCurrentParticle(rNew, i);
             ratio = wf->getRatio();
+            ratio *= ratio; // should be squared!
 
             // Check for step acceptance (if yes, update position, if no, reset position)
             if(ran2(&idum) <= ratio) {

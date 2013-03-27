@@ -38,15 +38,17 @@ void Jastrow::setBeta(const double &newBeta)
     beta = newBeta;
 }
 
-double Jastrow::wavefunction()
-{
-    double arg = 0.0;
-    for (int i = 0; i < nParticles; i++)
-        for (int j = i+1; j < nParticles; j++)
-            arg += fijNew(i,j);
+//double Jastrow::wavefunction()
+//{
+//    /* Only for use in the numerical gradient and laplacian in the local energy */
 
-    return exp(arg);
-}
+//    double arg = 0.0;
+//    for (int i = 0; i < nParticles; i++)
+//        for (int j = i+1; j < nParticles; j++)
+//            arg += fijNew(i,j);
+
+//    return exp(arg);
+//}
 
 double Jastrow::wavefunction(const mat &r)
 {
@@ -117,7 +119,7 @@ void Jastrow::acceptMove()
 
     fijOld.row(currentParticle) = fijNew.row(currentParticle);
     fijOld.col(currentParticle) = fijNew.col(currentParticle);
-    //    fijOld = fijNew;
+//    fijOld = fijNew;
     rijOld.row(currentParticle) = rijNew.row(currentParticle);
     rijOld.col(currentParticle) = rijNew.col(currentParticle);
 //    rijOld = rijNew;
@@ -186,8 +188,6 @@ void Jastrow::calculate_fij()
             fijNew(i,j) = a(i,j)*rij/(1.0 + beta*rij);
         }
     }
-
-//    a = ((i+j)%2 == 0) ? 0.25 : 0.5;
 }
 
 void Jastrow::update_fij()
@@ -204,8 +204,6 @@ void Jastrow::update_fij()
         rij = rijNew(k,i);
         fijNew(k,i) = a(k,i)*rij/(1.0 + beta*rij);
     }
-//    a = ((i+k)%2 == 0) ? 0.25 : 0.5;
-//    a = ((k+i)%2 == 0) ? 0.25 : 0.5;
 }
 
 
