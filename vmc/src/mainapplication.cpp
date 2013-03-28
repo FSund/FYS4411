@@ -18,10 +18,19 @@ void MainApplication::runApplication()
     int nParticles = 4;
     int charge = 4;
 
-    Solver solver(myRank, numprocs, nParticles, charge);
+//    SolverMCBF solver(myRank, numprocs, nParticles, charge);
+//    solver.setAlpha(alpha);
+//    solver.setBeta(beta);
+
+//    double energy = solver.runMonteCarloIntegration(1e5);
+
+//    if (myRank == 0) cout << "Energy = " << energy << endl;
+
+
+
+    SolverMCIS solver(myRank, numprocs, nParticles, charge);
     solver.setAlpha(alpha);
     solver.setBeta(beta);
-
 
     double energy = solver.runMonteCarloIntegration(1e5);
 

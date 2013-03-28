@@ -11,6 +11,8 @@ class Slater
 {
 public:
     Slater(const int &nParticles);
+    ~Slater();
+
     void initalize(const mat &r);
     void setAlpha(const double &newAlpha);
     void updatePositionAndCurrentParticle(mat &r, int &k);

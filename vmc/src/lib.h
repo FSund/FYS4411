@@ -9,6 +9,7 @@
 #include <cstring>
 
 using namespace std;
+const double pi = atan(1)*4;
 
     // Function declarations
 

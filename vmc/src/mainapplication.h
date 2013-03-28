@@ -4,7 +4,10 @@
 #include <iostream>
 #include <iomanip>
 #include <cstdio>
-#include "CSolver.h"
+#include "Solver/Solver.h"
+#include "Solver/SolverMCBF.h"
+#include "Solver/SolverMCIS.h"
+
 using namespace std;
 using namespace arma;
 

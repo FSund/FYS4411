@@ -1,4 +1,4 @@
-#include "CWavefunction.h"
+#include "Wavefunction.h"
 
 Wavefunction::Wavefunction(const int &nParticles, const double &charge):
     nParticles(nParticles),
@@ -13,6 +13,12 @@ Wavefunction::Wavefunction(const int &nParticles, const double &charge):
 
     jastrow = new Jastrow(nParticles);
     slater = new Slater(nParticles);
+}
+
+Wavefunction::~Wavefunction()
+{
+    delete jastrow;
+    delete slater;
 }
 
 void Wavefunction::initialize(mat &r)
@@ -76,6 +82,26 @@ double Wavefunction::localEnergyNumerical()
     return kinetic + potential;
 }
 
+mat Wavefunction::gradientNumerical()
+{
+    // computing the first derivative
+    rPlus = rMinus = rNew;
+    wfCurrent = wavefunction(rNew);
+    for (int i = 0; i < nParticles; i++) {
+        for (int j = 0; j < nDimensions; j++) {
+            rPlus(i,j) += h;
+            rMinus(i,j) -= h;
+            wfMinus = wavefunction(rMinus);
+            wfPlus = wavefunction(rPlus);
+            dwavefunction(i,j) = wfPlus - wfMinus;
+            rPlus(i,j) = rMinus(i,j) = rNew(i,j);
+        }
+    }
+    dwavefunction /= (2.0*wfCurrent*h);
+
+    return dwavefunction;
+}
+
 double Wavefunction::laplaceNumerical()
 {
     // computing the second derivative
@@ -97,26 +123,6 @@ double Wavefunction::laplaceNumerical()
     ddwavefunction = h2*(ddwavefunction/wf - 2.0*double(nParticles*nDimensions));
 
     return ddwavefunction;
-}
-
-mat Wavefunction::gradientNumerical()
-{
-    // computing the first derivative
-    rPlus = rMinus = rNew;
-    wfCurrent = wavefunction(rNew);
-    for (int i = 0; i < nParticles; i++) {
-        for (int j = 0; j < nDimensions; j++) {
-            rPlus(i,j) += h;
-            rMinus(i,j) -= h;
-            wfMinus = wavefunction(rMinus);
-            wfPlus = wavefunction(rPlus);
-            dwavefunction(i,j) = wfPlus - wfMinus;
-            rPlus(i,j) = rMinus(i,j) = rNew(i,j);
-        }
-    }
-    dwavefunction /= (2.0*wfCurrent*h);
-
-    return dwavefunction;
 }
 
 double Wavefunction::electronNucleusPotential()

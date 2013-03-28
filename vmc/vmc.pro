@@ -6,22 +6,24 @@ CONFIG -= qt
 SOURCES += main.cpp \
     src/lib.cpp \
     src/mainapplication.cpp \
-    src/CWavefunction.cpp \
-    src/CSolver.cpp \
     src/Jastrow.cpp \
     src/Orbitals.cpp \
-    src/Slater_old.cpp \
-    src/Slater.cpp
+    src/Slater.cpp \
+    src/Wavefunction.cpp \
+    src/Solver/SolverMCBF.cpp \
+    src/Solver/Solver.cpp \
+    src/Solver/SolverMCIS.cpp
 
 HEADERS += \
     src/lib.h \
     src/mainapplication.h \
-    src/CWavefunction.h \
-    src/CSolver.h \
     src/Jastrow.h \
     src/Slater.h \
     src/Orbitals.h \
-    src/SmallSlater.h
+    src/Wavefunction.h \
+    src/Solver/Solver.h \
+    src/Solver/SolverMCIS.h \
+    src/Solver/SolverMCBF.h
 
 LIBS += -larmadillo
 

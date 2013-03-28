@@ -1,5 +1,5 @@
-#ifndef CWAVEFUNCTION_H
-#define CWAVEFUNCTION_H
+#ifndef WAVEFUNCTION_H
+#define WAVEFUNCTION_H
 
 #include <armadillo>
 #include "Jastrow.h"
@@ -12,6 +12,7 @@ class Wavefunction
 {
 public:
     Wavefunction(const int &nParticles, const double &charge);
+    ~Wavefunction();
 
     double getRatio();
 
@@ -24,8 +25,8 @@ public:
     void rejectMove();
 
     double localEnergyNumerical();
-    double laplaceNumerical();
     mat gradientNumerical();
+    double laplaceNumerical();
 protected:
     double wavefunction(const mat &r);
     double electronNucleusPotential();
@@ -50,4 +51,4 @@ private:
     Slater* slater;
 };
 
-#endif // CWAVEFUNCTION_H
+#endif // WAVEFUNCTION_H

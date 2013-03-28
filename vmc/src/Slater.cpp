@@ -18,6 +18,11 @@ Slater::Slater(const int &nParticles):
     orbitals = new Orbitals;
 }
 
+Slater::~Slater()
+{
+    delete orbitals;
+}
+
 void Slater::initalize(const mat &r)
 {
     rNew = rOld = r;
