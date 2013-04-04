@@ -5,25 +5,27 @@ CONFIG -= qt
 
 SOURCES += main.cpp \
     src/lib.cpp \
-    src/mainapplication.cpp \
     src/Jastrow.cpp \
     src/Orbitals.cpp \
     src/Slater.cpp \
     src/Wavefunction.cpp \
     src/Solver/SolverMCBF.cpp \
     src/Solver/Solver.cpp \
-    src/Solver/SolverMCIS.cpp
+    src/Solver/SolverMCIS.cpp \
+    src/Minimizer.cpp \
+    src/VMCApp.cpp
 
 HEADERS += \
     src/lib.h \
-    src/mainapplication.h \
     src/Jastrow.h \
     src/Slater.h \
     src/Orbitals.h \
     src/Wavefunction.h \
     src/Solver/Solver.h \
     src/Solver/SolverMCIS.h \
-    src/Solver/SolverMCBF.h
+    src/Solver/SolverMCBF.h \
+    src/Minimizer.h \
+    src/VMCApp.h
 
 LIBS += -larmadillo
 

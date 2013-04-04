@@ -1,5 +1,5 @@
-#ifndef MAINAPPLICATION_H
-#define MAINAPPLICATION_H
+#ifndef VMCAPP_H
+#define VMCAPP_H
 #include <armadillo>
 #include <iostream>
 #include <iomanip>
@@ -7,15 +7,17 @@
 #include "Solver/Solver.h"
 #include "Solver/SolverMCBF.h"
 #include "Solver/SolverMCIS.h"
+#include "Minimizer.h"
 
 using namespace std;
 using namespace arma;
 
-class MainApplication
+class VMCApp
 {
 public:
-    MainApplication(int &myRank, int &numprocs);
+    VMCApp(int &myRank, int &numprocs);
     void runApplication();
+    void minimize();
 private:
 //    void variational_paramenters();
 //    void minimum();
@@ -29,4 +31,4 @@ private:
     int myRank, numprocs;
 };
 
-#endif // MAINAPPLICATION_H
+#endif // VMCAPP_H
