@@ -18,6 +18,11 @@ public:
 
     virtual double runMonteCarloIntegration(const int &nCycles_) = 0;
 
+//    void setParameters(const double &stepLength_);
+//    void setParameters(const double &stepLength_,
+//            const bool &importanceSampling_,
+//            const bool &closedForm_);
+
     void setAlpha(const double &alpha);
     void setBeta(const double &beta);
     void setParameters(const vec &parameters);

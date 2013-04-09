@@ -39,8 +39,8 @@ void VMCApp::runApplication()
 
 void VMCApp::minimize()
 {
-    double* guess = new double[2];
-    guess[0] = 1.2; guess[1] = 4.5;
+    vec guess(2);
+    guess << 1.2 << 4.5;
     int nParameters = 2;
     int nParticles = 4;
     int charge = 4;

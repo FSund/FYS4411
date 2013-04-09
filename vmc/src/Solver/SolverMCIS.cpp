@@ -15,13 +15,17 @@ SolverMCIS::SolverMCIS(int &myRank,
 
 double SolverMCIS::runMonteCarloIntegration(const int &nCycles_)
 {
-    nCycles = nCycles_;
+//    nCycles = nCycles_;
 
     double nAccepted = 0;
     double energySum = 0;
     double energySquaredSum = 0;
     double deltaE;
     double ratio;
+
+    ////
+    cout << "idum = " << idum << endl;
+    ////
 
     // initial trial positions
     for(int i = 0; i < nParticles; i++) {
@@ -34,7 +38,7 @@ double SolverMCIS::runMonteCarloIntegration(const int &nCycles_)
 
     qForceOld = 2.0*wf->gradientNumerical();
 
-    nCycles = nCycles/numprocs;
+    nCycles = nCycles_/numprocs;
 
     // loop over Monte Carlo cycles
     for(int cycle = 0; cycle < nCycles; cycle++) {
@@ -52,23 +56,34 @@ double SolverMCIS::runMonteCarloIntegration(const int &nCycles_)
             qForceNew = 2.0*wf->gradientNumerical();
             // Green's function ratio
             omegaRatio = 0.0;
-            for (int j = 0; j < nDimensions; j++)
+            for (int k = 0; k < nParticles; k++)
             {
-                omegaRatio += (qForceOld(i,j) + qForceNew(i,j))*
-                        (0.5*Ddt*(qForceOld(i,j) - qForceNew(i,j)) + rOld(i,j) - rNew(i,j));
+                for (int j = 0; j < nDimensions; j++)
+                {
+                    omegaRatio += (qForceOld(k,j) + qForceNew(k,j))*
+                            (0.5*Ddt*(qForceOld(k,j) - qForceNew(k,j)) + rOld(k,j) - rNew(k,j));
+                }
             }
+//            for (int j = 0; j < nDimensions; j++)
+//            {
+//                omegaRatio += (qForceOld(i,j) + qForceNew(i,j))*
+//                        (0.5*Ddt*(qForceOld(i,j) - qForceNew(i,j)) + rOld(i,j) - rNew(i,j));
+//            }
+
             omegaRatio = exp(0.5*omegaRatio);
 
             // Check for step acceptance (if yes, update position, if no, reset position)
             if (ran2(&idum) <= omegaRatio*ratio) {
                 rOld.row(i) = rNew.row(i);
-                qForceOld.row(i) = qForceNew.row(i);
+//                qForceOld.row(i) = qForceNew.row(i);
+                qForceOld = qForceNew;
                 wf->acceptMove();
 
                 nAccepted++;
             } else {
                 rNew.row(i) = rOld.row(i);
-                qForceNew.row(i) = qForceOld.row(i);
+//                qForceNew.row(i) = qForceOld.row(i);
+                qForceNew = qForceOld;
                 wf->rejectMove();
             }
             // update energies

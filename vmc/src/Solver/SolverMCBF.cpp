@@ -39,7 +39,7 @@ SolverMCBF::SolverMCBF(int &myRank,
 
 double SolverMCBF::runMonteCarloIntegration(const int &nCycles_)
 {
-    nCycles = nCycles_;
+//    nCycles = nCycles_;
 
     double nAccepted = 0;
 
@@ -57,7 +57,7 @@ double SolverMCBF::runMonteCarloIntegration(const int &nCycles_)
 
     wf->initialize(rOld);
 
-    nCycles = nCycles/numprocs;
+    nCycles = nCycles_/numprocs;
 
     // loop over Monte Carlo cycles
     for(int cycle = 0; cycle < nCycles; cycle++) {

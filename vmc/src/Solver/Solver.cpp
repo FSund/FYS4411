@@ -15,6 +15,9 @@ Solver::Solver(int &myRank,
     numprocs(numprocs)
 {
     idum = -1 - myRank;
+    cout << endl << "Using custom idum in Solver!" << endl << endl;
+    idum = 1188144735;
+    idum = -13242345;
 
     if (nParticles == 2)
     {
@@ -38,34 +41,6 @@ Solver::~Solver()
     delete wf;
 }
 
-//void Solver::setParameters(
-////        const double &alpha_,
-////        const double &beta_,
-//        const double &stepLength_)
-//{
-////    alpha = alpha_;
-////    beta = beta_;
-//    stepLength = stepLength_;
-//}
-
-//void Solver::setParameters(
-////        const double &alpha_,
-////        const double &beta_,
-//        const double &stepLength_,
-////        const double &h_,
-////        const double &h2_,
-//        const bool &importanceSampling_,
-//        const bool &closedForm_)
-//{
-////    alpha = alpha_;
-////    beta = beta_;
-//    stepLength = stepLength_;
-////    h = h_;
-////    h2 = h2_;
-//    importanceSampling = importanceSampling_;
-//    closedForm = closedForm_;
-//}
-
 void Solver::setAlpha(const double &alpha)
 {
     wf->setAlpha(alpha);
@@ -74,6 +49,11 @@ void Solver::setAlpha(const double &alpha)
 void Solver::setBeta(const double &beta)
 {
     wf->setBeta(beta);
+}
+
+void Solver::setParameters(const vec &parameters)
+{
+    wf->setParameters(parameters);
 }
 
 //double Solver::runMonteCarloIntegration(const int &nCycles_)

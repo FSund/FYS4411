@@ -143,9 +143,13 @@ void Slater::rejectMove()
 
     // not updating the inverse, since we haven't changed it
     if (currentParticle < N)
+    {
         slaterUPnew.row(currentParticle) = slaterUPold.row(currentParticle);
+    }
     else
+    {
         slaterDOWNnew.row(currentParticle-N) = slaterDOWNold.row(currentParticle-N);
+    }
 }
 
 void Slater::updateSlater()

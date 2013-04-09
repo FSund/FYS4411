@@ -48,6 +48,12 @@ void Wavefunction::setBeta(const double &newBeta)
     jastrow->setBeta(newBeta);
 }
 
+void Wavefunction::setParameters(const vec &parameters)
+{
+    slater->setAlpha(parameters(0));
+    jastrow->setBeta(parameters(1));
+}
+
 double Wavefunction::wavefunction(const mat &r)
 {
     return slater->wavefunction(r)*jastrow->wavefunction(r);

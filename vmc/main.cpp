@@ -1,4 +1,3 @@
-//#include <iostream>
 #include <mpi.h>
 #include "src/VMCApp.h"
 #include "src/Minimizer.h"

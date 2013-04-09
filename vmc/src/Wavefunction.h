@@ -20,6 +20,7 @@ public:
     void updatePositionAndCurrentParticle(mat &r, int &k);
     void setAlpha(const double &newAlpha);
     void setBeta(const double &newBeta);
+    void setParameters(const vec &parameters);
 
     void acceptMove();
     void rejectMove();

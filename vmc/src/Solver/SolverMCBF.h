@@ -1,10 +1,9 @@
 #ifndef SOLVERMCBF_H
 #define SOLVERMCBF_H
 
+#include "Solver.h"
 #include "../lib.h"
 #include "../Wavefunction.h"
-#include "Solver.h"
-#include <mpi.h>
 #include <armadillo>
 #include <iostream>
 
