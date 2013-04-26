@@ -22,10 +22,6 @@ public:
 
     void acceptMove();
     void rejectMove();
-    void calculate_rij();
-    void update_rij();
-    void calculate_fij();
-    void update_fij();
 private:
     int nParticles;
     int nDimensions;
@@ -35,6 +31,11 @@ private:
     mat a;
     double beta;
     int currentParticle;
+
+    void calculate_rij();
+    void update_rij();
+    void calculate_fij();
+    void update_fij();
 };
 
 #endif // JASTROW_H

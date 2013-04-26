@@ -26,6 +26,7 @@ public:
     void rejectMove();
 
     double localEnergyNumerical();
+    double localEnergyClosedForm(const mat &r) const;
     mat gradientNumerical();
     double laplaceNumerical();
 protected:

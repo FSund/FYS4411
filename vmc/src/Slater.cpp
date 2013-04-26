@@ -56,14 +56,14 @@ void Slater::updatePositionAndCurrentParticle(mat &r, int &k)
     rNew = r;
     currentParticle = k;
 
-    // only updating the inverse slater matrix if we accept the move, because
+    // only updating the inverse slater matrix _if_ we accept the move, because
     // we only need the old inverse to find the ratio
     updateSlater();
 }
 
 double Slater::wavefunction(const mat &r)
 {
-    /* For use in the numerical derivative in the numerical local energy */
+    /* Only for use in the numerical derivative in the numerical local energy */
 
     mat slaterUP(N, N);
     mat slaterDOWN(N, N);
@@ -78,8 +78,6 @@ double Slater::wavefunction(const mat &r)
     }
 
     return det(slaterUP)*det(slaterDOWN);
-
-
 
 //    double wf = (orbitals->wavefunction(r.row(0),0)*orbitals->wavefunction(r.row(1),1) - orbitals->wavefunction(r.row(1),0)*orbitals->wavefunction(r.row(0),1))*
 //                (orbitals->wavefunction(r.row(2),0)*orbitals->wavefunction(r.row(3),1) - orbitals->wavefunction(r.row(3),0)*orbitals->wavefunction(r.row(2),1));
@@ -110,6 +108,9 @@ double Slater::getRatio()
 
 mat Slater::gradient()
 {
+    cout << "! Haven't implemented closed form Slater gradient yet !" << endl;
+    exit(1);
+
     mat temp(nParticles, nDimensions);
     temp.fill(1.0);
     return temp;
@@ -117,6 +118,9 @@ mat Slater::gradient()
 
 double Slater::laplacian()
 {
+    cout << "! Haven't implemented closed form Slater Laplacian yet !" << endl;
+    exit(1);
+
     return 1.0;
 }
 

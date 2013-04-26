@@ -14,7 +14,7 @@ double Orbitals::wavefunction(const vec &rvec, const int &qNum)
 {
     switch (qNum)
     {
-    case 0:
+    case 0 :
         wfCurrent = phi1s(rvec);
 //        cout << "i = " << i << ", using phi1s" << endl;
         break;

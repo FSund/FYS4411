@@ -15,9 +15,9 @@ Solver::Solver(int &myRank,
     numprocs(numprocs)
 {
     idum = -1 - myRank;
-    cout << endl << "Using custom idum in Solver!" << endl << endl;
-    idum = 1188144735;
-    idum = -13242345;
+//    cout << endl << "Using custom idum in Solver!" << endl << endl;
+//    idum = 1188144735;
+//    idum = -13242345;
 
     if (nParticles == 2)
     {

@@ -24,8 +24,11 @@ protected:
 private:
     void bruteforce();
 
-    mat energyGradientNumerical();
+    vec &energyGradientNumerical();
+//    vec energyGradientNumerical(const vec &param);
+    mat &energyHessianNumerical();
     vec steepestDescent();
+//    vec CGM();
 };
 
 #endif // MINIMIZER_H

@@ -6,33 +6,40 @@ Minimizer::Minimizer(int &myRank, int &numprocs, int &nParticles, int &charge, i
     nParameters(nParameters),
     parameters(guess)
 {
-//    solver = new SolverMCBF(myRank, numprocs, nParticles, charge);
-    solver = new SolverMCIS(myRank, numprocs, nParticles, charge);
+    solver = new SolverMCBF(myRank, numprocs, nParticles, charge);
+//    solver = new SolverMCIS(myRank, numprocs, nParticles, charge);
 }
 
 vec Minimizer::runMinimizer()
 {
     cout << "Minimizer::runMinimizer()" << endl;
 
+//    bruteforce();
+
+    vec minParam = zeros<vec>(nParameters);
+//    minParam = steepestDescent();
+
     bruteforce();
 
     cout << "Exiting Minimizer::runMinimizer()" << endl;
 
-    return zeros<vec>(3);
+    return minParam;
 }
 
 void Minimizer::bruteforce()
 {
-    double minAlpha = 2.78;
-    double maxAlpha = 6;
-    double minBeta = 1.3456;
+    double minAlpha = 3.4;
+    double maxAlpha = 3.4;
+    double minBeta = 0.5;
     double maxBeta = 6;
-    double step = 0.0723;
+    double step = 0.05;
     int nStepsAlpha = round((maxAlpha - minAlpha)/step);
     int nStepsBeta = round((maxBeta - minBeta)/step);
     int nCycles = 1e5;
 
     double energy = 0.0;
+
+//    cout << Wavefunction
 
     ofstream ofile;
     if (myRank == 0)
@@ -45,7 +52,7 @@ void Minimizer::bruteforce()
         solver->setBeta(beta);
         for (double alpha = minAlpha; alpha <= minAlpha + step*nStepsAlpha; alpha += step)
         {
-            if (myRank == 0) cout << "alpha = " << alpha << ", beta = " << beta << endl;
+//            if (myRank == 0) cout << "alpha = " << alpha << ", beta = " << beta << endl;
 
             solver->setAlpha(alpha);
             energy = solver->runMonteCarloIntegration(nCycles);
@@ -59,13 +66,13 @@ void Minimizer::bruteforce()
     }
 }
 
-mat Minimizer::energyGradientNumerical()
+vec &Minimizer::energyGradientNumerical()
 {
-    double h = 1e-3;
+    const double h = 1e-3;
 //    double h2 = 1e6;
-    int nCycles = 1e4;
+    const int nCycles = 1e4;
     vec paramPlus(nParameters), paramMinus(nParameters);
-    mat dE;
+    vec dE(nParameters);
     double energyCurrent, energyPlus, energyMinus;
 
     paramPlus = paramMinus = parameters;
@@ -90,33 +97,181 @@ mat Minimizer::energyGradientNumerical()
     return dE;
 }
 
-vec Minimizer::steepestDescent()
-{
-//    solver->setParameters(parameters);
+//vec Minimizer::energyGradientNumerical(const vec &param)
+//{
+//    double h = 1e-3;
+////    double h2 = 1e6;
+//    int nCycles = 1e4;
+//    vec paramPlus(nParameters), paramMinus(nParameters);
+//    vec dE;
+//    double energyCurrent, energyPlus, energyMinus;
 
-//    double tolerance = 1e-10;
-//    int iterMax = 100;
-//    int i;
-//    vec f, x, z;
-//    mat A;
-//    double c, alpha;
+//    paramPlus = paramMinus = param;
 
-//    x = parameters;
-//    A = x;
-//    f = A*x;
-//    i = 0;
-//    while (i <= iterMax || norm(f,2) < tolerance )
-//    {
-//        z = A*f;
-//        c = dot(f,f);
-//        alpha = c/dot(f,z);
+//    // computing the first derivative
+//    energyCurrent = solver->runMonteCarloIntegration(nCycles);
+//    for (int i = 0; i < nParameters; i++) {
+//        paramPlus(i) += h;
+//        solver->setParameters(paramPlus);
+//        energyPlus = solver->runMonteCarloIntegration(nCycles);
 
-//        x = x - alpha*f;
-//        f = A*x;
+//        paramMinus(i) -= h;
+//        solver->setParameters(paramMinus);
+//        energyMinus = solver->runMonteCarloIntegration(nCycles);
 
-//        i++;
+//        dE(i) = energyPlus - energyMinus;
+
+//        paramPlus(i) = paramMinus(i) = param(i);
 //    }
+//    dE /= (2.0*energyCurrent*h);
 
-//    return x;
+//    return dE;
+//}
+
+mat &Minimizer::energyHessianNumerical()
+{
+    const double h = 1e-3;
+    const double h2 = 1e6;
+    const int nCycles = 1e4;
+    vec param(nParameters);
+    mat H = zeros<mat>(nParameters, nParameters);
+    double energyCurrent, energy;
+    int dx, dy;
+
+    param = parameters;
+
+    // computing the hessian matrix
+    energyCurrent = solver->runMonteCarloIntegration(nCycles);
+    for (int i = 0; i < nParameters; i++) {
+        for (int j = 0; j < nParameters; j++) {
+            if (i == j) // diagonal elements
+            {
+                for (dx = -1; dx <= 1; dx+=2)
+                {
+                    param(i) += dx*h;
+                    solver->setParameters(param);
+                    energy = solver->runMonteCarloIntegration(nCycles);
+                    H(i,i) += energy;
+                    param(i) = parameters(i);
+                }
+                H(i,i) = (H(i,i) - energyCurrent)/(h2*energyCurrent*energyCurrent);
+            }
+            else // off-diagonal elements
+            {
+                for (dx = -1; dx <= 1; dx+=2)
+                {
+                    for (dy = -1; dy <= 1; dy+=2)
+                    {
+                        param(i) += h*dx;
+                        param(j) += h*dy;
+                        solver->setParameters(param);
+
+                        energy = solver->runMonteCarloIntegration(nCycles);
+                        H(i,j) += energy*dx*dy;
+
+                        param = parameters;
+                    }
+                }
+                H(i,j) /= (4.0*h2*energyCurrent*energyCurrent);
+            }
+        }
+    }
+
+    return H;
 }
 
+vec Minimizer::steepestDescent()
+{
+    solver->setParameters(parameters);
+
+    double tolerance = 1e-10;
+    int iterMax = 10;
+    int i;
+    vec r(nParameters);
+    vec oldParam = parameters;
+    mat A(nParameters, nParameters);
+    double alpha;
+
+//    A = energyHessianNumerical();
+    i = 0;
+//    while (i <= iterMax || norm(oldParam-parameters, 2) < tolerance )
+    while (i <= iterMax)
+    {
+        cout << "i = " << i << endl;
+
+        r = -energyGradientNumerical();
+        A = energyHessianNumerical();
+        alpha = dot(r,r)/dot(r, A*r);
+        parameters = oldParam + alpha*r;
+
+        cout << "A = " << endl << A;
+        cout << "r = " << endl << r;
+        cout << "alpha = " << alpha << endl;
+        cout << "alpha*r = " << endl << alpha*r;
+        cout << "parameters = " << endl << parameters << endl;
+
+        oldParam = parameters;
+
+        i++;
+    }
+
+    return parameters;
+}
+
+//vec Minimizer::CGM()
+//{
+//    // http://en.wikipedia.org/wiki/Energy_minimization#Nonlinear_conjugate_gradient_method
+
+//    vec paramOld(nParameters);
+//    vec F(nParameters);
+//    vec FOld(nParameters);
+//    vec h(nParameters);
+//    vec hOld(nParameters);
+//    int iterMax = 1000;
+//    paramOld = parameters;
+
+//    F = FOld = energyGradientNumerical();
+//    h = hOld = zeros<vec>(nParameters);
+//    double kappa = 1.0;
+
+//    int i = 0;
+//    while (i <= iterMax || norm(f,2) < tolerance )
+//    {
+//        hOld = h;
+//        paramOld = parameters;
+//        parameters = paramOld + kappa*hOld;
+//        F = energyGradientNumerical();
+//        gamma = (F%F)/(FOld%FOld);
+//        h = F + gamma*hOld;
+//        i++;
+//    }
+//}
+
+//vc Minimizer::CGM2()
+//{
+//    // http://en.wikipedia.org/wiki/Energy_minimization#Nonlinear_conjugate_gradient_method
+
+//    vec paramOld(nParameters);
+//    vec F(nParameters);
+//    vec FOld(nParameters);
+//    vec h(nParameters);
+//    vec hOld(nParameters);
+//    int iterMax = 1000;
+//    paramOld = parameters;
+
+//    F = FOld = energyGradientNumerical();
+//    h = hOld = zeros<vec>(nParameters);
+//    double kappa = 1.0;
+
+//    int i = 0;
+//    while (i <= iterMax || norm(f,2) < tolerance )
+//    {
+//        hOld = h;
+//        paramOld = parameters;
+//        parameters = paramOld + kappa*hOld;
+//        F = energyGradientNumerical();
+//        gamma = (F%F)/(FOld%FOld);
+//        h = F + gamma*hOld;
+//        i++;
+//    }
+//}

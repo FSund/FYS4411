@@ -40,7 +40,7 @@ void VMCApp::runApplication()
 void VMCApp::minimize()
 {
     vec guess(2);
-    guess << 1.2 << 4.5;
+    guess << 3.5 << 3.9;
     int nParameters = 2;
     int nParticles = 4;
     int charge = 4;
@@ -48,3 +48,4 @@ void VMCApp::minimize()
     Minimizer m(myRank, numprocs, nParticles, charge, nParameters, guess);
     m.runMinimizer();
 }
+

@@ -24,7 +24,7 @@ double SolverMCIS::runMonteCarloIntegration(const int &nCycles_)
     double ratio;
 
     ////
-    cout << "idum = " << idum << endl;
+//    cout << "idum = " << idum << endl;
     ////
 
     // initial trial positions
@@ -54,6 +54,7 @@ double SolverMCIS::runMonteCarloIntegration(const int &nCycles_)
             ratio *= ratio; // should be squared!
 
             qForceNew = 2.0*wf->gradientNumerical();
+
             // Green's function ratio
             omegaRatio = 0.0;
             for (int k = 0; k < nParticles; k++)

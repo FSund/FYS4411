@@ -20,8 +20,11 @@ void Jastrow::initalize(const mat &r)
 {
     rNew = rOld = r;
 
-    calculate_rij();
-    calculate_fij();
+    calculate_rij(); // calculates rijOld from rOld
+    calculate_fij(); // calculates fijOld from rOld/rijOld
+
+    rijNew = rijOld;
+    fijNew = fijOld;
 }
 
 void Jastrow::updatePositionAndCurrentParticle(mat &r, int &k)
@@ -68,6 +71,7 @@ double Jastrow::wavefunction(const mat &r)
             rijTemp(i,j) = sqrt(rijTemp(i,j));
         }
     }
+
     // temp fij matrix for this r-matrix
     mat fijTemp = zeros<mat>(nParticles, nParticles);
     double rij;
@@ -79,6 +83,7 @@ double Jastrow::wavefunction(const mat &r)
             fijTemp(i,j) = a(i,j)*rij/(1.0 + beta*rij);
         }
     }
+
 
     // the wavefunction
     double arg = 0.0;
@@ -93,6 +98,7 @@ double Jastrow::getRatio()
 {
     double dU = 0.0;
     int k = currentParticle;
+
     for (int i = 0; i < k; i++)
         dU += fijNew(i, k) - fijOld(i, k);
     for (int i = k+1; i < nParticles; i++)
@@ -105,11 +111,18 @@ mat Jastrow::gradient()
 {
     mat temp(nParticles, nDimensions);
     temp.fill(1.0);
+
+    cout << "! Haven't implemented closed form Jastrow gradient yet !" << endl;
+    exit(1);
+
     return temp;
 }
 
 double Jastrow::laplacian()
 {
+    cout << "! Haven't implemented closed form Jastrow Laplacian yet !" << endl;
+    exit(1);
+
     return 1.0;
 }
 
@@ -139,19 +152,18 @@ void Jastrow::rejectMove()
 
 void Jastrow::calculate_rij()
 {
-    rijNew.zeros();
+    rijOld.zeros();
     for (int i = 0; i < nParticles; i++)
     {
         for (int j = i+1; j < nParticles; j++)
         {
             for (int k = 0; k < nDimensions; k++)
             {
-                rijNew(i,j) += (rNew(i,k) - rNew(j,k))*(rNew(i,k) - rNew(j,k));
+                rijOld(i,j) += (rOld(i,k) - rOld(j,k))*(rOld(i,k) - rOld(j,k));
             }
-            rijNew(i,j) = sqrt(rijNew(i,j));
+            rijOld(i,j) = sqrt(rijOld(i,j));
         }
     }
-    rijOld = rijNew;
 }
 
 void Jastrow::update_rij()
@@ -184,8 +196,8 @@ void Jastrow::calculate_fij()
     {
         for (int j = 0; j < nParticles; j++)
         {
-            rij = rijNew(i,j);
-            fijNew(i,j) = a(i,j)*rij/(1.0 + beta*rij);
+            rij = rijOld(i,j);
+            fijOld(i,j) = a(i,j)*rij/(1.0 + beta*rij);
         }
     }
 }

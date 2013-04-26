@@ -24,10 +24,6 @@ public:
 
     void acceptMove();
     void rejectMove();
-
-//    double hydrogenWF(const int &i, const vec3 &rvec);
-//    double phi1s(const vec3 &rvec);
-//    double phi2s(const vec3 &rvec);
 private:
     int nParticles;
     int nDimensions;
@@ -41,11 +37,21 @@ private:
     mat slaterUPinvOld, slaterDOWNinvOld;
     mat slaterUPinvNew, slaterDOWNinvNew;
 
-//    void update();
     void updateSlater();
     void updateInverse();
 
     Orbitals* orbitals;
+
+public:
+    mat getUPinv()
+    {
+        return slaterUPinvOld;
+    }
+
+    mat getDOWNinv()
+    {
+        return slaterDOWNinvOld;
+    }
 };
 
 #endif // SLATER_H

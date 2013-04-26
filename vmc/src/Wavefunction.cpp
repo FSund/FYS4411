@@ -57,11 +57,13 @@ void Wavefunction::setParameters(const vec &parameters)
 double Wavefunction::wavefunction(const mat &r)
 {
     return slater->wavefunction(r)*jastrow->wavefunction(r);
+//    return slater->wavefunction(r);
 }
 
 double Wavefunction::getRatio()
 {
     return slater->getRatio()*jastrow->getRatio();
+//    return slater->getRatio();
 }
 
 void Wavefunction::acceptMove()
@@ -166,61 +168,63 @@ double Wavefunction::electronElectronPotential()
     return potentialEnergy;
 }
 
-//double Helium::localEnergyClosedForm(const mat &r) const
-//{
-//    double EL1, EL2, dr;
-//    double rInverseSum = 0, rSum = 0, rijSum = 0;
-//    vec drvec(nDimensions);
+double Wavefunction::localEnergyClosedForm(const mat &r) const
+{
+    double beta = 3.5;
+    double alpha = 3.9;
+    double EL1, EL2, dr;
+    double rInverseSum = 0, rSum = 0, rijSum = 0;
+    vec drvec(nDimensions);
 
-//    for (int i = 0; i < nParticles; i++) {
-//        drvec = r.row(i);
-//        dr = 0.0;
-//        for (int k = 0; k < nDimensions; k++)
-//            dr += drvec(k)*drvec(k);
-//        dr = sqrt(dr);
-//        rSum += dr;
-//        rInverseSum += 1.0/dr;
-//        for (int j = i + 1; j < nParticles; j++) {
-//            drvec -= r.row(j);
-//            dr = 0.0;
-//            for (int k = 0; k < nDimensions; k++)
-//                dr += drvec(k)*drvec(k);
-//            dr = sqrt(dr);
-//            rijSum += dr;
-//        }
-//    }
+    for (int i = 0; i < nParticles; i++) {
+        drvec = r.row(i);
+        dr = 0.0;
+        for (int k = 0; k < nDimensions; k++)
+            dr += drvec(k)*drvec(k);
+        dr = sqrt(dr);
+        rSum += dr;
+        rInverseSum += 1.0/dr;
+        for (int j = i + 1; j < nParticles; j++) {
+            drvec -= r.row(j);
+            dr = 0.0;
+            for (int k = 0; k < nDimensions; k++)
+                dr += drvec(k)*drvec(k);
+            dr = sqrt(dr);
+            rijSum += dr;
+        }
+    }
 
-//    vec r1vec(r.row(0).t());
-//    vec r2vec(r.row(1).t());
+    vec r1vec(r.row(0).t());
+    vec r2vec(r.row(1).t());
 
-//    double r1 = norm(r1vec, 2);
-//    double r2 = norm(r2vec, 2);
+    double r1 = norm(r1vec, 2);
+    double r2 = norm(r2vec, 2);
 
-//    double betafactor = 1.0/(1.0 + beta*rijSum);
-//    double betafactor2 = betafactor*betafactor;
-//    double rfactor = 1.0 - dot(r1vec, r2vec)/r1/r2;
+    double betafactor = 1.0/(1.0 + beta*rijSum);
+    double betafactor2 = betafactor*betafactor;
+    double rfactor = 1.0 - dot(r1vec, r2vec)/r1/r2;
 
-//    ////
-////    cout << "betafactor = " << betafactor << endl;
-////    cout << "rfactor = " << rfactor << endl;
-////    cout << "1 = " << alpha*rSum*rfactor/rijSum << endl;
-////    cout << "2 = " << -1.0/(2.0*betafactor2) << endl;
-////    cout << "3 = " << -2.0/rijSum << endl;
-////    cout << "4 = " << 2.0*beta/betafactor << endl;
-//    ////
+    ////
+//    cout << "betafactor = " << betafactor << endl;
+//    cout << "rfactor = " << rfactor << endl;
+//    cout << "1 = " << alpha*rSum*rfactor/rijSum << endl;
+//    cout << "2 = " << -1.0/(2.0*betafactor2) << endl;
+//    cout << "3 = " << -2.0/rijSum << endl;
+//    cout << "4 = " << 2.0*beta/betafactor << endl;
+    ////
 
-//    EL1 = (alpha - charge)*rInverseSum + 1.0/rijSum - alpha*alpha;
-//    EL2 = EL1 + (0.5*betafactor2)*
-//            (
-//                alpha*rSum*rfactor/rijSum - 0.5*betafactor2 - 2.0/rijSum
-//                + 2.0*beta*betafactor
-//            );
+    EL1 = (alpha - charge)*rInverseSum + 1.0/rijSum - alpha*alpha;
+    EL2 = EL1 + (0.5*betafactor2)*
+            (
+                alpha*rSum*rfactor/rijSum - 0.5*betafactor2 - 2.0/rijSum
+                + 2.0*beta*betafactor
+            );
 
-//    ////
-////    cout << "braces = " << test << endl;
-////    cout << "EL1 = " << EL1 << endl;
-////    cout << "EL2 = " << EL2 << endl;
-////    cout << endl;
-//    ////
-//    return EL2;
-//}
+    ////
+//    cout << "braces = " << test << endl;
+//    cout << "EL1 = " << EL1 << endl;
+//    cout << "EL2 = " << EL2 << endl;
+//    cout << endl;
+    ////
+    return EL2;
+}
