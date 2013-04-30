@@ -26,10 +26,14 @@ public:
     void rejectMove();
 
     double localEnergyNumerical();
-    double localEnergyClosedForm(const mat &r) const;
-    mat gradientNumerical();
-    double laplaceNumerical();
+    mat localGradientNumerical();
+    double localLaplacianNumerical();
+
+    mat localGradient();
+    double localLaplacian();
+    //    double localEnergyClosedForm(const mat &r) const;
 protected:
+    double wavefunction();
     double wavefunction(const mat &r);
     double electronNucleusPotential();
     double electronElectronPotential();
@@ -46,8 +50,12 @@ protected:
 
 private:
     double wfMinus, wfPlus, wfCurrent;
+    double dfactor;
+    double ddwavefunction;
     mat dwavefunction;
     mat rPlus, rMinus;
+    mat grad;
+    double lapl;
 
     Jastrow* jastrow;
     Slater* slater;

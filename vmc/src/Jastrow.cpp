@@ -41,17 +41,17 @@ void Jastrow::setBeta(const double &newBeta)
     beta = newBeta;
 }
 
-//double Jastrow::wavefunction()
-//{
-//    /* Only for use in the numerical gradient and laplacian in the local energy */
+double Jastrow::wavefunction()
+{
+    /* Only for use in the numerical gradient and laplacian in the local energy */
 
-//    double arg = 0.0;
-//    for (int i = 0; i < nParticles; i++)
-//        for (int j = i+1; j < nParticles; j++)
-//            arg += fijNew(i,j);
+    double arg = 0.0;
+    for (int i = 0; i < nParticles; i++)
+        for (int j = i+1; j < nParticles; j++)
+            arg += fijNew(i,j);
 
-//    return exp(arg);
-//}
+    return exp(arg);
+}
 
 double Jastrow::wavefunction(const mat &r)
 {
@@ -84,7 +84,6 @@ double Jastrow::wavefunction(const mat &r)
         }
     }
 
-
     // the wavefunction
     double arg = 0.0;
     for (int i = 0; i < nParticles; i++)
@@ -107,23 +106,153 @@ double Jastrow::getRatio()
     return exp(dU);
 }
 
-mat Jastrow::gradient()
+rowvec Jastrow::localGradient(const int &k)
 {
-    mat temp(nParticles, nDimensions);
-    temp.fill(1.0);
+//    mat grad = zeros<mat>(nParticles, nDimensions);
+//    double rij;
+//    for (int k = 0; k < nParticles; k++)
+//    {
+//        for (int i = 0; i < k; i++)
+//        {
+//            rij = rijNew(i,k);
+//            grad.row(k) += ((rNew.row(k) - rNew.row(i))/rij)*
+//                               ( a(i,k)/(1 + beta*rij)*(1 + beta*rij) );
+//        }
+//        for (int i = k+1; i < nParticles; i++)
+//        {
+//            rij = rijNew(k,i);
+//            grad.row(k) -= ((rNew.row(i) - rNew.row(k))/rij)*
+//                               ( a(k,i)/(1 + beta*rij)*(1 + beta*rij) );
+//        }
+//    }
 
-    cout << "! Haven't implemented closed form Jastrow gradient yet !" << endl;
-    exit(1);
+    // lecture notes p. 515-517
+    // only for particle k!
+    grad = zeros<rowvec>(nDimensions);
+    double rij;
+    for (int i = 0; i < k; i++)
+    {
+        rij = rijNew(i,k);
+        grad += (rNew.row(k) - rNew.row(i)) * a(i,k)/(rij*pow((1 + beta*rij),2));
+    }
+    for (int i = k+1; i < nParticles; i++)
+    {
+        rij = rijNew(k,i);
+        grad -= (rNew.row(i) - rNew.row(k)) * a(k,i)/(rij*pow((1 + beta*rij),2));
+    }
 
-    return temp;
+    return grad;
 }
 
-double Jastrow::laplacian()
-{
-    cout << "! Haven't implemented closed form Jastrow Laplacian yet !" << endl;
-    exit(1);
+//mat Jastrow::localGradientNumerical(const double &h)
+//{
+//    mat gradient = zeros<rowvec>(nParticles, nDimensions);
+//    double wfCurrent, wfMinus, wfPlus;
 
-    return 1.0;
+//    // computing the first derivative
+//    rPlus = rMinus = rNew;
+//    wfCurrent = wavefunction();
+//    for (int i = 0; i < nParticles; i++) {
+//        for (int j = 0; j < nDimensions; j++) {
+//            rPlus(i,j) += h;
+//            rMinus(i,j) -= h;
+//            wfMinus = wavefunction(rMinus);
+//            wfPlus = wavefunction(rPlus);
+//            gradient(i,j) = wfPlus - wfMinus;
+//            rPlus(i,j) = rMinus(i,j) = rNew(i,j);
+//        }
+//    }
+//    gradient /= (2.0*wfCurrent*h);
+
+//    return gradient;
+//}
+
+double Jastrow::localLaplacian(const int &k)
+{
+//    lapl = zeros<rowvec>(nParticles);
+//    double arg, rki, rkj;
+//    for (int k = 0; k < nParticles; k++)
+//    {
+//        for (int j = 0; j < nParticles; j++)
+//        {
+//            if (j == k) continue;
+//            rkj = 0.0;
+//            for (int l = 0; l < nDimensions; l++)
+//                rkj += rNew(k,l) - rNew(k,j);
+//            rkj = sqrt(rkj);
+//            lapl(k) += 2.0*a(k,j)*(1.0/rkj + 1.0/(1.0 + beta*rkj))/pow((1 + beta*rkj),2);
+//            for (int i = 0; i < nParticles; i++)
+//            {
+//                if (i == k) continue;
+//                arg = rki = 0.0;
+//                for (int l = 0; l < nDimensions; l++)
+//                {
+//                    arg += (rNew(k,l) - rNew(i,l))*(rNew(k,l) - rNew(j,l)); // dot product
+//                    rki += rNew(k,l) - rNew(k,i);
+//                }
+//                rki = sqrt(rki);
+//                lapl(k) += arg
+//                    *(a(k,i)/(rki*pow((1.0 + beta*rki),2)))
+//                    *(a(k,j)/(rkj*pow((1.0 + beta*rkj),2)));
+//            }
+//        }
+//    }
+
+//    lapl = 0.0;
+//    double arg, rki, rkj;
+//    for (int j = 0; j < nParticles; j++)
+//    {
+//        if (j == k) continue;
+//        rkj = 0.0;
+//        for (int l = 0; l < nDimensions; l++)
+//            rkj += rNew(k,l) - rNew(k,j);
+//        rkj = sqrt(rkj);
+//        lapl += 2.0*a(k,j)*(1.0/rkj + 1.0/(1.0 + beta*rkj))/pow((1 + beta*rkj),2);
+//        for (int i = 0; i < nParticles; i++)
+//        {
+//            if (i == k) continue;
+//            arg = rki = 0.0;
+//            for (int l = 0; l < nDimensions; l++)
+//            {
+//                arg += (rNew(k,l) - rNew(i,l))*(rNew(k,l) - rNew(j,l)); // dot product
+//                rki += rNew(k,l) - rNew(k,i);
+//            }
+//            rki = sqrt(rki);
+//            lapl += arg
+//                    *(a(k,i)/(rki*pow((1.0 + beta*rki),2)))
+//                    *(a(k,j)/(rkj*pow((1.0 + beta*rkj),2)));
+//        }
+//    }
+
+//    return lapl;
+
+    // https://github.com/sigvebs/VMC/blob/master/QD/QD_Jastrow.cpp
+    lapl = 0.0;
+    double rki;
+    double brki;
+    for (int i = 0; i < k; i++)
+    {
+        rki = 0.0;
+        for (int l = 0; l < nDimensions; l++)
+            rki += (rNew(k,l) - rNew(i,l))*(rNew(k,l) - rNew(i,l));
+        rki = sqrt(rki);
+        brki = 1.0 + beta*rki;
+        lapl += a(k,i)*brki/(rki*pow(brki, 3));
+    }
+    for (int i = k+1; i < nParticles; i++)
+    {
+        rki = 0.0;
+        for (int l = 0; l < nDimensions; l++)
+            rki += (rNew(k,l) - rNew(i,l))*(rNew(k,l) - rNew(i,l));
+        rki = sqrt(rki);
+        brki = 1.0 + beta*rki;
+        lapl += a(k,i)*brki/(rki*pow(brki, 3));
+    }
+    lapl += dot(localGradient(k), localGradient(k)); // inefficient!!
+    // lapl += dot(grad, grad); // should have calculated the gradient before this
+
+//    cout << "lapl jastrow = " << lapl << endl;
+    return lapl;
 }
 
 void Jastrow::acceptMove()

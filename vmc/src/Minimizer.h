@@ -24,9 +24,9 @@ protected:
 private:
     void bruteforce();
 
-    vec &energyGradientNumerical();
+    vec energyGradientNumerical();
 //    vec energyGradientNumerical(const vec &param);
-    mat &energyHessianNumerical();
+    mat energyHessianNumerical();
     vec steepestDescent();
 //    vec CGM();
 };

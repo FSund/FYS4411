@@ -36,7 +36,7 @@ double SolverMCIS::runMonteCarloIntegration(const int &nCycles_)
     rNew = rOld;
     wf->initialize(rOld);
 
-    qForceOld = 2.0*wf->gradientNumerical();
+    qForceOld = 2.0*wf->localGradientNumerical();
 
     nCycles = nCycles_/numprocs;
 
@@ -53,7 +53,7 @@ double SolverMCIS::runMonteCarloIntegration(const int &nCycles_)
             ratio = wf->getRatio();
             ratio *= ratio; // should be squared!
 
-            qForceNew = 2.0*wf->gradientNumerical();
+            qForceNew = 2.0*wf->localGradientNumerical();
 
             // Green's function ratio
             omegaRatio = 0.0;

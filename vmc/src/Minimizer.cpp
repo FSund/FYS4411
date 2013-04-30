@@ -6,8 +6,8 @@ Minimizer::Minimizer(int &myRank, int &numprocs, int &nParticles, int &charge, i
     nParameters(nParameters),
     parameters(guess)
 {
-    solver = new SolverMCBF(myRank, numprocs, nParticles, charge);
-//    solver = new SolverMCIS(myRank, numprocs, nParticles, charge);
+//    solver = new SolverMCBF(myRank, numprocs, nParticles, charge);
+    solver = new SolverMCIS(myRank, numprocs, nParticles, charge);
 }
 
 vec Minimizer::runMinimizer()
@@ -28,18 +28,16 @@ vec Minimizer::runMinimizer()
 
 void Minimizer::bruteforce()
 {
-    double minAlpha = 3.4;
-    double maxAlpha = 3.4;
-    double minBeta = 0.5;
-    double maxBeta = 6;
-    double step = 0.05;
-    int nStepsAlpha = round((maxAlpha - minAlpha)/step);
-    int nStepsBeta = round((maxBeta - minBeta)/step);
-    int nCycles = 1e5;
+    mat minmax(nParameters, 2);
+    minmax << 3.60 << 4.40 << endr
+           << 0.0 << 0.3 << endr;
 
-    double energy = 0.0;
+    // benchmark: 56s -n 2 at home, 1m52s -n 1 at home
+//    minmax << 3.4 << 3.4 << endr
+//           << 0.1 << 0.2 << endr;
 
-//    cout << Wavefunction
+    vec step(nParameters);
+    step << 0.05 << endr << 0.05;
 
     ofstream ofile;
     if (myRank == 0)
@@ -47,14 +45,14 @@ void Minimizer::bruteforce()
         ofile.open("minimization.dat");
     }
 
-    for (double beta = minBeta; beta <= minBeta + step*nStepsBeta; beta += step)
+    int nCycles = 1e4;
+    double energy = 0.0;
+    for (double alpha = minmax(0,0); alpha <= minmax(0,1); alpha += step(0))
     {
-        solver->setBeta(beta);
-        for (double alpha = minAlpha; alpha <= minAlpha + step*nStepsAlpha; alpha += step)
+        solver->setAlpha(alpha);
+        for (double beta = minmax(1,0); beta <= minmax(1,1); beta += step(1))
         {
-//            if (myRank == 0) cout << "alpha = " << alpha << ", beta = " << beta << endl;
-
-            solver->setAlpha(alpha);
+            solver->setBeta(beta);
             energy = solver->runMonteCarloIntegration(nCycles);
 
             if (myRank == 0)
@@ -66,7 +64,7 @@ void Minimizer::bruteforce()
     }
 }
 
-vec &Minimizer::energyGradientNumerical()
+vec Minimizer::energyGradientNumerical()
 {
     const double h = 1e-3;
 //    double h2 = 1e6;
@@ -128,7 +126,7 @@ vec &Minimizer::energyGradientNumerical()
 //    return dE;
 //}
 
-mat &Minimizer::energyHessianNumerical()
+mat Minimizer::energyHessianNumerical()
 {
     const double h = 1e-3;
     const double h2 = 1e6;

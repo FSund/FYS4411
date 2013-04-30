@@ -54,16 +54,26 @@ void Wavefunction::setParameters(const vec &parameters)
     jastrow->setBeta(parameters(1));
 }
 
+double Wavefunction::wavefunction()
+{
+    return slater->wavefunction()*jastrow->wavefunction();
+}
+
 double Wavefunction::wavefunction(const mat &r)
 {
     return slater->wavefunction(r)*jastrow->wavefunction(r);
-//    return slater->wavefunction(r);
+
+//    double answer = 0.0;
+//    for (int i = 0; i < nParticles; i++)
+//    {
+//        answer += dot(r.row(i), r.row(i));
+//    }
+//    return answer;
 }
 
 double Wavefunction::getRatio()
 {
     return slater->getRatio()*jastrow->getRatio();
-//    return slater->getRatio();
 }
 
 void Wavefunction::acceptMove()
@@ -84,38 +94,40 @@ void Wavefunction::rejectMove()
 
 double Wavefunction::localEnergyNumerical()
 {
-    double kinetic = -0.5*laplaceNumerical();
+    double kinetic = -0.5*localLaplacianNumerical();
     double potential = electronNucleusPotential() + electronElectronPotential();
 
     return kinetic + potential;
 }
 
-mat Wavefunction::gradientNumerical()
+mat Wavefunction::localGradientNumerical()
 {
+    // this function is correct!
     // computing the first derivative
     rPlus = rMinus = rNew;
     wfCurrent = wavefunction(rNew);
+    dfactor = 1.0/(wfCurrent*2.0*h);
+
     for (int i = 0; i < nParticles; i++) {
         for (int j = 0; j < nDimensions; j++) {
             rPlus(i,j) += h;
             rMinus(i,j) -= h;
             wfMinus = wavefunction(rMinus);
             wfPlus = wavefunction(rPlus);
-            dwavefunction(i,j) = wfPlus - wfMinus;
+            dwavefunction(i,j) = (wfPlus - wfMinus)*dfactor;
             rPlus(i,j) = rMinus(i,j) = rNew(i,j);
         }
     }
-    dwavefunction /= (2.0*wfCurrent*h);
 
     return dwavefunction;
 }
 
-double Wavefunction::laplaceNumerical()
+double Wavefunction::localLaplacianNumerical()
 {
     // computing the second derivative
-    double ddwavefunction = 0.0;
+    ddwavefunction = 0.0;
     rPlus = rMinus = rNew;
-    double wf = wavefunction(rNew);
+    wfCurrent = wavefunction(rNew);
 
     for (int i = 0; i < nParticles; i++) {
         for (int j = 0; j < nDimensions; j++) {
@@ -128,9 +140,11 @@ double Wavefunction::laplaceNumerical()
         }
     }
 
-    ddwavefunction = h2*(ddwavefunction/wf - 2.0*double(nParticles*nDimensions));
+    ddwavefunction = h2*(ddwavefunction/wfCurrent - 2.0*double(nParticles*nDimensions));
 
     return ddwavefunction;
+
+//    return slater->localLaplacianNumerical(h)*jastrow->localLaplacianNumerical(h);
 }
 
 double Wavefunction::electronNucleusPotential()
@@ -168,63 +182,86 @@ double Wavefunction::electronElectronPotential()
     return potentialEnergy;
 }
 
-double Wavefunction::localEnergyClosedForm(const mat &r) const
+mat Wavefunction::localGradient()
 {
-    double beta = 3.5;
-    double alpha = 3.9;
-    double EL1, EL2, dr;
-    double rInverseSum = 0, rSum = 0, rijSum = 0;
-    vec drvec(nDimensions);
-
-    for (int i = 0; i < nParticles; i++) {
-        drvec = r.row(i);
-        dr = 0.0;
-        for (int k = 0; k < nDimensions; k++)
-            dr += drvec(k)*drvec(k);
-        dr = sqrt(dr);
-        rSum += dr;
-        rInverseSum += 1.0/dr;
-        for (int j = i + 1; j < nParticles; j++) {
-            drvec -= r.row(j);
-            dr = 0.0;
-            for (int k = 0; k < nDimensions; k++)
-                dr += drvec(k)*drvec(k);
-            dr = sqrt(dr);
-            rijSum += dr;
-        }
+    grad = zeros<mat>(nParticles, nDimensions);
+    for (int i = 0; i < nParticles; i++)
+    {
+        grad.row(i) = slater->localGradient(i) + jastrow->localGradient(i);
     }
 
-    vec r1vec(r.row(0).t());
-    vec r2vec(r.row(1).t());
-
-    double r1 = norm(r1vec, 2);
-    double r2 = norm(r2vec, 2);
-
-    double betafactor = 1.0/(1.0 + beta*rijSum);
-    double betafactor2 = betafactor*betafactor;
-    double rfactor = 1.0 - dot(r1vec, r2vec)/r1/r2;
-
-    ////
-//    cout << "betafactor = " << betafactor << endl;
-//    cout << "rfactor = " << rfactor << endl;
-//    cout << "1 = " << alpha*rSum*rfactor/rijSum << endl;
-//    cout << "2 = " << -1.0/(2.0*betafactor2) << endl;
-//    cout << "3 = " << -2.0/rijSum << endl;
-//    cout << "4 = " << 2.0*beta/betafactor << endl;
-    ////
-
-    EL1 = (alpha - charge)*rInverseSum + 1.0/rijSum - alpha*alpha;
-    EL2 = EL1 + (0.5*betafactor2)*
-            (
-                alpha*rSum*rfactor/rijSum - 0.5*betafactor2 - 2.0/rijSum
-                + 2.0*beta*betafactor
-            );
-
-    ////
-//    cout << "braces = " << test << endl;
-//    cout << "EL1 = " << EL1 << endl;
-//    cout << "EL2 = " << EL2 << endl;
-//    cout << endl;
-    ////
-    return EL2;
+    return grad;
 }
+
+double Wavefunction::localLaplacian()
+{
+    lapl = 0.0;
+    for (int i = 0; i < nParticles; i++)
+    {
+        lapl += slater->localLaplacian(i) + jastrow->localLaplacian(i)
+                + 2.0*dot(slater->localGradient(i), jastrow->localGradient(i));
+    }
+
+    return lapl;
+}
+
+//double Wavefunction::localEnergyClosedForm(const mat &r) const
+//{
+//    double beta = 3.5;
+//    double alpha = 3.9;
+//    double EL1, EL2, dr;
+//    double rInverseSum = 0, rSum = 0, rijSum = 0;
+//    vec drvec(nDimensions);
+
+//    for (int i = 0; i < nParticles; i++) {
+//        drvec = r.row(i);
+//        dr = 0.0;
+//        for (int k = 0; k < nDimensions; k++)
+//            dr += drvec(k)*drvec(k);
+//        dr = sqrt(dr);
+//        rSum += dr;
+//        rInverseSum += 1.0/dr;
+//        for (int j = i + 1; j < nParticles; j++) {
+//            drvec -= r.row(j);
+//            dr = 0.0;
+//            for (int k = 0; k < nDimensions; k++)
+//                dr += drvec(k)*drvec(k);
+//            dr = sqrt(dr);
+//            rijSum += dr;
+//        }
+//    }
+
+//    vec r1vec(r.row(0).t());
+//    vec r2vec(r.row(1).t());
+
+//    double r1 = norm(r1vec, 2);
+//    double r2 = norm(r2vec, 2);
+
+//    double betafactor = 1.0/(1.0 + beta*rijSum);
+//    double betafactor2 = betafactor*betafactor;
+//    double rfactor = 1.0 - dot(r1vec, r2vec)/r1/r2;
+
+//    ////
+////    cout << "betafactor = " << betafactor << endl;
+////    cout << "rfactor = " << rfactor << endl;
+////    cout << "1 = " << alpha*rSum*rfactor/rijSum << endl;
+////    cout << "2 = " << -1.0/(2.0*betafactor2) << endl;
+////    cout << "3 = " << -2.0/rijSum << endl;
+////    cout << "4 = " << 2.0*beta/betafactor << endl;
+//    ////
+
+//    EL1 = (alpha - charge)*rInverseSum + 1.0/rijSum - alpha*alpha;
+//    EL2 = EL1 + (0.5*betafactor2)*
+//            (
+//                alpha*rSum*rfactor/rijSum - 0.5*betafactor2 - 2.0/rijSum
+//                + 2.0*beta*betafactor
+//            );
+
+//    ////
+////    cout << "braces = " << test << endl;
+////    cout << "EL1 = " << EL1 << endl;
+////    cout << "EL2 = " << EL2 << endl;
+////    cout << endl;
+//    ////
+//    return EL2;
+//}

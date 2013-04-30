@@ -5,7 +5,7 @@ CONFIG -= qt
 
 include(../defaults.pri)
 
-TARGET = MyProject
+TARGET = vmc
 
 SOURCES += main.cpp \
     lib.cpp \

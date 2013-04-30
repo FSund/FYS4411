@@ -14,11 +14,11 @@ public:
     void updatePositionAndCurrentParticle(mat &r, int &k);
     void setBeta(const double &newBeta);
 
-//    double wavefunction();
+    double wavefunction();
     double wavefunction(const mat &r);
     double getRatio();
-    mat gradient();
-    double laplacian();
+    rowvec localGradient(const int &k);
+    double localLaplacian(const int &k);
 
     void acceptMove();
     void rejectMove();
@@ -31,6 +31,12 @@ private:
     mat a;
     double beta;
     int currentParticle;
+
+//    mat localGradientNumerical(const double &h);
+//    mat rPlus, rMinus;
+    double rij;
+    rowvec grad;
+    double lapl;
 
     void calculate_rij();
     void update_rij();
