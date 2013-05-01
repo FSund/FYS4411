@@ -6,8 +6,8 @@ Minimizer::Minimizer(int &myRank, int &numprocs, int &nParticles, int &charge, i
     nParameters(nParameters),
     parameters(guess)
 {
-//    solver = new SolverMCBF(myRank, numprocs, nParticles, charge);
-    solver = new SolverMCIS(myRank, numprocs, nParticles, charge);
+    solver = new SolverMCBF(myRank, numprocs, nParticles, charge);
+//    solver = new SolverMCIS(myRank, numprocs, nParticles, charge);
 }
 
 vec Minimizer::runMinimizer()
@@ -29,8 +29,8 @@ vec Minimizer::runMinimizer()
 void Minimizer::bruteforce()
 {
     mat minmax(nParameters, 2);
-    minmax << 3.60 << 4.40 << endr
-           << 0.0 << 0.3 << endr;
+    minmax << 3.0 << 4.1 << endr
+           << 0.0 << 1.0 << endr;
 
     // benchmark: 56s -n 2 at home, 1m52s -n 1 at home
 //    minmax << 3.4 << 3.4 << endr
@@ -40,12 +40,12 @@ void Minimizer::bruteforce()
     step << 0.05 << endr << 0.05;
 
     ofstream ofile;
-    if (myRank == 0)
-    {
-        ofile.open("minimization.dat");
-    }
+//    if (myRank == 0)
+//    {
+//        ofile.open("minimization.dat");
+//    }
 
-    int nCycles = 1e4;
+    int nCycles = 1e5;
     double energy = 0.0;
     for (double alpha = minmax(0,0); alpha <= minmax(0,1); alpha += step(0))
     {
@@ -58,7 +58,9 @@ void Minimizer::bruteforce()
             if (myRank == 0)
             {
                 ofile << alpha << " " << beta << " " << energy << endl;
-                cout << "alpha = " << alpha << ", beta = " << beta << ", energy = " << energy << endl;
+                cout << "alpha = " << setw(4) << alpha;
+                cout << ", beta = " << setw(4) << beta;
+                cout << ", energy = " << energy << endl;
             }
         }
     }
@@ -182,7 +184,7 @@ vec Minimizer::steepestDescent()
 {
     solver->setParameters(parameters);
 
-    double tolerance = 1e-10;
+//    double tolerance = 1e-10;
     int iterMax = 10;
     int i;
     vec r(nParameters);

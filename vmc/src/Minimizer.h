@@ -2,6 +2,7 @@
 #define MINIMIZER_H
 
 #include <iostream>
+#include <iomanip>
 #include <armadillo>
 #include "Solver/Solver.h"
 #include "Solver/SolverMCBF.h"

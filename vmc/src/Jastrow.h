@@ -10,7 +10,7 @@ class Jastrow
 {
 public:
     Jastrow(const int &nParticles);
-    void initalize(const mat &r);
+    void initialize(const mat &r);
     void updatePositionAndCurrentParticle(mat &r, int &k);
     void setBeta(const double &newBeta);
 
@@ -18,10 +18,21 @@ public:
     double wavefunction(const mat &r);
     double getRatio();
     rowvec localGradient(const int &k);
+    rowvec localGradient(const mat &r, const int &k);
     double localLaplacian(const int &k);
+    double localLaplacian(const mat &r, const int &k);
+
 
     void acceptMove();
     void rejectMove();
+
+    // for debugging/tests
+    // these functions return the full gradient and laplacian, not just for one
+    // particle like the closed for functions
+    rowvec localGradientNumerical(const int &k, const double &h);
+    rowvec localGradientNumerical(const mat &r, const int &k, const double &h);
+    double localLaplacianNumerical(const int &k, const double &h);
+    double localLaplacianNumerical(const mat &r, const int &k, const double &h);
 private:
     int nParticles;
     int nDimensions;
@@ -32,8 +43,13 @@ private:
     double beta;
     int currentParticle;
 
-//    mat localGradientNumerical(const double &h);
-//    mat rPlus, rMinus;
+    // numerical gradient and laplacian
+    double wfCurrent, wfMinus, wfPlus;
+    mat rPlus, rMinus;
+    rowvec dwavefunction;
+    double ddwavefunction;
+
+    // closed form gradient and laplacian
     double rij;
     rowvec grad;
     double lapl;

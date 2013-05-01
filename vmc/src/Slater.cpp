@@ -23,7 +23,7 @@ Slater::~Slater()
     delete orbitals;
 }
 
-void Slater::initalize(const mat &r)
+void Slater::initialize(const mat &r)
 {
     rNew = rOld = r;
 
@@ -35,15 +35,15 @@ void Slater::initalize(const mat &r)
             slaterDOWNold(i,j) = orbitals->wavefunction(rOld.row(i+N), j);
         }
     }
-    slaterUPinvOld = inv(slaterUPold);
+    slaterUPinvOld   = inv(slaterUPold);
     slaterDOWNinvOld = inv(slaterDOWNold);
 
-    ratioUP = ratioDOWN = 1.0;
-
-    slaterUPnew = slaterUPold;
-    slaterDOWNnew = slaterDOWNold;
-    slaterUPinvNew = slaterUPinvOld;
+    slaterUPnew      = slaterUPold;
+    slaterDOWNnew    = slaterDOWNold;
+    slaterUPinvNew   = slaterUPinvOld;
     slaterDOWNinvNew = slaterDOWNinvOld;
+
+    ratioUP = ratioDOWN = 1.0;
 }
 
 void Slater::setAlpha(const double &newAlpha)
@@ -61,28 +61,18 @@ void Slater::updatePositionAndCurrentParticle(mat &r, int &k)
     updateSlater();
 }
 
-//double Slater::wavefunction()
+//double Slater::wavefunction(const mat &r)
 //{
-//    /* Only for use in the numerical derivative in the numerical local energy */
-
-//    mat slaterUP(N, N);
-//    mat slaterDOWN(N, N);
-
-//    for (int i = 0; i < N; i++) // loop over particles
-//    {
-//        for (int j = 0; j < N; j++) // loop over orbitals
-//        {
-//            slaterUP(i,j)   = orbitals->wavefunction(rNew.row(i), j);
-//            slaterDOWN(i,j) = orbitals->wavefunction(rNew.row(i+N), j);
-//        }
-//    }
-
-//    return det(slaterUP)*det(slaterDOWN);
+//    // dummy wavefunction for debugging/testing
+//    double temp = 0.0;
+//    for (int i = 0; i < nParticles; i++)
+//        temp += dot(r.row(i), r.row(i));
+//    return temp;
 //}
 
 double Slater::wavefunction(const mat &r)
 {
-    /* Only for use in the numerical derivative in the numerical local energy */
+    /* Only for use in numerical derivatives */
 
     mat slaterUP(N, N);
     mat slaterDOWN(N, N);
@@ -121,83 +111,221 @@ double Slater::getRatio()
     }
 }
 
+mat Slater::gradient(const double &h)
+{
+    rPlus = rMinus = rNew;
+    mat temp(nParticles, nDimensions);
+    wfCurrent = wavefunction(rNew);
+    dfactor = 1.0/(wfCurrent*2.0*h);
+    for (int i = 0; i < nParticles; i++)
+    {
+        for (int j = 0; j < nDimensions; j++)
+        {
+            rPlus(i,j) += h;
+            rMinus(i,j) -= h;
+            wfMinus = wavefunction(rMinus);
+            wfPlus = wavefunction(rPlus);
+            temp(i,j) = (wfPlus - wfMinus)*dfactor;
+            rPlus(i,j) = rMinus(i,j) = rNew(i,j);
+        }
+    }
+
+    return temp;
+}
+
+mat Slater::gradient(const mat &r, const double &h)
+{
+    rPlus = rMinus = r;
+    mat temp(nParticles, nDimensions);
+    wfCurrent = wavefunction(r);
+    dfactor = 1.0/(wfCurrent*2.0*h);
+    for (int i = 0; i < nParticles; i++)
+    {
+        for (int j = 0; j < nDimensions; j++)
+        {
+            rPlus(i,j) += h;
+            rMinus(i,j) -= h;
+            wfMinus = wavefunction(rMinus);
+            wfPlus = wavefunction(rPlus);
+            temp(i,j) = (wfPlus - wfMinus)*dfactor;
+            rPlus(i,j) = rMinus(i,j) = r(i,j);
+        }
+    }
+
+    return temp;
+}
+
 rowvec Slater::localGradient(const int &i)
 {
-    // Note: Old == New because we have accepted/rejected before getting the energy!
+    /* Calculates the gradient for particle k */
+
+    // Note:  Old == New because we have accepted/rejected before getting the energy!
+    // Note2: Old != New, because we use the gradient when finding the qForce in importance sampling!!!
     grad = zeros<rowvec>(nDimensions);
     if (i < N)
         for (int j = 0; j < N; j++)
-            grad += orbitals->gradient(rNew.row(i),j)*slaterUPinvNew(j,i);
+            grad += orbitals->gradient(rNew.row(i),j)*slaterUPinvOld(j,i);
     else
         for (int j = 0; j < N; j++)
-            grad += orbitals->gradient(rNew.row(i),j)*slaterDOWNinvNew(j,i-N);
+            grad += orbitals->gradient(rNew.row(i),j)*slaterDOWNinvOld(j,i-N);
 
     return grad;
 }
 
-//mat Slater::localGradientNumerical(const double &h)
-//{
-//    mat gradient = zeros<mat>(nParticles, nDimensions);
-//    double wfCurrent, wfMinus, wfPlus;
+rowvec Slater::localGradient(const mat &r, const int &i)
+{
+    /* Calculates the gradient for particle k */
 
-//    // computing the first derivative
-//    rPlus = rMinus = rNew;
-//    wfCurrent = wavefunction();
-//    for (int i = 0; i < nParticles; i++) {
-//        for (int j = 0; j < nDimensions; j++) {
-//            rPlus(i,j) += h;
-//            rMinus(i,j) -= h;
-//            wfMinus = wavefunction(rMinus);
-//            wfPlus = wavefunction(rPlus);
-//            gradient(i,j) = wfPlus - wfMinus;
-//            rPlus(i,j) = rMinus(i,j) = rNew(i,j);
-//        }
-//    }
-//    gradient /= (2.0*wfCurrent*h);
+    dwavefunction = zeros<rowvec>(nDimensions);
+    if (i < N)
+        for (int j = 0; j < N; j++)
+            dwavefunction += orbitals->gradient(r.row(i),j)*slaterUPinvOld(j,i);
+    else
+        for (int j = 0; j < N; j++)
+            dwavefunction += orbitals->gradient(r.row(i),j)*slaterDOWNinvOld(j,i-N);
 
-//    return gradient;
-//}
+    return dwavefunction;
+}
+
+rowvec Slater::localGradientNumerical(const int &k, const double &h)
+{
+    /* Calculates the the gradient for particle k */
+
+    dwavefunction = zeros<rowvec>(nDimensions);
+    rPlus = rMinus = rNew;
+    wfCurrent = wavefunction(rNew);
+    for (int i = 0; i < nDimensions; i++)
+    {
+        rPlus(k,i) += h;
+        rMinus(k,i) -= h;
+        wfMinus = wavefunction(rMinus);
+        wfPlus = wavefunction(rPlus);
+        dwavefunction(i) = wfPlus - wfMinus;
+        rPlus(k,i) = rMinus(k,i) = rNew(k,i);
+    }
+    dwavefunction /= (2.0*wfCurrent*h);
+//    dwavefunction /= (2.0*h); // not local
+
+    return dwavefunction;
+}
+
+rowvec Slater::localGradientNumerical(const mat &r, const int &k, const double &h)
+{
+    /* Calculates the the gradient for particle k */
+
+    dwavefunction = zeros<rowvec>(nDimensions);
+    rPlus = rMinus = r;
+    wfCurrent = wavefunction(r);
+    for (int i = 0; i < nDimensions; i++)
+    {
+        rPlus(k,i) += h;
+        rMinus(k,i) -= h;
+        wfMinus = wavefunction(rMinus);
+        wfPlus = wavefunction(rPlus);
+        dwavefunction(i) = wfPlus - wfMinus;
+        rPlus(k,i) = rMinus(k,i) = r(k,i);
+    }
+    dwavefunction /= (2.0*wfCurrent*h);
+//    dwavefunction /= (2.0*h); // not local
+
+    return dwavefunction;
+}
 
 double Slater::localLaplacian(const int &i)
 {
+    /* Calculates the laplacian for particle k */
+
+    // NOTE: New == Old for the energy
+    // NOTE2: New != Old not necessarily for everything else, if we haven't accepted/rejected first
+    // then we haven't updated the inverse
     lapl = 0.0;
     if (i < N)
         for (int j = 0; j < N; j++)
-            lapl += orbitals->laplacian(rNew.row(i),j)*slaterUPinvNew(j,i);
+//            lapl += orbitals->laplacian(rNew.row(i),j)*slaterUPinvNew(j,i);
+            lapl += orbitals->laplacian(rNew.row(i),j)*slaterUPinvOld(j,i);
     else
         for (int j = 0; j < N; j++)
-            lapl += orbitals->laplacian(rNew.row(i),j)*slaterUPinvNew(j,i-N);
+//            lapl += orbitals->laplacian(rNew.row(i),j)*slaterDOWNinvNew(j,i-N);
+            lapl += orbitals->laplacian(rNew.row(i),j)*slaterDOWNinvOld(j,i-N);
 
-//    cout << "lapl Slater = " << lapl << endl;
     return lapl;
 }
 
-//double Slater::localLaplacianNumerical(const double &h)
-//{
-//    // computing the second derivative
-//    ddwavefunction = 0.0;
-//    rPlus = rMinus = rNew;
-//    wfCurrent = wavefunction();
+double Slater::localLaplacian(const mat &r, const int &i)
+{
+    /* Calculates the laplacian for particle k */
 
-//    for (int i = 0; i < nParticles; i++) {
-//        for (int j = 0; j < nDimensions; j++) {
-//            rPlus(i,j) += h;
-//            rMinus(i,j) -= h;
-//            wfMinus = wavefunction(rMinus);
-//            wfPlus = wavefunction(rPlus);
-//            ddwavefunction += wfMinus + wfPlus;
-//            rPlus(i,j) = rMinus(i,j) = rNew(i,j);
-//        }
-//    }
+    ddwavefunction = 0.0;
+    if (i < N)
+        for (int j = 0; j < N; j++)
+            ddwavefunction += orbitals->laplacian(r.row(i),j)*slaterUPinvOld(j,i);
+    else
+        for (int j = 0; j < N; j++)
+            ddwavefunction += orbitals->laplacian(r.row(i),j)*slaterDOWNinvOld(j,i-N);
 
-//    ddwavefunction = h2*(ddwavefunction/wfCurrent - 2.0*double(nParticles*nDimensions));
+    return ddwavefunction;
+}
 
-//    return ddwavefunction;
-//}
+double Slater::localLaplacianNumerical(const int &k, const double &h)
+{
+    /* Calculates the laplacian for particle k */
+    ddwavefunction = 0.0;
+    rPlus = rMinus = rNew;
+    wfCurrent = wavefunction(rNew);
+    for (int i = 0; i < nDimensions; i++) {
+        rPlus(k,i) += h;
+        rMinus(k,i) -= h;
+        wfMinus = wavefunction(rMinus);
+        wfPlus = wavefunction(rPlus);
+        ddwavefunction += wfMinus + wfPlus - 2.0*wfCurrent;
+        rPlus(k,i) = rMinus(k,i) = rNew(k,i);
+    }
+    ddwavefunction /= (wfCurrent*h*h);
+
+    return ddwavefunction;
+}
+
+double Slater::localLaplacianNumerical(const mat &r, const int &k, const double &h)
+{
+    /* Calculates the laplacian for particle k */
+    ddwavefunction = 0.0;
+    rPlus = rMinus = r;
+    wfCurrent = wavefunction(r);
+    for (int i = 0; i < nDimensions; i++) {
+        rPlus(k,i) += h;
+        rMinus(k,i) -= h;
+        wfMinus = wavefunction(rMinus);
+        wfPlus = wavefunction(rPlus);
+        ddwavefunction += wfMinus + wfPlus - 2.0*wfCurrent;
+        rPlus(k,i) = rMinus(k,i) = r(k,i);
+    }
+    ddwavefunction /= (wfCurrent*h*h);
+
+    return ddwavefunction;
+}
 
 void Slater::acceptMove()
 {
+//    cout << "Slater::acceptMove()" << endl;
+//    cout << "rOld" << endl << rOld << "rNew" << endl << rNew << endl;
+
     rOld.row(currentParticle) = rNew.row(currentParticle);
+
+//    cout << "rOld" << endl << rOld << "rNew" << endl << rNew << endl;
+
+//    cout << "slaterUPold" << endl << slaterUPold;
+//    cout << "slaterUPnew" << endl << slaterUPnew;
+
+//    cout << "slaterUPinvOld" << endl << slaterUPinvOld;
+//    cout << "slaterUPinvNew" << endl << slaterUPinvNew;
+
+//    cout << "slaterDOWNold" << endl << slaterDOWNold;
+//    cout << "slaterDOWNnew" << endl << slaterDOWNnew;
+
+//    cout << "slaterDOWNinvOld" << endl << slaterDOWNinvOld;
+//    cout << "slaterDOWNinvNew" << endl << slaterDOWNinvNew;
+
+//    cout << endl;
 
     updateInverse();
     if (currentParticle < N)
@@ -210,13 +338,28 @@ void Slater::acceptMove()
         slaterDOWNold.row(currentParticle-N) = slaterDOWNnew.row(currentParticle-N);
         slaterDOWNinvOld = slaterDOWNinvNew; // can't use just column/row!
     }
+
+//    cout << "slaterUPold" << endl << slaterUPold;
+//    cout << "slaterUPnew" << endl << slaterUPnew;
+
+//    cout << "slaterUPinvOld" << endl << slaterUPinvOld;
+//    cout << "slaterUPinvNew" << endl << slaterUPinvNew;
+
+//    cout << "real slaterUPinvOld" << endl << inv(slaterUPold);
+//    cout << "real slaterUPinvNew" << endl << inv(slaterUPnew);
+
+//    cout << "slaterDOWNold" << endl << slaterDOWNold;
+//    cout << "slaterDOWNnew" << endl << slaterDOWNnew;
+
+//    cout << "slaterDOWNinvOld" << endl << slaterDOWNinvOld;
+//    cout << "slaterDOWNinvNew" << endl << slaterDOWNinvNew;
 }
 
 void Slater::rejectMove()
 {
     rNew.row(currentParticle) = rOld.row(currentParticle);
 
-    // not updating the inverse, since we haven't changed it
+    // not updating the inverse, since we haven't changed it!!!
     if (currentParticle < N)
         slaterUPnew.row(currentParticle) = slaterUPold.row(currentParticle);
     else
@@ -236,6 +379,8 @@ void Slater::updateSlater()
 
 void Slater::updateInverse()
 {
+//    getRatio();
+
     if (currentParticle < N) // only updating the UP matrix
     {
         int i = currentParticle;

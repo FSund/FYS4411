@@ -25,12 +25,15 @@ public:
     void acceptMove();
     void rejectMove();
 
+    double localEnergy();
     double localEnergyNumerical();
+    mat localGradient();
+    mat localGradient(const mat &r);
     mat localGradientNumerical();
+    mat localGradientNumerical(const mat &r);
+    double localLaplacian();
     double localLaplacianNumerical();
 
-    mat localGradient();
-    double localLaplacian();
     //    double localEnergyClosedForm(const mat &r) const;
 protected:
     double wavefunction();

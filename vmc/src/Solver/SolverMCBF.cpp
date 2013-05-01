@@ -81,7 +81,7 @@ double SolverMCBF::runMonteCarloIntegration(const int &nCycles_)
                 wf->rejectMove();
             }
             // update energies
-            deltaE = wf->localEnergyNumerical();
+            deltaE = wf->localEnergy();
 
             energySum += deltaE;
             energySquaredSum += deltaE*deltaE;

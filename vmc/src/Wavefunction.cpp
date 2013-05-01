@@ -25,8 +25,8 @@ void Wavefunction::initialize(mat &r)
 {
     rNew = rOld = r;
 
-    jastrow->initalize(r);
-    slater->initalize(r);
+    jastrow->initialize(r);
+    slater->initialize(r);
 }
 
 void Wavefunction::updatePositionAndCurrentParticle(mat &r, int &k)
@@ -92,6 +92,11 @@ void Wavefunction::rejectMove()
     slater->rejectMove();
 }
 
+double Wavefunction::localEnergy()
+{
+    return -0.5*localLaplacian() + electronNucleusPotential() + electronElectronPotential();
+}
+
 double Wavefunction::localEnergyNumerical()
 {
     double kinetic = -0.5*localLaplacianNumerical();
@@ -100,14 +105,30 @@ double Wavefunction::localEnergyNumerical()
     return kinetic + potential;
 }
 
+mat Wavefunction::localGradient()
+{
+    grad = zeros<mat>(nParticles, nDimensions);
+    for (int i = 0; i < nParticles; i++)
+        grad.row(i) = slater->localGradient(i) + jastrow->localGradient(i);
+
+    return grad;
+}
+
+mat Wavefunction::localGradient(const mat &r)
+{
+    dwavefunction = zeros<mat>(nParticles, nDimensions);
+    for (int i = 0; i < nParticles; i++)
+        dwavefunction.row(i) = slater->localGradient(r, i)
+                               + jastrow->localGradient(r, i);
+
+    return dwavefunction;
+}
+
 mat Wavefunction::localGradientNumerical()
 {
-    // this function is correct!
-    // computing the first derivative
     rPlus = rMinus = rNew;
     wfCurrent = wavefunction(rNew);
     dfactor = 1.0/(wfCurrent*2.0*h);
-
     for (int i = 0; i < nParticles; i++) {
         for (int j = 0; j < nDimensions; j++) {
             rPlus(i,j) += h;
@@ -120,10 +141,52 @@ mat Wavefunction::localGradientNumerical()
     }
 
     return dwavefunction;
+
+//    for (int i = 0; i < nParticles; i++)
+//        dwavefunction.row(i) = slater->localGradientNumerical(i, h)
+//                               + jastrow->localGradientNumerical(i, h);
+
+//    return dwavefunction;
+}
+
+mat Wavefunction::localGradientNumerical(const mat &r)
+{
+    rPlus = rMinus = r;
+    wfCurrent = wavefunction(r);
+    dfactor = 1.0/(wfCurrent*2.0*h);
+    for (int i = 0; i < nParticles; i++) {
+        for (int j = 0; j < nDimensions; j++) {
+            rPlus(i,j) += h;
+            rMinus(i,j) -= h;
+            wfMinus = wavefunction(rMinus);
+            wfPlus = wavefunction(rPlus);
+            dwavefunction(i,j) = (wfPlus - wfMinus)*dfactor;
+            rPlus(i,j) = rMinus(i,j) = r(i,j);
+        }
+    }
+
+    return dwavefunction;
+
+//    for (int i = 0; i < nParticles; i++)
+//        dwavefunction.row(i) = slater->localGradientNumerical(r, i, h)
+//                               + jastrow->localGradientNumerical(r, i, h);
+
+//    return dwavefunction;
+}
+
+double Wavefunction::localLaplacian()
+{
+    lapl = 0.0;
+    for (int i = 0; i < nParticles; i++)
+        lapl += slater->localLaplacian(i) + jastrow->localLaplacian(i)
+                + 2.0*dot(slater->localGradient(i), jastrow->localGradient(i));
+
+    return lapl;
 }
 
 double Wavefunction::localLaplacianNumerical()
 {
+    // this function is correct!
     // computing the second derivative
     ddwavefunction = 0.0;
     rPlus = rMinus = rNew;
@@ -141,10 +204,15 @@ double Wavefunction::localLaplacianNumerical()
     }
 
     ddwavefunction = h2*(ddwavefunction/wfCurrent - 2.0*double(nParticles*nDimensions));
+//    ddwavefunction = h2*(ddwavefunction - 2.0*double(nParticles*nDimensions)*wfCurrent); // not-local
 
     return ddwavefunction;
 
-//    return slater->localLaplacianNumerical(h)*jastrow->localLaplacianNumerical(h);
+    // not correct
+//    ddwavefunction = 0.0;
+//    for (int i = 0; i < nParticles; i++)
+//        ddwavefunction += slater->localLaplacianNumerical(i, h)*jastrow->localLaplacianNumerical(i, h);
+//    return ddwavefunction;
 }
 
 double Wavefunction::electronNucleusPotential()
@@ -180,29 +248,6 @@ double Wavefunction::electronElectronPotential()
     }
 
     return potentialEnergy;
-}
-
-mat Wavefunction::localGradient()
-{
-    grad = zeros<mat>(nParticles, nDimensions);
-    for (int i = 0; i < nParticles; i++)
-    {
-        grad.row(i) = slater->localGradient(i) + jastrow->localGradient(i);
-    }
-
-    return grad;
-}
-
-double Wavefunction::localLaplacian()
-{
-    lapl = 0.0;
-    for (int i = 0; i < nParticles; i++)
-    {
-        lapl += slater->localLaplacian(i) + jastrow->localLaplacian(i)
-                + 2.0*dot(slater->localGradient(i), jastrow->localGradient(i));
-    }
-
-    return lapl;
 }
 
 //double Wavefunction::localEnergyClosedForm(const mat &r) const

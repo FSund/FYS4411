@@ -14,7 +14,7 @@ class SolverMCBF : public Solver
 {
 public:
     SolverMCBF(int &myRank, int &numprocs, int &nParticles, int &charge);
-    double runMonteCarloIntegration(const int &nCycles_);
+    virtual double runMonteCarloIntegration(const int &nCycles_);
 protected:
     double stepLength;
 };

@@ -13,7 +13,7 @@ public:
     Slater(const int &nParticles);
     ~Slater();
 
-    void initalize(const mat &r);
+    void initialize(const mat &r);
     void setAlpha(const double &newAlpha);
     void updatePositionAndCurrentParticle(mat &r, int &k);
 
@@ -22,22 +22,35 @@ public:
 
     double getRatio();
     rowvec localGradient(const int &i);
+    rowvec localGradient(const mat &r, const int &i);
+    rowvec localGradientNumerical(const int &k, const double &h);
+    rowvec localGradientNumerical(const mat &r, const int &k, const double &h);
     double localLaplacian(const int &i);
+    double localLaplacian(const mat &r, const int &i);
+    double localLaplacianNumerical(const int &k, const double &h);
+    double localLaplacianNumerical(const mat &r, const int &k, const double &h);
 
     void acceptMove();
     void rejectMove();
+
+    // debug stuff
+    mat gradient(const double &h);
+    mat gradient(const mat &r, const double &h);
 private:
     int nParticles;
     int nDimensions;
-    mat rOld, rNew, rPlus, rMinus;
+    mat rOld, rNew;
     int currentParticle;
     double ratio, ratioUP, ratioDOWN;
 
-//    mat localGradientNumerical(const double &h);
-//    double localLaplacianNumerical(const double &h);
-//    double wfCurrent, wfMinus, wfPlus;
-//    mat dwavefunction;
-//    vec ddwavefunction;
+    // for numerical gradient and laplacian
+    double wfCurrent, wfMinus, wfPlus;
+    double dfactor;
+    mat rPlus, rMinus;
+    rowvec dwavefunction;
+    double ddwavefunction;
+
+    // closed form gradient and laplacian
     rowvec grad;
     double lapl;
 
@@ -52,8 +65,15 @@ private:
 
     Orbitals* orbitals;
 public:
-    mat getUPinv() { return slaterUPinvOld; }
-    mat getDOWNinv() { return slaterDOWNinvOld; }
+    mat getUPinvOld() { return slaterUPinvOld; }
+    mat getDOWNinvOld() { return slaterDOWNinvOld; }
+    mat getUPold() { return slaterUPold; }
+    mat getDOWNold() { return slaterDOWNold; }
+
+    mat getUPinvNew() { return slaterUPinvNew; }
+    mat getDOWNinvNew() { return slaterDOWNinvNew; }
+    mat getUPnew() { return slaterUPnew; }
+    mat getDOWNnew() { return slaterDOWNnew; }
 };
 
 #endif // SLATER_H

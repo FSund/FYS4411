@@ -16,7 +16,7 @@ Jastrow::Jastrow(const int &nParticles):
             a(i,j) = ((i+j)%2 == 0) ? 0.25 : 0.5;
 }
 
-void Jastrow::initalize(const mat &r)
+void Jastrow::initialize(const mat &r)
 {
     rNew = rOld = r;
 
@@ -108,6 +108,24 @@ double Jastrow::getRatio()
 
 rowvec Jastrow::localGradient(const int &k)
 {
+    /* Calculates the gradient for particle k */
+
+    // lecture notes p. 515-517
+    grad = zeros<rowvec>(nDimensions);
+    double rij;
+    for (int i = 0; i < k; i++)
+    {
+        rij = rijNew(i,k);
+        grad += (rNew.row(k) - rNew.row(i)) * a(i,k)/(rij*pow((1 + beta*rij),2));
+    }
+    for (int i = k+1; i < nParticles; i++)
+    {
+        rij = rijNew(k,i);
+        grad -= (rNew.row(i) - rNew.row(k)) * a(k,i)/(rij*pow((1 + beta*rij),2));
+    }
+
+    return grad;
+
 //    mat grad = zeros<mat>(nParticles, nDimensions);
 //    double rij;
 //    for (int k = 0; k < nParticles; k++)
@@ -125,50 +143,99 @@ rowvec Jastrow::localGradient(const int &k)
 //                               ( a(k,i)/(1 + beta*rij)*(1 + beta*rij) );
 //        }
 //    }
+}
+
+rowvec Jastrow::localGradient(const mat &r, const int &k)
+{
+    /* Calculates the gradient for particle k */
 
     // lecture notes p. 515-517
-    // only for particle k!
-    grad = zeros<rowvec>(nDimensions);
+    dwavefunction = zeros<rowvec>(nDimensions);
     double rij;
     for (int i = 0; i < k; i++)
     {
-        rij = rijNew(i,k);
-        grad += (rNew.row(k) - rNew.row(i)) * a(i,k)/(rij*pow((1 + beta*rij),2));
+        rij = norm(r.row(k) - r.row(i), 2);
+        dwavefunction += (r.row(k) - r.row(i)) * a(i,k)/(rij*pow((1 + beta*rij),2));
     }
     for (int i = k+1; i < nParticles; i++)
     {
-        rij = rijNew(k,i);
-        grad -= (rNew.row(i) - rNew.row(k)) * a(k,i)/(rij*pow((1 + beta*rij),2));
+        rij = norm(r.row(i) - r.row(k), 2);
+        dwavefunction -= (r.row(i) - r.row(k)) * a(k,i)/(rij*pow((1 + beta*rij),2));
     }
 
-    return grad;
+    return dwavefunction;
 }
 
-//mat Jastrow::localGradientNumerical(const double &h)
-//{
-//    mat gradient = zeros<rowvec>(nParticles, nDimensions);
-//    double wfCurrent, wfMinus, wfPlus;
+rowvec Jastrow::localGradientNumerical(const int &k, const double &h)
+{
+    /* Calculates the the gradient for particle k */
 
-//    // computing the first derivative
-//    rPlus = rMinus = rNew;
-//    wfCurrent = wavefunction();
-//    for (int i = 0; i < nParticles; i++) {
-//        for (int j = 0; j < nDimensions; j++) {
-//            rPlus(i,j) += h;
-//            rMinus(i,j) -= h;
-//            wfMinus = wavefunction(rMinus);
-//            wfPlus = wavefunction(rPlus);
-//            gradient(i,j) = wfPlus - wfMinus;
-//            rPlus(i,j) = rMinus(i,j) = rNew(i,j);
-//        }
-//    }
-//    gradient /= (2.0*wfCurrent*h);
+    dwavefunction = zeros<rowvec>(nDimensions);
+    rPlus = rMinus = rNew;
+    wfCurrent = wavefunction(rNew);
+    for (int i = 0; i < nDimensions; i++)
+    {
+        rPlus(k,i) += h;
+        rMinus(k,i) -= h;
+        wfMinus = wavefunction(rMinus);
+        wfPlus = wavefunction(rPlus);
+        dwavefunction(i) = wfPlus - wfMinus;
+        rPlus(k,i) = rMinus(k,i) = rNew(k,i);
+    }
+    dwavefunction /= (2.0*wfCurrent*h);
+//    dwavefunction /= (2.0*h); // not local
 
-//    return gradient;
-//}
+    return dwavefunction;
+}
+
+rowvec Jastrow::localGradientNumerical(const mat &r, const int &k, const double &h)
+{
+    /* Calculates the the gradient for particle k */
+
+    dwavefunction = zeros<rowvec>(nDimensions);
+    rPlus = rMinus = r;
+    wfCurrent = wavefunction(r);
+    for (int i = 0; i < nDimensions; i++)
+    {
+        rPlus(k,i) += h;
+        rMinus(k,i) -= h;
+        wfMinus = wavefunction(rMinus);
+        wfPlus = wavefunction(rPlus);
+        dwavefunction(i) = wfPlus - wfMinus;
+        rPlus(k,i) = rMinus(k,i) = r(k,i);
+    }
+    dwavefunction /= (2.0*wfCurrent*h);
+//    dwavefunction /= (2.0*h); // not local
+
+    return dwavefunction;
+}
 
 double Jastrow::localLaplacian(const int &k)
 {
+    /* Calculates the laplacian for particle k */
+
+    // https://github.com/sigvebs/VMC/blob/master/QD/QD_Jastrow.cpp
+    lapl = 0.0;
+    double rki;
+    double brki;
+    for (int i = 0; i < k; i++)
+    {
+        rki = rijNew(i,k); // this is correct
+        brki = 1.0 + beta*rki;
+        lapl += a(k,i)/(rki*pow(brki, 3));
+    }
+    for (int i = k+1; i < nParticles; i++)
+    {
+        rki = rijNew(k,i); // this is correct
+        brki = 1.0 + beta*rki;
+        lapl += a(k,i)/(rki*pow(brki, 3));
+    }
+    lapl *= 2.0;
+    lapl += dot(localGradient(k), localGradient(k)); // inefficient!!
+    // lapl += dot(grad, grad); // should have calculated the gradient before this
+
+    return lapl;
+
 //    lapl = zeros<rowvec>(nParticles);
 //    double arg, rki, rkj;
 //    for (int k = 0; k < nParticles; k++)
@@ -225,34 +292,76 @@ double Jastrow::localLaplacian(const int &k)
 //    }
 
 //    return lapl;
+}
+
+double Jastrow::localLaplacian(const mat &r, const int &k)
+{
+    /* Calculates the laplacian for particle k */
 
     // https://github.com/sigvebs/VMC/blob/master/QD/QD_Jastrow.cpp
-    lapl = 0.0;
+    ddwavefunction = 0.0;
     double rki;
     double brki;
     for (int i = 0; i < k; i++)
     {
         rki = 0.0;
         for (int l = 0; l < nDimensions; l++)
-            rki += (rNew(k,l) - rNew(i,l))*(rNew(k,l) - rNew(i,l));
+            rki += (r(k,l) - r(i,l))*(r(k,l) - r(i,l));
         rki = sqrt(rki);
         brki = 1.0 + beta*rki;
-        lapl += a(k,i)*brki/(rki*pow(brki, 3));
+        ddwavefunction += a(k,i)/(rki*pow(brki, 3));
     }
     for (int i = k+1; i < nParticles; i++)
     {
         rki = 0.0;
         for (int l = 0; l < nDimensions; l++)
-            rki += (rNew(k,l) - rNew(i,l))*(rNew(k,l) - rNew(i,l));
+            rki += (r(k,l) - r(i,l))*(r(k,l) - r(i,l));
         rki = sqrt(rki);
         brki = 1.0 + beta*rki;
-        lapl += a(k,i)*brki/(rki*pow(brki, 3));
+        ddwavefunction += a(k,i)/(rki*pow(brki, 3));
     }
-    lapl += dot(localGradient(k), localGradient(k)); // inefficient!!
-    // lapl += dot(grad, grad); // should have calculated the gradient before this
+    ddwavefunction *= 2.0;
+    ddwavefunction += dot(localGradient(r, k), localGradient(r, k)); // inefficient!!
 
-//    cout << "lapl jastrow = " << lapl << endl;
-    return lapl;
+    return ddwavefunction;
+}
+
+double Jastrow::localLaplacianNumerical(const int &k, const double &h)
+{
+    /* Calculates the laplacian for particle k */
+    ddwavefunction = 0.0;
+    rPlus = rMinus = rNew;
+    wfCurrent = wavefunction(rNew);
+    for (int i = 0; i < nDimensions; i++) {
+        rPlus(k,i) += h;
+        rMinus(k,i) -= h;
+        wfMinus = wavefunction(rMinus);
+        wfPlus = wavefunction(rPlus);
+        ddwavefunction += wfMinus + wfPlus - 2.0*wfCurrent;
+        rPlus(k,i) = rMinus(k,i) = rNew(k,i);
+    }
+    ddwavefunction /= (wfCurrent*h*h);
+
+    return ddwavefunction;
+}
+
+double Jastrow::localLaplacianNumerical(const mat &r, const int &k, const double &h)
+{
+    /* Calculates the laplacian for particle k */
+    ddwavefunction = 0.0;
+    rPlus = rMinus = r;
+    wfCurrent = wavefunction(r);
+    for (int i = 0; i < nDimensions; i++) {
+        rPlus(k,i) += h;
+        rMinus(k,i) -= h;
+        wfMinus = wavefunction(rMinus);
+        wfPlus = wavefunction(rPlus);
+        ddwavefunction += wfMinus + wfPlus - 2.0*wfCurrent;
+        rPlus(k,i) = rMinus(k,i) = r(k,i);
+    }
+    ddwavefunction /= (wfCurrent*h*h);
+
+    return ddwavefunction;
 }
 
 void Jastrow::acceptMove()
