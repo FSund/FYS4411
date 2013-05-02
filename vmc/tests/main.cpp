@@ -1,8 +1,8 @@
 #include <unittest++/UnitTest++.h>
 #include <armadillo>
-#include <src/Jastrow.h>
-#include <src/Slater.h>
-#include <src/Orbitals.h>
+//#include <src/Jastrow.h>
+//#include <src/Slater.h>
+//#include <src/Orbitals.h>
 #include <src/Wavefunction.h>
 #include <src/Solver/Solver.h>
 #include <src/Solver/SolverMCIS.h>
@@ -13,19 +13,20 @@ double findRealSlaterRatio(int nParticles, double alpha, mat rOld, mat rNew, int
 
 TEST(SlaterRatioTest) {
     // test for Beryllium
-    double realRatio = 0.0;
     int nParticles = 4;
     int nDimensions = 3;
-    double alpha = (conv_to<double>::from(randu(1,1)))*nParticles;
-    int currentParticle;
+    double alpha = 3.8;
 
+    int currentParticle;
+    double realRatio;
     mat rOld(nParticles, nDimensions);
     mat rNew(nParticles, nDimensions);
+    Slater slater(nParticles);
+
     rOld << 1 << 1 << 1 << endr
          << 2 << 3 << 4 << endr
          << 3 << 4 << 5 << endr
          << 4 << 5 << 6 << endr;
-    Slater slater(nParticles);
     slater.setAlpha(alpha);
     slater.initialize(rOld);
 
@@ -35,8 +36,8 @@ TEST(SlaterRatioTest) {
          << 3 << 4 << 5 << endr
          << 4 << 5 << 6 << endr;
     slater.updatePositionAndCurrentParticle(rNew, currentParticle);
-//    realRatio = findRealSlaterRatio(nParticles, alpha, rOld, rNew, currentParticle);
     realRatio = slater.wavefunction(rNew)/slater.wavefunction(rOld);
+    realRatio *= realRatio;
 
 //    cout << "Slater test 1" << endl;
 //    printf("%.20f\n", slater.getRatio());
@@ -51,8 +52,8 @@ TEST(SlaterRatioTest) {
          << 3 << 4 << 5 << endr
          << 4 << 5 << 6 << endr;
     slater.updatePositionAndCurrentParticle(rNew, currentParticle);
-//    realRatio = findRealSlaterRatio(nParticles, alpha, rOld, rNew, currentParticle);
     realRatio = slater.wavefunction(rNew)/slater.wavefunction(rOld);
+    realRatio *= realRatio;
 
 //    cout << "Slater test 2" << endl;
 //    printf("%.20f\n", slater.getRatio());
@@ -69,43 +70,13 @@ TEST(SlaterRatioTest) {
     slater.updatePositionAndCurrentParticle(rNew, currentParticle);
 //    realRatio = findRealSlaterRatio(nParticles, alpha, rOld, rNew, currentParticle);
     realRatio = slater.wavefunction(rNew)/slater.wavefunction(rOld);
+    realRatio *= realRatio;
 
 //    cout << "Slater test 3" << endl;
 //    printf("%.20f\n", slater.getRatio());
 //    printf("%.20f\n", realRatio);
     CHECK(abs(slater.getRatio() - realRatio) < 1e-15);
 }
-
-//TEST(SlaterInverseTest)
-//{
-//    // test for Beryllium
-//    int nParticles = 4;
-//    int nDimensions = 3;
-//    double alpha = (conv_to<double>::from(randu(1,1)))*nParticles;
-//    int currentParticle = 0;
-
-//    mat rOld(nParticles, nDimensions);
-//    mat rNew(nParticles, nDimensions);
-//    rOld << 1 << 1 << 1 << endr
-//         << 2 << 3 << 4 << endr
-//         << 3 << 4 << 5 << endr
-//         << 4 << 5 << 6 << endr;
-//    rNew << 2 << 2 << 2 << endr
-//         << 2 << 3 << 4 << endr
-//         << 3 << 4 << 5 << endr
-//         << 4 << 5 << 6 << endr;
-//    rOld = randu(nParticles, nDimensions);
-//    rNew = randu(nParticles, nDimensions);
-
-//    Slater slater(nParticles);
-//    slater.setAlpha(alpha);
-//    slater.initialize(rOld);
-
-
-//    slater.updatePositionAndCurrentParticle(rNew, currentParticle);
-//    double realRatio = findRealSlaterRatio(nParticles, alpha, rOld, rNew, currentParticle);
-//    CHECK(slater.getRatio() == realRatio);
-//}
 
 TEST(JastrowRatioTest) {
     int nParticles = 4;
@@ -131,6 +102,7 @@ TEST(JastrowRatioTest) {
          << 4 << 5 << 6 << endr;
     jastrow.updatePositionAndCurrentParticle(rNew, currentParticle);
     realRatio = jastrow.wavefunction(rNew)/jastrow.wavefunction(rOld);
+    realRatio *= realRatio;
 //    cout << "Jastrow test 1" << endl;
 //    printf("%.20f\n", jastrow.getRatio());
 //    printf("%.20f\n", realRatio);
@@ -145,6 +117,7 @@ TEST(JastrowRatioTest) {
          << 4 << 5 << 6 << endr;
     jastrow.updatePositionAndCurrentParticle(rNew, currentParticle);
     realRatio = jastrow.wavefunction(rNew)/jastrow.wavefunction(rOld);
+    realRatio *= realRatio;
 
 //    cout << "Jastrow test 2" << endl;
 //    cout << jastrow.getRatio() << endl;
@@ -159,6 +132,7 @@ TEST(JastrowRatioTest) {
          << 4.5 << 5.5 << 6.5 << endr;
     jastrow.updatePositionAndCurrentParticle(rNew, currentParticle);
     realRatio = jastrow.wavefunction(rNew)/jastrow.wavefunction(rOld);
+    realRatio *= realRatio;
 
 //    cout << "Jastrow test 3" << endl;
 //    cout << jastrow.getRatio() << endl;
@@ -206,22 +180,35 @@ TEST(LaplacianTest)
     int nParticles = 4;
     int nDimensions = 3;
     vec parameters = randu(2,1);
-//    int currentParticle;
+    int currentParticle;
     double charge = 4.0;
     double difference;
-
     mat rOld(nParticles, nDimensions);
     mat rNew(nParticles, nDimensions);
+    Wavefunction wf(nParticles, charge);
+
     rOld << 1 << 2 << 3 << endr
          << 2 << 3 << 4 << endr
          << 3 << 4 << 5 << endr
          << 4 << 5 << 6 << endr;
-    Wavefunction wf(nParticles, charge);
     wf.setParameters(parameters);
     wf.initialize(rOld);
 
-//    cout << "lapl numerical = " << wf.localLaplacianNumerical() << endl;
-//    cout << "lapl closedform = " << wf.localLaplacian() << endl;
+    difference = abs(wf.localLaplacianNumerical() - wf.localLaplacian());
+    CHECK(difference < 1e-4);
+
+    currentParticle = 2;
+    rNew << 1 << 2 << 3 << endr
+         << 2 << 3 << 4 << endr
+         << 3.5 << 4.5 << 5.5 << endr
+         << 4 << 5 << 6 << endr;
+    wf.updatePositionAndCurrentParticle(rNew, currentParticle);
+    wf.getRatio(); // to update the ratio, to get correct gradient from Slater
+
+    ////
+//    cout << "CF laplacian  = " << wf.localLaplacian() << endl;
+//    cout << "NUM laplacian = " << wf.localLaplacianNumerical() << endl;
+    ////
 
     difference = abs(wf.localLaplacianNumerical() - wf.localLaplacian());
     CHECK(difference < 1e-4);
@@ -323,82 +310,96 @@ TEST(LaplacianTest)
 //    CHECK(difference.max() < 1e-4);
 //}
 
-//TEST(SlaterGradientTest)
-//{
-//cout << "-------------------------- SlaterGradientTest --------------------------" << endl;
+TEST(SlaterGradientTest)
+{
+cout << "-------------------------- SlaterGradientTest --------------------------" << endl;
 
-//    int nParticles = 4;
-//    int nDimensions = 3;
+    int nParticles = 4;
+    int nDimensions = 3;
+    double alpha = 3.8;
+    double h = 1e-3;
 
-//    double alpha = 3.8;
-//    double h = 1e-3;
+    mat rOld(nParticles, nDimensions);
+    mat rNew(nParticles, nDimensions);
+    mat gradientClosedform(nParticles, nDimensions);
+    mat gradientNumerical(nParticles, nDimensions);
+    mat difference;
+    int currentParticle;
+    Slater wf(nParticles);
 
-//    mat rOld(nParticles, nDimensions);
-//    mat rNew(nParticles, nDimensions);
-//    mat gradientClosedform(nParticles, nDimensions);
-//    mat difference;
-//    int currentParticle = 0;
+    rOld << 1 << 2 << 3 << endr
+         << 2 << 3 << 4 << endr
+         << 3 << 4 << 5 << endr
+         << 4 << 5 << 6 << endr;
+    wf.setAlpha(alpha);
+    wf.initialize(rOld);
 
-//    Slater wf(nParticles);
-//    rOld << 1 << 2 << 3 << endr
-//         << 2 << 3 << 4 << endr
-//         << 3 << 4 << 5 << endr
-//         << 4 << 5 << 6 << endr;
-//    wf.setAlpha(alpha);
-//    wf.initialize(rOld);
+    for (int i = 0; i < nParticles; i++)
+        gradientClosedform.row(i) = wf.localGradient(i);
+    for (int i = 0; i < nParticles; i++)
+        gradientNumerical.row(i) = wf.localGradientNumerical(i, h);
+    difference = abs(gradientClosedform - gradientNumerical);
 
-//    ////////////////////////////////////////////
-//    cout << "gradient closed form" << endl;
-//    for (int i = 0; i < nParticles; i++)
-//        cout << wf.localGradient(i);
-//    cout << "gradient closed form2" << endl;
-//    for (int i = 0; i < nParticles; i++)
-//        cout << wf.localGradient(rOld, i);
-//    cout << "gradient numerical" << endl;
-//    for (int i = 0; i < nParticles; i++)
-//        cout << wf.localGradientNumerical(i, h);
-//    cout << "gradient numerical2" << endl;
-//    cout << wf.gradient(h);
-//    cout << "gradient numerical3" << endl;
-//    cout << wf.gradient(rOld, h);
-//    cout << endl;
-//    ////////////////////////////////////////////
+    ////////////////////////////////////////////
+    cout << "gradient closed form" << endl;
+    cout << gradientClosedform;
+    cout << "gradient numerical" << endl;
+    cout << gradientNumerical;
+    cout << "difference.max() = " << difference.max() << endl;
+    cout << difference;
+    cout << endl;
+    ////////////////////////////////////////////
 
-//    difference = abs(wf.localGradientNumerical(currentParticle, h) - wf.localGradient(currentParticle));
-//    CHECK(difference.max() < 1e-4);
+    CHECK(difference.max() < 1e-4); // OK (because we use rOld)
 
-//    currentParticle = 1;
-//    rNew << 1 << 2 << 3 << endr
-//         << 2.2 << 3.2 << 4.2 << endr
-//         << 3 << 4 << 5 << endr
-//         << 4 << 5 << 6 << endr;
-//    wf.updatePositionAndCurrentParticle(rNew, currentParticle);
-//    wf.getRatio(); // to update the ratio, needed to update the inverse
+    currentParticle = 1;
+    rNew << 1 << 2 << 3 << endr
+         << 2.2 << 3.2 << 4.2 << endr
+         << 3 << 4 << 5 << endr
+         << 4 << 5 << 6 << endr;
+    wf.updatePositionAndCurrentParticle(rNew, currentParticle);
+    wf.getRatio(); // to update the ratio, needed to update the inverse, and in the gradient
 
-//    ////////////////////////////////////////////
-//    cout << "gradient closed form" << endl;
-//    for (int i = 0; i < nParticles; i++)
-//        cout << wf.localGradient(i);
-//    cout << "gradient closed form2" << endl;
-//    for (int i = 0; i < nParticles; i++)
-//        cout << wf.localGradient(rNew, i);
-//    cout << "gradient numerical" << endl;
-//    for (int i = 0; i < nParticles; i++)
-//        cout << wf.localGradientNumerical(i, h);
-//    cout << "gradient numerical2" << endl;
-//    cout << wf.gradient(h);
-//    cout << "gradient numerical3" << endl;
-//    cout << wf.gradient(rNew, h);
-//    cout << endl;
-//    ////////////////////////////////////////////
+    for (int i = 0; i < nParticles; i++)
+        gradientClosedform.row(i) = wf.localGradient(i);
+    for (int i = 0; i < nParticles; i++)
+        gradientNumerical.row(i) = wf.localGradientNumerical(i, h);
+    difference = abs(gradientClosedform - gradientNumerical);
 
-//    difference = abs(wf.localGradientNumerical(currentParticle, h) - wf.localGradient(currentParticle));
-//    cout << "difference.max() = " << difference.max() << endl;
-//    cout << difference;
-//    CHECK(difference.max() < 1e-4); // fails
+    ////////////////////////////////////////////
+    cout << "gradient closed form" << endl;
+    cout << gradientClosedform;
+    cout << "gradient numerical" << endl;
+    cout << gradientNumerical;
+    cout << "difference.max() = " << difference.max() << endl;
+    cout << difference;
+    cout << endl;
+    ////////////////////////////////////////////
 
-//cout << "-------------------------- SlaterGradientTest --------------------------" << endl;
-//}
+    CHECK(difference.max() < 1e-4); // fails
+
+    wf.acceptMove();
+        for (int i = 0; i < nParticles; i++)
+        gradientClosedform.row(i) = wf.localGradient(i);
+    for (int i = 0; i < nParticles; i++)
+        gradientNumerical.row(i) = wf.localGradientNumerical(i, h);
+    difference = abs(gradientClosedform - gradientNumerical);
+
+    ////////////////////////////////////////////
+    cout << "gradient closed form" << endl;
+    cout << gradientClosedform;
+    cout << "gradient numerical" << endl;
+    cout << gradientNumerical;
+    cout << "difference.max() = " << difference.max() << endl;
+    cout << difference;
+    cout << endl;
+    ////////////////////////////////////////////
+
+    CHECK(difference.max() < 1e-4); // fails
+
+
+cout << "-------------------------- SlaterGradientTest --------------------------" << endl;
+}
 
 TEST(JastrowGradientTest)
 {
@@ -528,12 +529,12 @@ TEST(SlaterInverseTest)
 //    double h = 1e-3;
     mat rOld(nParticles, nDimensions);
     mat rNew(nParticles, nDimensions);
+    Slater wf(nParticles);
 
     rOld << 1 << 2 << 3 << endr
          << 2 << 3 << 4 << endr
          << 3 << 4 << 5 << endr
          << 4 << 5 << 6 << endr;
-    Slater wf(nParticles);
     wf.setAlpha(alpha);
     wf.initialize(rOld);
 
@@ -543,14 +544,48 @@ TEST(SlaterInverseTest)
          << 3 << 4 << 5 << endr
          << 4 << 5 << 6 << endr;
     wf.updatePositionAndCurrentParticle(rNew, currentParticle);
-    wf.getRatio(); // need this to update the ratio internally in slater
+    wf.getRatio(); // need this to update the ratio internally in Slater
 
     difference = abs(wf.getUPinvOld() - inv(wf.getUPold()));
     CHECK(difference.max() < 1e-4);
 
-    wf.acceptMove();
+    wf.acceptMove(); // calculating the new inverse in Slater
+    rOld = rNew;
+    difference = abs(wf.getUPinvOld() - inv(wf.getUPold()));
+    CHECK(difference.max() < 1e-4);
 
-    difference = abs(wf.getUPinvNew() - inv(wf.getUPnew()));
+    currentParticle = 2;
+    rNew << 1.5 << 2.5 << 3.5 << endr
+         << 2 << 3 << 4 << endr
+         << 3.5 << 4.5 << 5.5 << endr
+         << 4 << 5 << 6 << endr;
+
+    wf.updatePositionAndCurrentParticle(rNew, currentParticle);
+    wf.getRatio(); // need this to update the ratio internally in Slater
+
+    difference = abs(wf.getUPinvOld() - inv(wf.getUPold()));
+    CHECK(difference.max() < 1e-4);
+
+    wf.rejectMove(); // calculating the new inverse in Slater
+    rOld = rNew;
+    difference = abs(wf.getUPinvOld() - inv(wf.getUPold()));
+    CHECK(difference.max() < 1e-4);
+
+    currentParticle = 3;
+    rNew << 1.5 << 2.5 << 3.5 << endr
+         << 2 << 3 << 4 << endr
+         << 3 << 4 << 5 << endr
+         << 4.5 << 5.5 << 6.5 << endr;
+
+    wf.updatePositionAndCurrentParticle(rNew, currentParticle);
+    wf.getRatio(); // need this to update the ratio internally in Slater
+
+    difference = abs(wf.getUPinvOld() - inv(wf.getUPold()));
+    CHECK(difference.max() < 1e-4);
+
+    wf.acceptMove(); // calculating the new inverse in Slater
+    rOld = rNew;
+    difference = abs(wf.getUPinvOld() - inv(wf.getUPold()));
     CHECK(difference.max() < 1e-4);
 }
 
