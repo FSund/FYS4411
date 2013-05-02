@@ -15,14 +15,12 @@ class SolverMCIS : public Solver
 public:
     SolverMCIS(int &myRank, int &numprocs, int &nParticles, int &charge);
     virtual double runMonteCarloIntegration(const int &nCycles_);
-    double gaussianDeviate(long *seed);
     double testSolver(const int &nCycles_);
 private:
     mat qForceOld;
     mat qForceNew;
     double D, dt, Ddt;
     double omegaRatio;
-
     bool closedForm;
 };
 

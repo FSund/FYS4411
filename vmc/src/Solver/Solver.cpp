@@ -29,6 +29,11 @@ Solver::Solver(int &myRank,
         wf = new Wavefunction(nParticles, charge);
         cout << "Beryllium" << endl;
     }
+    else if (nParticles == 10)
+    {
+        wf = new Wavefunction(nParticles, charge);
+        cout << "Neon" << endl;
+    }
     else
     {
         cout << "! Unknown element or number of particles, exiting." << endl;
@@ -54,6 +59,20 @@ void Solver::setBeta(const double &beta)
 void Solver::setParameters(const vec &parameters)
 {
     wf->setParameters(parameters);
+}
+
+double Solver::gaussianDeviate(long *seed)
+{
+    double R, randomNormal;
+    // Box-Muller transform
+//    randomUniform << ran2(seed) << ran2(seed);
+//    R = sqrt(-2*log(randomUniform(0)));
+//    randomNormal(0) = R*cos(2*pi*randomUniform(1));
+//    randomNormal(1) = R*sin(2*pi*randomUniform(1))
+
+    R = sqrt(-2.0*log(ran2(seed)));
+    randomNormal = R*cos(2.0*pi*ran2(seed));
+    return randomNormal;
 }
 
 //double Solver::runMonteCarloIntegration(const int &nCycles_)

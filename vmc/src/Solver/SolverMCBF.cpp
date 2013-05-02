@@ -5,7 +5,8 @@ SolverMCBF::SolverMCBF(int &myRank,
         int &nParticles,
         int &charge):
     Solver(myRank, numprocs, nParticles, charge),
-    stepLength(1.0)
+    stepLength(1.0),
+    closedForm(false)
 {
 }
 
@@ -47,10 +48,18 @@ double SolverMCBF::runMonteCarloIntegration(const int &nCycles_)
     double energySquaredSum = 0;
     double deltaE;
 
+//    // initial trial positions
+//    for(int i = 0; i < nParticles; i++) {
+//        for(int j = 0; j < nDimensions; j++) {
+//            rOld(i,j) = stepLength * (ran2(&idum) - 0.5);
+//        }
+//    }
+
+    double dt = 1e-3;
     // initial trial positions
     for(int i = 0; i < nParticles; i++) {
         for(int j = 0; j < nDimensions; j++) {
-            rOld(i,j) = stepLength * (ran2(&idum) - 0.5);
+            rOld(i,j) = gaussianDeviate(&idum)*sqrt(dt);
         }
     }
     rNew = rOld;
@@ -67,9 +76,9 @@ double SolverMCBF::runMonteCarloIntegration(const int &nCycles_)
             for(int j = 0; j < nDimensions; j++) {
                 rNew(i,j) = rOld(i,j) + stepLength*(ran2(&idum) - 0.5);
             }
+
             wf->updatePositionAndCurrentParticle(rNew, i);
-            ratio = wf->getRatio();
-            ratio *= ratio; // should be squared!
+            ratio = wf->getRatio(); // squared in Wavefunction
 
             // Check for step acceptance (if yes, update position, if no, reset position)
             if(ran2(&idum) <= ratio) {
@@ -81,7 +90,10 @@ double SolverMCBF::runMonteCarloIntegration(const int &nCycles_)
                 wf->rejectMove();
             }
             // update energies
-            deltaE = wf->localEnergy();
+            if (closedForm)
+                deltaE = wf->localEnergy();
+            else
+                deltaE = wf->localEnergyNumerical();
 
             energySum += deltaE;
             energySquaredSum += deltaE*deltaE;

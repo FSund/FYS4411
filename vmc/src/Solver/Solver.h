@@ -22,6 +22,8 @@ public:
     void setBeta(const double &beta);
     void setParameters(const vec &parameters);
 protected:
+    double gaussianDeviate(long *seed);
+
     Wavefunction *wf;
 
     int nDimensions;
@@ -42,8 +44,6 @@ protected:
     int local_nCycles;
 
     double ratio;
-public:
-    bool closedForm;
 };
 
 #endif // SOLVER_H

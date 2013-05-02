@@ -48,8 +48,7 @@ double SolverMCIS::runMonteCarloIntegration(const int &nCycles_)
                         + qForceOld(i,j)*Ddt;
             }
             wf->updatePositionAndCurrentParticle(rNew, i);
-            ratio = wf->getRatio();
-            ratio *= ratio; // should be squared!
+            ratio = wf->getRatio(); // squared in Wavefunction
 
             if (closedForm)
                 qForceNew = 2.0*wf->localGradient();
@@ -112,20 +111,6 @@ double SolverMCIS::runMonteCarloIntegration(const int &nCycles_)
 //    if (myRank == 0) cout << "Energy: " << energy << " Energy (squared sum): " << energySquared << endl;
 
     return energy;
-}
-
-double SolverMCIS::gaussianDeviate(long *seed)
-{
-    double R, randomNormal;
-    // Box-Muller transform
-//    randomUniform << ran2(seed) << ran2(seed);
-//    R = sqrt(-2*log(randomUniform(0)));
-//    randomNormal(0) = R*cos(2*pi*randomUniform(1));
-//    randomNormal(1) = R*sin(2*pi*randomUniform(1))
-
-    R = sqrt(-2.0*log(ran2(seed)));
-    randomNormal = R*cos(2.0*pi*ran2(seed));
-    return randomNormal;
 }
 
 double SolverMCIS::testSolver(const int &nCycles_)
