@@ -34,8 +34,8 @@ void Wavefunction::updatePositionAndCurrentParticle(mat &r, int &k)
     rNew = r;
     currentParticle = k;
 
-    jastrow->updatePositionAndCurrentParticle(r, k);
     slater->updatePositionAndCurrentParticle(r, k);
+    jastrow->updatePositionAndCurrentParticle(r, k);
 }
 
 void Wavefunction::setAlpha(const double &newAlpha)
@@ -57,12 +57,15 @@ void Wavefunction::setParameters(const vec &parameters)
 double Wavefunction::wavefunction()
 {
     return slater->wavefunction()*jastrow->wavefunction();
+//    return slater->wavefunction();
 }
 
 double Wavefunction::wavefunction(const mat &r)
 {
     return slater->wavefunction(r)*jastrow->wavefunction(r);
+//    return slater->wavefunction(r);
 
+    // dummy wavefunction for tests
 //    double answer = 0.0;
 //    for (int i = 0; i < nParticles; i++)
 //    {
@@ -73,7 +76,10 @@ double Wavefunction::wavefunction(const mat &r)
 
 double Wavefunction::getRatio()
 {
-    return slater->getRatio()*jastrow->getRatio();
+    ratio = slater->getRatio()*jastrow->getRatio();
+//    ratio = slater->getRatio();
+
+    return ratio; // squared in slater and jastrow
 }
 
 void Wavefunction::acceptMove()
@@ -94,13 +100,22 @@ void Wavefunction::rejectMove()
 
 double Wavefunction::localEnergy()
 {
-    return -0.5*localLaplacian() + electronNucleusPotential() + electronElectronPotential();
+    double kinetic = -0.5*localLaplacian();
+    double potential = electronNucleusPotential() + electronElectronPotential();
+
+    cout << "kinetic   CF = " << kinetic << endl;
+//    cout << "potential CF = " << potential << endl;
+
+    return kinetic + potential;
 }
 
 double Wavefunction::localEnergyNumerical()
 {
     double kinetic = -0.5*localLaplacianNumerical();
     double potential = electronNucleusPotential() + electronElectronPotential();
+
+    cout << "kinetic   NUM = " << kinetic << endl;
+//    cout << "potential NUM = " << potential << endl;
 
     return kinetic + potential;
 }
@@ -114,43 +129,18 @@ mat Wavefunction::localGradient()
     return grad;
 }
 
-mat Wavefunction::localGradient(const mat &r)
-{
-    dwavefunction = zeros<mat>(nParticles, nDimensions);
-    for (int i = 0; i < nParticles; i++)
-        dwavefunction.row(i) = slater->localGradient(r, i)
-                               + jastrow->localGradient(r, i);
-
-    return dwavefunction;
-}
-
-mat Wavefunction::localGradientNumerical()
-{
-    rPlus = rMinus = rNew;
-    wfCurrent = wavefunction(rNew);
-    dfactor = 1.0/(wfCurrent*2.0*h);
-    for (int i = 0; i < nParticles; i++) {
-        for (int j = 0; j < nDimensions; j++) {
-            rPlus(i,j) += h;
-            rMinus(i,j) -= h;
-            wfMinus = wavefunction(rMinus);
-            wfPlus = wavefunction(rPlus);
-            dwavefunction(i,j) = (wfPlus - wfMinus)*dfactor;
-            rPlus(i,j) = rMinus(i,j) = rNew(i,j);
-        }
-    }
-
-    return dwavefunction;
-
+//mat Wavefunction::localGradient(const mat &r)
+//{
+//    grad = zeros<mat>(nParticles, nDimensions);
 //    for (int i = 0; i < nParticles; i++)
-//        dwavefunction.row(i) = slater->localGradientNumerical(i, h)
-//                               + jastrow->localGradientNumerical(i, h);
+//        grad.row(i) = slater->localGradient(i) + jastrow->localGradient(r, i);
 
-//    return dwavefunction;
-}
+//    return grad;
+//}
 
 mat Wavefunction::localGradientNumerical(const mat &r)
 {
+    // this function is correct!
     rPlus = rMinus = r;
     wfCurrent = wavefunction(r);
     dfactor = 1.0/(wfCurrent*2.0*h);
@@ -166,16 +156,15 @@ mat Wavefunction::localGradientNumerical(const mat &r)
     }
 
     return dwavefunction;
-
-//    for (int i = 0; i < nParticles; i++)
-//        dwavefunction.row(i) = slater->localGradientNumerical(r, i, h)
-//                               + jastrow->localGradientNumerical(r, i, h);
-
-//    return dwavefunction;
 }
 
 double Wavefunction::localLaplacian()
 {
+    // we have this "extra" version of the laplacian, because the closed form
+    // solutions for the gradient and laplacian in the Jastrow class is faster
+    // if we use the no-argument version, because they can reuse rij's from
+    // earlier calculations
+
     lapl = 0.0;
     for (int i = 0; i < nParticles; i++)
         lapl += slater->localLaplacian(i) + jastrow->localLaplacian(i)
@@ -184,14 +173,22 @@ double Wavefunction::localLaplacian()
     return lapl;
 }
 
-double Wavefunction::localLaplacianNumerical()
+//double Wavefunction::localLaplacian(const mat &r)
+//{
+//    lapl = 0.0;
+//    for (int i = 0; i < nParticles; i++)
+//        lapl += slater->localLaplacian(i) + jastrow->localLaplacian(r,i)
+//                + 2.0*dot(slater->localGradient(i), jastrow->localGradient(r,i));
+
+//    return lapl;
+//}
+
+double Wavefunction::localLaplacianNumerical(const mat &r)
 {
     // this function is correct!
-    // computing the second derivative
     ddwavefunction = 0.0;
-    rPlus = rMinus = rNew;
-    wfCurrent = wavefunction(rNew);
-
+    rPlus = rMinus = r;
+    wfCurrent = wavefunction(r);
     for (int i = 0; i < nParticles; i++) {
         for (int j = 0; j < nDimensions; j++) {
             rPlus(i,j) += h;
@@ -199,7 +196,7 @@ double Wavefunction::localLaplacianNumerical()
             wfMinus = wavefunction(rMinus);
             wfPlus = wavefunction(rPlus);
             ddwavefunction += wfMinus + wfPlus;
-            rPlus(i,j) = rMinus(i,j) = rNew(i,j);
+            rPlus(i,j) = rMinus(i,j) = r(i,j);
         }
     }
 
@@ -207,12 +204,6 @@ double Wavefunction::localLaplacianNumerical()
 //    ddwavefunction = h2*(ddwavefunction - 2.0*double(nParticles*nDimensions)*wfCurrent); // not-local
 
     return ddwavefunction;
-
-    // not correct
-//    ddwavefunction = 0.0;
-//    for (int i = 0; i < nParticles; i++)
-//        ddwavefunction += slater->localLaplacianNumerical(i, h)*jastrow->localLaplacianNumerical(i, h);
-//    return ddwavefunction;
 }
 
 double Wavefunction::electronNucleusPotential()

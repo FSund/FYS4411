@@ -10,21 +10,21 @@ SolverMCIS::SolverMCIS(int &myRank,
     D(0.5),
     dt(1e-3),
     Ddt(D*dt),
-    closedForm(false)
+    closedForm(true)
 {
 }
 
 double SolverMCIS::runMonteCarloIntegration(const int &nCycles_)
 {
-    double nAccepted = 0;
-    double energySum = 0;
-    double energySquaredSum = 0;
-    double deltaE;
-    double ratio;
+    energySum = 0;
+    energySquaredSum = 0;
+    nAccepted = 0;
 
     // initial trial positions
-    for(int i = 0; i < nParticles; i++) {
-        for(int j = 0; j < nDimensions; j++) {
+    for(int i = 0; i < nParticles; i++)
+    {
+        for(int j = 0; j < nDimensions; j++)
+        {
             rOld(i,j) = gaussianDeviate(&idum)*sqrt(dt);
         }
     }
@@ -32,18 +32,21 @@ double SolverMCIS::runMonteCarloIntegration(const int &nCycles_)
     wf->initialize(rOld);
 
     if (closedForm)
-        qForceOld = 2.0*wf->localGradient(rOld);
+        qForceOld = 2.0*wf->localGradient(); // rOld == rNew in Wavefunction now
     else
         qForceOld = 2.0*wf->localGradientNumerical(rOld);
 
     nCycles = nCycles_/numprocs;
 
     // loop over Monte Carlo cycles
-    for(int cycle = 0; cycle < nCycles; cycle++) {
+    for(int cycle = 0; cycle < nCycles; cycle++)
+    {
         // loop over particles
-        for(int i = 0; i < nParticles; i++) {
+        for(int i = 0; i < nParticles; i++)
+        {
             // New position to test
-            for(int j = 0; j < nDimensions; j++) {
+            for(int j = 0; j < nDimensions; j++)
+            {
                 rNew(i,j) = rOld(i,j) + gaussianDeviate(&idum)*sqrt(dt)
                         + qForceOld(i,j)*Ddt;
             }
@@ -74,14 +77,16 @@ double SolverMCIS::runMonteCarloIntegration(const int &nCycles_)
             omegaRatio = exp(0.5*omegaRatio);
 
             // Check for step acceptance (if yes, update position, if no, reset position)
-            if (ran2(&idum) <= omegaRatio*ratio) {
+            if (ran2(&idum) <= omegaRatio*ratio)
+            {
                 rOld.row(i) = rNew.row(i);
 //                qForceOld.row(i) = qForceNew.row(i); // wrong???
                 qForceOld = qForceNew;
                 wf->acceptMove();
-
                 nAccepted++;
-            } else {
+            }
+            else
+            {
                 rNew.row(i) = rOld.row(i);
 //                qForceNew.row(i) = qForceOld.row(i); // wrong???
                 qForceNew = qForceOld;
@@ -93,22 +98,30 @@ double SolverMCIS::runMonteCarloIntegration(const int &nCycles_)
             else
                 deltaE = wf->localEnergyNumerical();
 
+
+
             energySum += deltaE;
             energySquaredSum += deltaE*deltaE;
         }
     }
-    double energy = energySum/(nCycles*nParticles);
-    double energySquared = energySquaredSum/(nCycles*nParticles);
-    double totalEnergy = 0.0;
-    double totalEnergySquared = 0.0;
+//    energy = energySum/(nCycles*nParticles);
+//    energySquared = energySquaredSum/(nCycles*nParticles);
+//    double totalEnergy = 0.0;
+//    double totalEnergySquared = 0.0;
+//    int totalNAccepted = 0;
 
-    MPI_Reduce(&energy, &totalEnergy, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&energySquared, &totalEnergySquared, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+//    MPI_Reduce(&energy, &totalEnergy, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+//    MPI_Reduce(&energySquared, &totalEnergySquared, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+//    MPI_Reduce(&nAccepted, &totalNAccepted, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
-    energy = totalEnergy/numprocs;
-    energySquared = totalEnergySquared/numprocs;
+//    energy = totalEnergy/numprocs;
+//    energySquared = totalEnergySquared/numprocs;
+//    acceptanceRate = double(totalNAccepted)/double(nCycles_*nParticles);
 
 //    if (myRank == 0) cout << "Energy: " << energy << " Energy (squared sum): " << energySquared << endl;
+//    if (myRank == 0) cout << "acceptance rate: " << acceptanceRate << endl;
+
+    finalize();
 
     return energy;
 }

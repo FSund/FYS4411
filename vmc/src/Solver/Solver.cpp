@@ -10,7 +10,6 @@ Solver::Solver(int &myRank,
     rOld(zeros<mat>(nParticles, nDimensions)),
     rNew(zeros<mat>(nParticles, nDimensions)),
     nAccepted(0),
-    nRejected(0),
     myRank(myRank),
     numprocs(numprocs)
 {
@@ -73,6 +72,24 @@ double Solver::gaussianDeviate(long *seed)
     R = sqrt(-2.0*log(ran2(seed)));
     randomNormal = R*cos(2.0*pi*ran2(seed));
     return randomNormal;
+}
+
+void Solver::finalize()
+{
+    energy = energySum/(nCycles*nParticles);
+    energySquared = energySquaredSum/(nCycles*nParticles);
+    double totalEnergy = 0.0;
+    double totalEnergySquared = 0.0;
+    int totalNAccepted = 0;
+
+    MPI_Allreduce(&energy, &totalEnergy, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(&energySquared, &totalEnergySquared, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(&nAccepted, &totalNAccepted, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+    energy = totalEnergy/numprocs;
+    energySquared = totalEnergySquared/numprocs;
+    acceptanceRate = double(totalNAccepted)/double(nCycles*numprocs*nParticles);
+    variance = energySquared - energy*energy;
 }
 
 //double Solver::runMonteCarloIntegration(const int &nCycles_)

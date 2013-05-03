@@ -3,17 +3,21 @@
 Slater::Slater(const int &nParticles):
     nParticles(nParticles),
     nDimensions(3),
-    rOld(zeros<mat>(nParticles, nDimensions)),
-    rNew(zeros<mat>(nParticles, nDimensions)),
+    rOld(mat(nParticles, nDimensions)),
+    rNew(mat(nParticles, nDimensions)),
     N(nParticles/2),
-    slaterUPold(zeros<mat>(N, N)),
-    slaterDOWNold(zeros<mat>(N, N)),
-    slaterUPnew(zeros<mat>(N, N)),
-    slaterDOWNnew(zeros<mat>(N, N)),
-    slaterUPinvOld(zeros<mat>(N, N)),
-    slaterDOWNinvOld(zeros<mat>(N, N)),
-    slaterUPinvNew(zeros<mat>(N, N)),
-    slaterDOWNinvNew(zeros<mat>(N, N))
+    slaterUPold(mat(N, N)),
+    slaterDOWNold(mat(N, N)),
+    slaterUPnew(mat(N, N)),
+    slaterDOWNnew(mat(N, N)),
+    slaterUPinvOld(mat(N, N)),
+    slaterDOWNinvOld(mat(N, N)),
+    slaterUPinvNew(mat(N, N)),
+    slaterDOWNinvNew(mat(N, N)),
+    SUP(vec(N)),
+    SDOWN(vec(N)),
+    dwavefunction(rowvec(nDimensions)),
+    grad(rowvec(nDimensions))
 {
     orbitals = new Orbitals;
 }
@@ -58,9 +62,11 @@ void Slater::updatePositionAndCurrentParticle(mat &r, int &k)
     if (k < N) UP = true;
     else UP = false;
 
-    // only updating the inverse slater matrix _if_ we accept the move, because
-    // we only need the old inverse to find the ratio
+    // updating both the determinant and the inverse, since importance sampling
+    // accepts ~95% of the moves anyway, and we need the inverse in our
+    // new closed form gradient
     updateSlater();
+    updateInverse();
 }
 
 double Slater::getRatio()
@@ -72,7 +78,6 @@ double Slater::getRatio()
         for (int j = 0; j < N; j++) // loop over orbitals
             ratioUP += slaterUPnew(i,j)*slaterUPinvOld(j,i);
 
-//        ratioUP *= ratioUP; // bad because we need not squared in inverse update
         return ratioUP*ratioUP;
     }
     else
@@ -82,7 +87,6 @@ double Slater::getRatio()
         for (int j = 0; j < N; j++) // loop over orbitals
             ratioDOWN += slaterDOWNnew(i,j)*slaterDOWNinvOld(j,i);
 
-//        ratioDOWN *= ratioDOWN;
         return ratioDOWN*ratioDOWN;
     }
 }
@@ -91,7 +95,6 @@ void Slater::acceptMove()
 {
     rOld.row(currentParticle) = rNew.row(currentParticle);
 
-    updateInverse();
     if (UP)
     {
         slaterUPold.row(currentParticle) = slaterUPnew.row(currentParticle);
@@ -108,11 +111,18 @@ void Slater::rejectMove()
 {
     rNew.row(currentParticle) = rOld.row(currentParticle);
 
-    // not updating the inverse, since we haven't changed it!!!
+    // now updating the inverse as well, since we update it for every new set
+    // of positions with the new closed form gradient
     if (UP)
+    {
         slaterUPnew.row(currentParticle) = slaterUPold.row(currentParticle);
+        slaterUPinvNew = slaterUPinvOld;
+    }
     else
+    {
         slaterDOWNnew.row(currentParticle-N) = slaterDOWNold.row(currentParticle-N);
+        slaterDOWNinvNew = slaterDOWNinvOld;
+    }
 }
 
 double Slater::wavefunction(const mat &r)
@@ -134,18 +144,19 @@ double Slater::wavefunction(const mat &r)
     return det(slaterUP)*det(slaterDOWN);
 }
 
-rowvec Slater::localGradient(const mat &r, const int &i)
+rowvec Slater::localGradient(const int &i)
 {
     /* Calculates the gradient for particle k */
-    // NEED TO USE 1/R !!!
 
-    grad = zeros<rowvec>(nDimensions);
+    grad.zeros();
     if (i < N)
         for (int j = 0; j < N; j++)
-            grad += orbitals->gradient(r.row(i),j)*slaterUPinvOld(j,i)/ratioUP;
+//            grad += orbitals->gradient(r.row(i),j)*slaterUPinvOld(j,i)/ratioUP;
+            grad += orbitals->gradient(rNew.row(i),j)*slaterUPinvNew(j,i);
     else
         for (int j = 0; j < N; j++)
-            grad += orbitals->gradient(r.row(i),j)*slaterDOWNinvOld(j,i-N)/ratioDOWN;
+//            grad += orbitals->gradient(r.row(i),j)*slaterDOWNinvOld(j,i-N)/ratioDOWN;
+            grad += orbitals->gradient(rNew.row(i),j)*slaterDOWNinvNew(j,i-N);
 
     return grad;
 }
@@ -154,7 +165,7 @@ rowvec Slater::localGradientNumerical(const mat &r, const int &k, const double &
 {
     /* Calculates the the gradient for particle k */
 
-    dwavefunction = zeros<rowvec>(nDimensions);
+    dwavefunction.zeros();
     rPlus = rMinus = r;
     wfCurrent = wavefunction(r);
     for (int i = 0; i < nDimensions; i++)
@@ -172,17 +183,17 @@ rowvec Slater::localGradientNumerical(const mat &r, const int &k, const double &
     return dwavefunction;
 }
 
-double Slater::localLaplacian(const mat &r, const int &i)
+double Slater::localLaplacian(const int &i)
 {
-    /* Calculates the laplacian for particle k */
+    /* Calculates the laplacian for particle i */
 
     lapl = 0.0;
     if (i < N)
         for (int j = 0; j < N; j++)
-            lapl += orbitals->laplacian(r.row(i),j)*slaterUPinvOld(j,i); // OLD
+            lapl += orbitals->laplacian(rNew.row(i),j)*slaterUPinvNew(j,i);
     else
         for (int j = 0; j < N; j++)
-            lapl += orbitals->laplacian(r.row(i),j)*slaterDOWNinvOld(j,i-N); // OLD
+            lapl += orbitals->laplacian(rNew.row(i),j)*slaterDOWNinvNew(j,i-N);
 
     return lapl;
 }
@@ -221,13 +232,13 @@ void Slater::updateSlater()
 
 void Slater::updateInverse()
 {
-//    getRatio();
+    getRatio();
 
     if (UP) // only updating the UP matrix
     {
         int i = currentParticle;
 
-        vec SUP = zeros<vec>(N);
+        SUP.zeros();
         // updating all but the ith column of the inverse slater matrix
         for (int j = 0; j < N; j++) // loop over columns j != i
         {
@@ -256,7 +267,7 @@ void Slater::updateInverse()
     {
         int i = currentParticle - N;
 
-        vec SDOWN = zeros<vec>(N);
+        SDOWN.zeros();
         // updating all but the ith column of the inverse slater matrix
         for (int j = 0; j < N; j++) // loop over columns j != i
         {

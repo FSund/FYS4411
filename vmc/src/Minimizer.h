@@ -14,8 +14,8 @@ using namespace arma;
 class Minimizer
 {
 public:
-    Minimizer(int &myRank, int &numprocs, int &nParticles, int &charge, int &nParameters, vec &guess);
-    vec runMinimizer();
+    Minimizer(int &myRank, int &numprocs, int &nParticles, int &charge, int &nParameters);
+    vec runMinimizer(const vec &guess);
 protected:
     int myRank, numprocs;
     int nParameters;
@@ -25,10 +25,12 @@ protected:
 private:
     void bruteforce();
 
-    vec energyGradientNumerical();
+    vec energyGradientNumerical(const vec &param);
+    double energyGradientNumerical(const vec &param, const int &k);
 //    vec energyGradientNumerical(const vec &param);
     mat energyHessianNumerical();
-    vec steepestDescent();
+    vec steepestDescent(const vec &param);
+    vec newtonsMethod(const vec &param);
 //    vec CGM();
 };
 

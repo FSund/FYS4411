@@ -28,16 +28,21 @@ public:
     double localEnergy();
     double localEnergyNumerical();
     mat localGradient();
-    mat localGradient(const mat &r);
-    mat localGradientNumerical();
+//    mat localGradient(const mat &r);
     mat localGradientNumerical(const mat &r);
     double localLaplacian();
-    double localLaplacianNumerical();
+//    double localLaplacian(const mat &r);
+    double localLaplacianNumerical(const mat &r);
 
     //    double localEnergyClosedForm(const mat &r) const;
-protected:
+
     double wavefunction();
     double wavefunction(const mat &r);
+
+    // default arguments
+    mat localGradientNumerical() { return localGradientNumerical(rNew); }
+    double localLaplacianNumerical() { return localLaplacianNumerical(rNew); }
+protected:
     double electronNucleusPotential();
     double electronElectronPotential();
 
@@ -46,12 +51,12 @@ protected:
     double h, h2;
 
     int currentParticle;
-
+private:
     mat rNew, rOld;
     mat rijNew, rijOld;
     mat fijNew, fijOld;
+    double ratio;
 
-private:
     double wfMinus, wfPlus, wfCurrent;
     double dfactor;
     double ddwavefunction;

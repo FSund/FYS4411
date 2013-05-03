@@ -21,8 +21,12 @@ public:
     void setAlpha(const double &alpha);
     void setBeta(const double &beta);
     void setParameters(const vec &parameters);
+
+    double getEnergy() { return energy; }
+    double getVariance() { return variance; }
 protected:
     double gaussianDeviate(long *seed);
+    void finalize();
 
     Wavefunction *wf;
 
@@ -37,13 +41,19 @@ protected:
 
     int nCycles;
     int nAccepted;
-    int nRejected;
 
     int myRank;
     int numprocs;
     int local_nCycles;
 
     double ratio;
+    double acceptanceRate;
+    double energy;
+    double energySquared;
+    double energySum;
+    double energySquaredSum;
+    double variance;
+    double deltaE;
 };
 
 #endif // SOLVER_H

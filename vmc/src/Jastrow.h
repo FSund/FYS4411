@@ -13,32 +13,30 @@ public:
     void initialize(const mat &r);
     void updatePositionAndCurrentParticle(mat &r, int &k);
     void setBeta(const double &newBeta);
-
-    double wavefunction();
-    double wavefunction(const mat &r);
     double getRatio();
-    rowvec localGradient(const int &k);
-    rowvec localGradient(const mat &r, const int &k);
-    double localLaplacian(const int &k);
-    double localLaplacian(const mat &r, const int &k);
-
-
     void acceptMove();
     void rejectMove();
 
+    double wavefunction();
+    double wavefunction(const mat &r);
+    rowvec localGradient(const int &k);
+    double localLaplacian(const int &k);
+
     // for debugging/tests
-    // these functions return the full gradient and laplacian, not just for one
-    // particle like the closed for functions
-    rowvec localGradientNumerical(const int &k, const double &h);
     rowvec localGradientNumerical(const mat &r, const int &k, const double &h);
-    double localLaplacianNumerical(const int &k, const double &h);
     double localLaplacianNumerical(const mat &r, const int &k, const double &h);
+
+    // versions using default argument r = rNew
+    rowvec localGradientNumerical(const int &k, const double &h)
+        { return localGradientNumerical(rNew, k, h); }
+    double localLaplacianNumerical(const int &k, const double &h)
+        { return localLaplacianNumerical(rNew, k, h); }
 private:
     int nParticles;
     int nDimensions;
     mat rOld, rNew;
-    mat rijOld, rijNew; // rij only needed by Jastrow -- rii needed by H-like-orbitals
-    mat fijOld, fijNew; // fij only needed by Jastrow
+    mat rijOld, rijNew;
+    mat fijOld, fijNew;
     mat a;
     double beta;
     int currentParticle;
@@ -50,7 +48,7 @@ private:
     double ddwavefunction;
 
     // closed form gradient and laplacian
-    double rij;
+    double rij, rki, brki;
     rowvec grad;
     double lapl;
 

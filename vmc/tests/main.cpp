@@ -148,6 +148,7 @@ TEST(GradientTest)
     int currentParticle;
     double charge = 4.0;
     mat difference;
+    double tolerance = 1e-4;
 
     mat rOld(nParticles, nDimensions);
     mat rNew(nParticles, nDimensions);
@@ -160,7 +161,7 @@ TEST(GradientTest)
     wf.initialize(rOld);
 
     difference = abs(wf.localGradientNumerical() - wf.localGradient());
-    CHECK(difference.max() < 1e-4);
+    CHECK(difference.max() < tolerance);
 
     currentParticle = 1;
     rNew << 1 << 1 << 1 << endr
@@ -168,11 +169,27 @@ TEST(GradientTest)
          << 3 << 4 << 5 << endr
          << 4 << 5 << 6 << endr;
     wf.updatePositionAndCurrentParticle(rNew, currentParticle);
-    wf.getRatio(); // to update the ratio, needed to update the inverse later
-    wf.acceptMove();
 
     difference = abs(wf.localGradientNumerical() - wf.localGradient());
-    CHECK(difference.max() < 1e-4);
+    CHECK(difference.max() < tolerance);
+
+    wf.acceptMove();
+    difference = abs(wf.localGradientNumerical() - wf.localGradient());
+    CHECK(difference.max() < tolerance);
+
+    currentParticle = 3;
+    rNew << 1 << 1 << 1 << endr
+         << 2.5 << 3.5 << 4.5 << endr
+         << 3 << 4 << 5 << endr
+         << 4.5 << 5.5 << 6.5 << endr;
+    wf.updatePositionAndCurrentParticle(rNew, currentParticle);
+
+    difference = abs(wf.localGradientNumerical() - wf.localGradient());
+    CHECK(difference.max() < tolerance);
+
+    wf.rejectMove();
+    difference = abs(wf.localGradientNumerical() - wf.localGradient());
+    CHECK(difference.max() < tolerance);
 }
 
 TEST(LaplacianTest)
@@ -183,6 +200,7 @@ TEST(LaplacianTest)
     int currentParticle;
     double charge = 4.0;
     double difference;
+    double tolerance = 1e-10;
     mat rOld(nParticles, nDimensions);
     mat rNew(nParticles, nDimensions);
     Wavefunction wf(nParticles, charge);
@@ -195,23 +213,38 @@ TEST(LaplacianTest)
     wf.initialize(rOld);
 
     difference = abs(wf.localLaplacianNumerical() - wf.localLaplacian());
-    CHECK(difference < 1e-4);
+    CHECK(difference < tolerance);
+    cout << "difference = " << difference << endl;
 
-    currentParticle = 2;
-    rNew << 1 << 2 << 3 << endr
+    currentParticle = 0;
+    rNew << 1.5 << 2.5 << 3.5 << endr
          << 2 << 3 << 4 << endr
-         << 3.5 << 4.5 << 5.5 << endr
+         << 3 << 4 << 5 << endr
          << 4 << 5 << 6 << endr;
     wf.updatePositionAndCurrentParticle(rNew, currentParticle);
-    wf.getRatio(); // to update the ratio, to get correct gradient from Slater
-
-    ////
-//    cout << "CF laplacian  = " << wf.localLaplacian() << endl;
-//    cout << "NUM laplacian = " << wf.localLaplacianNumerical() << endl;
-    ////
-
     difference = abs(wf.localLaplacianNumerical() - wf.localLaplacian());
-    CHECK(difference < 1e-4);
+    CHECK(difference < tolerance);
+    cout << "difference = " << difference << endl;
+
+    wf.acceptMove();
+    difference = abs(wf.localLaplacianNumerical() - wf.localLaplacian());
+    CHECK(difference < tolerance);
+    cout << "difference = " << difference << endl;
+
+    currentParticle = 3;
+    rNew << 1.5 << 2.5 << 3.5 << endr
+         << 2 << 3 << 4 << endr
+         << 3 << 4 << 5 << endr
+         << 4.5 << 5.5 << 6.5 << endr;
+    wf.updatePositionAndCurrentParticle(rNew, currentParticle);
+    difference = abs(wf.localLaplacianNumerical() - wf.localLaplacian());
+    CHECK(difference < tolerance);
+    cout << "difference = " << difference << endl;
+
+    wf.rejectMove();
+    difference = abs(wf.localLaplacianNumerical() - wf.localLaplacian());
+    CHECK(difference < tolerance);
+    cout << "difference = " << difference << endl;
 }
 
 //TEST(SlaterGradientTest)
@@ -312,7 +345,7 @@ TEST(LaplacianTest)
 
 TEST(SlaterGradientTest)
 {
-cout << "-------------------------- SlaterGradientTest --------------------------" << endl;
+//cout << "-------------------------- SlaterGradientTest --------------------------" << endl;
 
     int nParticles = 4;
     int nDimensions = 3;
@@ -341,13 +374,13 @@ cout << "-------------------------- SlaterGradientTest -------------------------
     difference = abs(gradientClosedform - gradientNumerical);
 
     ////////////////////////////////////////////
-    cout << "gradient closed form" << endl;
-    cout << gradientClosedform;
-    cout << "gradient numerical" << endl;
-    cout << gradientNumerical;
-    cout << "difference.max() = " << difference.max() << endl;
-    cout << difference;
-    cout << endl;
+//    cout << "gradient closed form" << endl;
+//    cout << gradientClosedform;
+//    cout << "gradient numerical" << endl;
+//    cout << gradientNumerical;
+//    cout << "difference.max() = " << difference.max() << endl;
+//    cout << difference;
+//    cout << endl;
     ////////////////////////////////////////////
 
     CHECK(difference.max() < 1e-4); // OK (because we use rOld)
@@ -367,13 +400,13 @@ cout << "-------------------------- SlaterGradientTest -------------------------
     difference = abs(gradientClosedform - gradientNumerical);
 
     ////////////////////////////////////////////
-    cout << "gradient closed form" << endl;
-    cout << gradientClosedform;
-    cout << "gradient numerical" << endl;
-    cout << gradientNumerical;
-    cout << "difference.max() = " << difference.max() << endl;
-    cout << difference;
-    cout << endl;
+//    cout << "gradient closed form" << endl;
+//    cout << gradientClosedform;
+//    cout << "gradient numerical" << endl;
+//    cout << gradientNumerical;
+//    cout << "difference.max() = " << difference.max() << endl;
+//    cout << difference;
+//    cout << endl;
     ////////////////////////////////////////////
 
     CHECK(difference.max() < 1e-4); // fails
@@ -386,19 +419,19 @@ cout << "-------------------------- SlaterGradientTest -------------------------
     difference = abs(gradientClosedform - gradientNumerical);
 
     ////////////////////////////////////////////
-    cout << "gradient closed form" << endl;
-    cout << gradientClosedform;
-    cout << "gradient numerical" << endl;
-    cout << gradientNumerical;
-    cout << "difference.max() = " << difference.max() << endl;
-    cout << difference;
-    cout << endl;
+//    cout << "gradient closed form" << endl;
+//    cout << gradientClosedform;
+//    cout << "gradient numerical" << endl;
+//    cout << gradientNumerical;
+//    cout << "difference.max() = " << difference.max() << endl;
+//    cout << difference;
+//    cout << endl;
     ////////////////////////////////////////////
 
     CHECK(difference.max() < 1e-4); // fails
 
 
-cout << "-------------------------- SlaterGradientTest --------------------------" << endl;
+//cout << "-------------------------- SlaterGradientTest --------------------------" << endl;
 }
 
 TEST(JastrowGradientTest)
@@ -467,27 +500,86 @@ TEST(JastrowLaplacianTest)
     int nParticles = 4;
     int nDimensions = 3;
     double beta = 0.1;
-//    int currentParticle;
-//    double charge = 4.0;
-    double difference;
     double h = 1e-3;
-    int currentParticle = 0;
+    double tolerance = 1e-10;
 
+    int currentParticle;
+    double difference;
     mat rOld(nParticles, nDimensions);
-    mat rNew(nParticles, nDimensions);
+    mat rNew(rOld);
+    double numericalLaplacian, closedFormLaplacian;
+    Jastrow wf(nParticles);
+
     rOld << 1 << 2 << 3 << endr
          << 2 << 3 << 4 << endr
          << 3 << 4 << 5 << endr
          << 4 << 5 << 6 << endr;
-    Jastrow wf(nParticles);
     wf.setBeta(beta);
     wf.initialize(rOld);
 
-//    cout << "lapl numerical = " << jastrow.localLaplacianNumerical(h) << endl;
-//    cout << "lapl closedform = " << laplacianClosedform << endl;
+    numericalLaplacian = closedFormLaplacian = 0.0;
+    for (int i = 0; i < nParticles; i++)
+    {
+        numericalLaplacian += wf.localLaplacianNumerical(i, h);
+        closedFormLaplacian += wf.localLaplacian(i);
+    }
+    difference = abs(numericalLaplacian - closedFormLaplacian);
+    CHECK(difference < tolerance);
+    cout << "difference = " << difference << endl;
 
-    difference = abs(wf.localLaplacianNumerical(currentParticle, h) - wf.localLaplacian(currentParticle));
-    CHECK(difference < 1e-4);
+    currentParticle = 2;
+    rNew << 1 << 2 << 3 << endr
+         << 2 << 3 << 4 << endr
+         << 3.5 << 4.5 << 5.5 << endr
+         << 4 << 5 << 6 << endr;
+    wf.updatePositionAndCurrentParticle(rNew, currentParticle);
+    numericalLaplacian = closedFormLaplacian = 0.0;
+    for (int i = 0; i < nParticles; i++)
+    {
+        numericalLaplacian += wf.localLaplacianNumerical(i, h);
+        closedFormLaplacian += wf.localLaplacian(i);
+    }
+    difference = abs(numericalLaplacian - closedFormLaplacian);
+    CHECK(difference < tolerance);
+    cout << "difference = " << difference << endl;
+
+    wf.acceptMove();
+    numericalLaplacian = closedFormLaplacian = 0.0;
+    for (int i = 0; i < nParticles; i++)
+    {
+        numericalLaplacian += wf.localLaplacianNumerical(i, h);
+        closedFormLaplacian += wf.localLaplacian(i);
+    }
+    difference = abs(numericalLaplacian - closedFormLaplacian);
+    CHECK(difference < tolerance);
+    cout << "difference = " << difference << endl;
+
+    currentParticle = 3;
+    rNew << 1 << 2 << 3 << endr
+         << 2 << 3 << 4 << endr
+         << 3.5 << 4.5 << 5.5 << endr
+         << 4.5 << 5.5 << 6.5 << endr;
+    wf.updatePositionAndCurrentParticle(rNew, currentParticle);
+    numericalLaplacian = closedFormLaplacian = 0.0;
+    for (int i = 0; i < nParticles; i++)
+    {
+        numericalLaplacian += wf.localLaplacianNumerical(i, h);
+        closedFormLaplacian += wf.localLaplacian(i);
+    }
+    difference = abs(numericalLaplacian - closedFormLaplacian);
+    CHECK(difference < tolerance);
+    cout << "difference = " << difference << endl;
+
+    wf.rejectMove();
+    numericalLaplacian = closedFormLaplacian = 0.0;
+    for (int i = 0; i < nParticles; i++)
+    {
+        numericalLaplacian += wf.localLaplacianNumerical(i, h);
+        closedFormLaplacian += wf.localLaplacian(i);
+    }
+    difference = abs(numericalLaplacian - closedFormLaplacian);
+    CHECK(difference < tolerance);
+    cout << "difference = " << difference << endl;
 }
 
 TEST(SlaterLaplacianTest)
@@ -495,27 +587,87 @@ TEST(SlaterLaplacianTest)
     int nParticles = 4;
     int nDimensions = 3;
     double alpha = 3.6;
-//    int currentParticle;
-//    double charge = 4.0;
-    double difference;
     double h = 1e-3;
-    int currentParticle = 0;
+    double tolerance = 1e-10;
+
+    int currentParticle;
+    double difference;
     mat rOld(nParticles, nDimensions);
     mat rNew(nParticles, nDimensions);
+    double numericalLaplacian;
+    double closedFormLaplacian;
+    Slater wf(nParticles);
 
     rOld << 1 << 2 << 3 << endr
          << 2 << 3 << 4 << endr
          << 3 << 4 << 5 << endr
          << 4 << 5 << 6 << endr;
-    Slater wf(nParticles);
     wf.setAlpha(alpha);
     wf.initialize(rOld);
 
-//    cout << "lapl numerical = " << slater.localLaplacianNumerical(h) << endl;
-//    cout << "lapl closedform = " << laplacianClosedform << endl;
+    numericalLaplacian = closedFormLaplacian = 0.0;
+    for (int i = 0; i < nParticles; i++)
+    {
+        numericalLaplacian += wf.localLaplacianNumerical(i, h);
+        closedFormLaplacian += wf.localLaplacian(i);
+    }
+    difference = abs(numericalLaplacian - closedFormLaplacian);
+    CHECK(difference < tolerance);
+    cout << "difference = " << difference << endl;
 
-    difference = abs(wf.localLaplacianNumerical(currentParticle, h) - wf.localLaplacian(currentParticle));
-    CHECK(difference < 1e-4);
+    currentParticle = 2;
+    rNew << 1 << 2 << 3 << endr
+         << 2 << 3 << 4 << endr
+         << 3.5 << 4.5 << 5.5 << endr
+         << 4 << 5 << 6 << endr;
+    wf.updatePositionAndCurrentParticle(rNew, currentParticle);
+    numericalLaplacian = closedFormLaplacian = 0.0;
+    for (int i = 0; i < nParticles; i++)
+    {
+        numericalLaplacian += wf.localLaplacianNumerical(i, h);
+        closedFormLaplacian += wf.localLaplacian(i);
+    }
+    difference = abs(numericalLaplacian - closedFormLaplacian);
+    CHECK(difference < tolerance);
+    cout << "difference = " << difference << endl;
+
+    wf.acceptMove();
+        numericalLaplacian = closedFormLaplacian = 0.0;
+    for (int i = 0; i < nParticles; i++)
+    {
+        numericalLaplacian += wf.localLaplacianNumerical(i, h);
+        closedFormLaplacian += wf.localLaplacian(i);
+    }
+    difference = abs(numericalLaplacian - closedFormLaplacian);
+    CHECK(difference < tolerance);
+    cout << "difference = " << difference << endl;
+
+    currentParticle = 3;
+    rNew << 1 << 2 << 3 << endr
+         << 2 << 3 << 4 << endr
+         << 3.5 << 4.5 << 5.5 << endr
+         << 4.5 << 5.5 << 6.5 << endr;
+    wf.updatePositionAndCurrentParticle(rNew, currentParticle);
+    numericalLaplacian = closedFormLaplacian = 0.0;
+    for (int i = 0; i < nParticles; i++)
+    {
+        numericalLaplacian += wf.localLaplacianNumerical(i, h);
+        closedFormLaplacian += wf.localLaplacian(i);
+    }
+    difference = abs(numericalLaplacian - closedFormLaplacian);
+    CHECK(difference < tolerance);
+    cout << "difference = " << difference << endl;
+
+    wf.rejectMove();
+        numericalLaplacian = closedFormLaplacian = 0.0;
+    for (int i = 0; i < nParticles; i++)
+    {
+        numericalLaplacian += wf.localLaplacianNumerical(i, h);
+        closedFormLaplacian += wf.localLaplacian(i);
+    }
+    difference = abs(numericalLaplacian - closedFormLaplacian);
+    CHECK(difference < tolerance);
+    cout << "difference = " << difference << endl;
 }
 
 TEST(SlaterInverseTest)
@@ -524,9 +676,7 @@ TEST(SlaterInverseTest)
     int nDimensions = 3;
     double alpha = 3.6;
     int currentParticle;
-//    double charge = 4.0;
     mat difference;
-//    double h = 1e-3;
     mat rOld(nParticles, nDimensions);
     mat rNew(nParticles, nDimensions);
     Slater wf(nParticles);
@@ -544,15 +694,17 @@ TEST(SlaterInverseTest)
          << 3 << 4 << 5 << endr
          << 4 << 5 << 6 << endr;
     wf.updatePositionAndCurrentParticle(rNew, currentParticle);
-    wf.getRatio(); // need this to update the ratio internally in Slater
 
     difference = abs(wf.getUPinvOld() - inv(wf.getUPold()));
-    CHECK(difference.max() < 1e-4);
+    CHECK(difference.max() < 1e-4); // ok
 
     wf.acceptMove(); // calculating the new inverse in Slater
     rOld = rNew;
     difference = abs(wf.getUPinvOld() - inv(wf.getUPold()));
-    CHECK(difference.max() < 1e-4);
+//    cout << "UPinvOld" << endl << wf.getUPinvOld();
+//    cout << "inv(wf.getUPold())" << endl << inv(wf.getUPold());
+//    cout << "difference.max() = " << difference.max() << endl;
+    CHECK(difference.max() < 1e-4); // FAILS
 
     currentParticle = 2;
     rNew << 1.5 << 2.5 << 3.5 << endr
@@ -561,7 +713,6 @@ TEST(SlaterInverseTest)
          << 4 << 5 << 6 << endr;
 
     wf.updatePositionAndCurrentParticle(rNew, currentParticle);
-    wf.getRatio(); // need this to update the ratio internally in Slater
 
     difference = abs(wf.getUPinvOld() - inv(wf.getUPold()));
     CHECK(difference.max() < 1e-4);
