@@ -21,7 +21,6 @@ private:
     mat qForceNew;
     double D, dt, Ddt;
     double omegaRatio;
-    bool closedForm;
 };
 
 #endif // SOLVERMCIS_H

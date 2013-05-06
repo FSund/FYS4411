@@ -11,12 +11,11 @@ Solver::Solver(int &myRank,
     rNew(zeros<mat>(nParticles, nDimensions)),
     nAccepted(0),
     myRank(myRank),
-    numprocs(numprocs)
+    numprocs(numprocs),
+//    closedForm(false)
+    closedForm(true)
 {
     idum = -1 - myRank;
-//    cout << endl << "Using custom idum in Solver!" << endl << endl;
-//    idum = 1188144735;
-//    idum = -13242345;
 
     if (nParticles == 2)
     {

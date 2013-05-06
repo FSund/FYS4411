@@ -20,9 +20,8 @@ public:
     void acceptMove();
     void rejectMove();
 
+    double wavefunction();
     double wavefunction(const mat &r);
-    double wavefunction()
-        { return wavefunction(rNew); }
     rowvec localGradient(const int &i);
     double localLaplacian(const int &i);
 

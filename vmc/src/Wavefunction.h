@@ -28,10 +28,8 @@ public:
     double localEnergy();
     double localEnergyNumerical();
     mat localGradient();
-//    mat localGradient(const mat &r);
     mat localGradientNumerical(const mat &r);
     double localLaplacian();
-//    double localLaplacian(const mat &r);
     double localLaplacianNumerical(const mat &r);
 
     //    double localEnergyClosedForm(const mat &r) const;
@@ -67,6 +65,8 @@ private:
 
     Jastrow* jastrow;
     Slater* slater;
+
+    bool useJastrow;
 };
 
 #endif // WAVEFUNCTION_H

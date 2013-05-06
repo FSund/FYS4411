@@ -1,7 +1,8 @@
 #include "Orbitals.h"
 
 Orbitals::Orbitals():
-    nDimensions(3)
+    nDimensions(3),
+    dphi(vec(nDimensions))
 {
 }
 
@@ -12,129 +13,67 @@ void Orbitals::setAlpha(const double &newAlpha)
 
 double Orbitals::wavefunction(const rowvec &rvec, const int &qNum)
 {
+    r = 0.0;
+    for (int i = 0; i < nDimensions; i++)
+        r += rvec(i)*rvec(i);
+    r = sqrt(r);
+
     switch (qNum)
     {
     case 0 :
-        wfCurrent = phi1s(rvec);
-        break;
+        return exp(-alpha*r);
     case 1 :
-        wfCurrent = phi2s(rvec);
-        break;
+        arg = alpha*r*0.5;
+        return (1.0 - arg)*exp(-arg);
     case 2:
-        wfCurrent = phi2p(rvec, 0);
-        break;
+        return rvec(0)*exp(-0.5*alpha*r);
     case 3:
-        wfCurrent = phi2p(rvec, 1);
-        break;
+        return rvec(1)*exp(-0.5*alpha*r);
     case 4:
-        wfCurrent = phi2p(rvec, 2);
-        break;
+        return rvec(2)*exp(-0.5*alpha*r);
     default :
         // Process for all other cases.
         cout << "! We don't have this orbital yet!" << endl;
         exit(1);
     }
 
-    return wfCurrent;
-}
-
-double Orbitals::phi1s(const rowvec &rvec)
-{
-    r = 0;
-    for (int i = 0; i < nDimensions; i++)
-        r += rvec(i)*rvec(i);
-    r = sqrt(r);
-
-    return exp(-alpha*r);
-}
-
-double Orbitals::phi2s(const rowvec &rvec)
-{
-    r = 0;
-    for (int i = 0; i < nDimensions; i++)
-        r += rvec(i)*rvec(i);
-    r = sqrt(r);
-    arg = alpha*r*0.5;
-
-    return (1.0 - arg)*exp(-arg);
-}
-
-double Orbitals::phi2p(const rowvec &rvec, const int &k)
-{
-    r = 0.0;
-    for (int i = 0; i<nDimensions; i++){
-        r += rvec(i)*rvec(i);
-    }
-    r = sqrt(r);
-
-    return alpha*rvec(k)*exp(-0.5*alpha*r);
+//    return wfCurrent;
 }
 
 rowvec Orbitals::gradient(const rowvec &rvec, const int &qNum)
 {
+    r = 0.0;
+    for(int i = 0; i < nDimensions; i++){
+        r += rvec(i)*rvec(i);
+    }
+    r = sqrt(r);
     switch (qNum)
     {
     case 0:
-        grad = dphi1s(rvec);
-        break;
+        return (-alpha/r*exp(-alpha*r))*rvec;
     case 1:
-        grad = dphi2s(rvec);
-        break;
+        return alpha*rvec*(alpha*r - 4.0)*exp(-alpha*r/2.0)/(4.0*r);
     case 2:
-        grad = dphi2p(rvec, 0);
-        break;
+        dphi = -alpha*rvec*rvec(0);
+        dphi(0) += 2.0*r;
+        dphi *= exp(-alpha*r/2.0)/(2.0*r);
+        return dphi;
     case 3:
-        grad = dphi2p(rvec, 1);
-        break;
+        dphi = -alpha*rvec*rvec(1);
+        dphi(1) += 2.0*r;
+        dphi *= exp(-alpha*r/2.0)/(2.0*r);
+        return dphi;
     case 4:
-        grad = dphi2p(rvec, 2);
-        break;
+        dphi = -alpha*rvec*rvec(2);
+        dphi(2) += 2.0*r;
+        dphi *= exp(-alpha*r/2.0)/(2.0*r);
+        return dphi;
     default:
         cout << "Please implement more hydrogen wavefunctions" << endl;
         exit(1);
     }
 
-    return grad;
-}
-
-rowvec Orbitals::dphi1s(const rowvec &rvec)
-{
-    r = 0.0;
-    for(int i = 0; i < nDimensions; i++){
-        r += rvec(i)*rvec(i);
-    }
-    r = sqrt(r);
-
-    return (-alpha/r*exp(-alpha*r))*rvec;
-}
-
-rowvec Orbitals::dphi2s(const rowvec &rvec)
-{
-    r = 0.0;
-    for(int i = 0; i < nDimensions; i++){
-        r += rvec(i)*rvec(i);
-    }
-    r = sqrt(r);
-
-    return alpha*rvec*(alpha*r - 4.0)*exp(-alpha*r/2.0)/(4.0*r);
-}
-
-rowvec Orbitals::dphi2p(const rowvec &rvec, const int &k)
-{
-    vec dphi;
-    r = 0.0;
-    for(int i = 0; i < nDimensions; i++){
-        r += rvec(i)*rvec(i);
-    }
-    r = sqrt(r);
-    double arg = exp(-alpha*r/2.0);
-    for (int i = 0; i < nDimensions; i++)
-    {
-        dphi = -alpha*alpha/(2.0*r)*arg*rvec(i)*rvec(k);
-    }
-    dphi(k) += alpha*arg;
-
-    return dphi;
+//    return grad;
 }
 
 double Orbitals::laplacian(const rowvec &rvec, const int &qNum)
@@ -142,26 +81,19 @@ double Orbitals::laplacian(const rowvec &rvec, const int &qNum)
     switch (qNum)
     {
     case 0:
-        lapl = ddphi1s(rvec);
-        break;
+        return ddphi1s(rvec);
     case 1:
-        lapl = ddphi2s(rvec);
-        break;
+        return ddphi2s(rvec);
     case 2:
-        lapl = ddphi2p(rvec, 0);
-        break;
+        return ddphi2p(rvec, 0);
     case 3:
-        lapl = ddphi2p(rvec, 1);
-        break;
+        return ddphi2p(rvec, 1);
     case 4:
-        lapl = ddphi2p(rvec, 2);
-        break;
+        return ddphi2p(rvec, 2);
     default:
         cout << "Please implement more hydrogen wavefunctions" << endl;
         exit(1);
     }
-
-    return lapl;
 }
 
 double Orbitals::ddphi1s(const rowvec &rvec)
@@ -193,5 +125,5 @@ double Orbitals::ddphi2p(const rowvec &rvec, const int &k)
     }
     r = sqrt(r);
 
-    return pow(alpha, 2.0)*rvec(k)*(alpha*r - 8.0)*exp(-alpha*r/2.0)/(4.0*r);
+    return alpha*rvec(k)*(alpha*r - 8.0)*exp(-alpha*r/2.0)/(4.0*r);
 }

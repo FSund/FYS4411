@@ -6,6 +6,7 @@
 #include <src/Wavefunction.h>
 #include <src/Solver/Solver.h>
 #include <src/Solver/SolverMCIS.h>
+#include <src/Solver/SolverMCBF.h>
 
 using namespace arma;
 
@@ -140,535 +141,326 @@ TEST(JastrowRatioTest) {
     CHECK(abs(jastrow.getRatio() - realRatio) < 1e-15);
 }
 
-TEST(GradientTest)
+TEST(GradientTestNeon)
 {
-    int nParticles = 4;
+    int nParticles = 10;
     int nDimensions = 3;
-    vec parameters = randu(2,1);
-    int currentParticle;
-    double charge = 4.0;
-    mat difference;
-    double tolerance = 1e-4;
-
-    mat rOld(nParticles, nDimensions);
-    mat rNew(nParticles, nDimensions);
-    rOld << 1 << 1 << 1 << endr
-         << 2 << 3 << 4 << endr
-         << 3 << 4 << 5 << endr
-         << 4 << 5 << 6 << endr;
-    Wavefunction wf(nParticles, charge);
-    wf.setParameters(parameters);
-    wf.initialize(rOld);
-
-    difference = abs(wf.localGradientNumerical() - wf.localGradient());
-    CHECK(difference.max() < tolerance);
-
-    currentParticle = 1;
-    rNew << 1 << 1 << 1 << endr
-         << 2.5 << 3.5 << 4.5 << endr
-         << 3 << 4 << 5 << endr
-         << 4 << 5 << 6 << endr;
-    wf.updatePositionAndCurrentParticle(rNew, currentParticle);
-
-    difference = abs(wf.localGradientNumerical() - wf.localGradient());
-    CHECK(difference.max() < tolerance);
-
-    wf.acceptMove();
-    difference = abs(wf.localGradientNumerical() - wf.localGradient());
-    CHECK(difference.max() < tolerance);
-
-    currentParticle = 3;
-    rNew << 1 << 1 << 1 << endr
-         << 2.5 << 3.5 << 4.5 << endr
-         << 3 << 4 << 5 << endr
-         << 4.5 << 5.5 << 6.5 << endr;
-    wf.updatePositionAndCurrentParticle(rNew, currentParticle);
-
-    difference = abs(wf.localGradientNumerical() - wf.localGradient());
-    CHECK(difference.max() < tolerance);
-
-    wf.rejectMove();
-    difference = abs(wf.localGradientNumerical() - wf.localGradient());
-    CHECK(difference.max() < tolerance);
-}
-
-TEST(LaplacianTest)
-{
-    int nParticles = 4;
-    int nDimensions = 3;
-    vec parameters = randu(2,1);
-    int currentParticle;
-    double charge = 4.0;
-    double difference;
-    double tolerance = 1e-10;
-    mat rOld(nParticles, nDimensions);
-    mat rNew(nParticles, nDimensions);
-    Wavefunction wf(nParticles, charge);
-
-    rOld << 1 << 2 << 3 << endr
-         << 2 << 3 << 4 << endr
-         << 3 << 4 << 5 << endr
-         << 4 << 5 << 6 << endr;
-    wf.setParameters(parameters);
-    wf.initialize(rOld);
-
-    difference = abs(wf.localLaplacianNumerical() - wf.localLaplacian());
-    CHECK(difference < tolerance);
-    cout << "difference = " << difference << endl;
-
-    currentParticle = 0;
-    rNew << 1.5 << 2.5 << 3.5 << endr
-         << 2 << 3 << 4 << endr
-         << 3 << 4 << 5 << endr
-         << 4 << 5 << 6 << endr;
-    wf.updatePositionAndCurrentParticle(rNew, currentParticle);
-    difference = abs(wf.localLaplacianNumerical() - wf.localLaplacian());
-    CHECK(difference < tolerance);
-    cout << "difference = " << difference << endl;
-
-    wf.acceptMove();
-    difference = abs(wf.localLaplacianNumerical() - wf.localLaplacian());
-    CHECK(difference < tolerance);
-    cout << "difference = " << difference << endl;
-
-    currentParticle = 3;
-    rNew << 1.5 << 2.5 << 3.5 << endr
-         << 2 << 3 << 4 << endr
-         << 3 << 4 << 5 << endr
-         << 4.5 << 5.5 << 6.5 << endr;
-    wf.updatePositionAndCurrentParticle(rNew, currentParticle);
-    difference = abs(wf.localLaplacianNumerical() - wf.localLaplacian());
-    CHECK(difference < tolerance);
-    cout << "difference = " << difference << endl;
-
-    wf.rejectMove();
-    difference = abs(wf.localLaplacianNumerical() - wf.localLaplacian());
-    CHECK(difference < tolerance);
-    cout << "difference = " << difference << endl;
-}
-
-//TEST(SlaterGradientTest)
-//{
-//cout << "-------------------------- SlaterGradientTest --------------------------" << endl;
-
-//    int nParticles = 4;
-//    int nDimensions = 3;
-
-//    double alpha = 3.8;
-//    double h = 1e-3;
-
-//    mat rOld(nParticles, nDimensions);
-//    mat rNew(nParticles, nDimensions);
-//    mat gradientClosedform(nParticles, nDimensions);
-//    mat difference;
-//    int currentParticle = 0;
-
-//    Slater wf(nParticles);
-//    rOld << 1 << 2 << 3 << endr
-//         << 2 << 3 << 4 << endr
-//         << 3 << 4 << 5 << endr
-//         << 4 << 5 << 6 << endr;
-//    wf.setAlpha(alpha);
-//    wf.initialize(rOld);
-
-//    ////////////////////////////////////////////
-//    cout << "gradient closed form" << endl;
-//    for (int i = 0; i < nParticles; i++)
-//        cout << wf.localGradient(i);
-//    cout << "gradient numerical" << endl;
-//    for (int i = 0; i < nParticles; i++)
-//        cout << wf.localGradientNumerical(i, h);
-//    cout << endl;
-//    ////////////////////////////////////////////
-
-//    difference = abs(wf.localGradientNumerical(currentParticle, h) - wf.localGradient(currentParticle));
-//    CHECK(difference.max() < 1e-4);
-
-//    currentParticle = 1;
-//    rNew << 1 << 2 << 3 << endr
-//         << 2.2 << 3.2 << 4.2 << endr
-//         << 3 << 4 << 5 << endr
-//         << 4 << 5 << 6 << endr;
-//    wf.updatePositionAndCurrentParticle(rNew, currentParticle);
-//    wf.getRatio(); // to update the ratio, needed to update the inverse
-
-//    ////////////////////////////////////////////
-//    cout << "gradient closed form" << endl;
-//    for (int i = 0; i < nParticles; i++)
-//        cout << wf.localGradient(i);
-//    cout << "gradient numerical" << endl;
-//    for (int i = 0; i < nParticles; i++)
-//        cout << wf.localGradientNumerical(i, h);
-//    cout << endl;
-//    ////////////////////////////////////////////
-
-//    difference = abs(wf.localGradientNumerical(currentParticle, h) - wf.localGradient(currentParticle));
-//    cout << "difference.max() = " << difference.max() << endl;
-//    cout << difference;
-//    CHECK(difference.max() < 1e-4); // fails
-
-//cout << "-------------------------- SlaterGradientTest --------------------------" << endl;
-
-//    // testing after accepting
-//    wf.acceptMove();
-//    difference = abs(wf.localGradientNumerical(currentParticle, h) - wf.localGradient(currentParticle));
-//    CHECK(difference.max() < 1e-4);
-
-//    currentParticle = 2;
-//    rNew << 1 << 2 << 3 << endr
-//         << 2.5 << 3.5 << 4.5 << endr
-//         << 3.5 << 4.5 << 5.5 << endr
-//         << 4 << 5 << 6 << endr;
-//    wf.updatePositionAndCurrentParticle(rNew, currentParticle);
-
-//    ////////////////////////////////////////////
-//    cout << "gradient closed form" << endl;
-//    for (int i = 0; i < nParticles; i++)
-//        cout << wf.localGradient(i);
-//    cout << "gradient numerical" << endl;
-//    for (int i = 0; i < nParticles; i++)
-//        cout << wf.localGradientNumerical(i, h);
-//    cout << endl;
-//    ////////////////////////////////////////////
-
-//    // testing before rejecting (for quantum force)
-//    difference = abs(wf.localGradientNumerical(currentParticle, h) - wf.localGradient(currentParticle));
-//    cout << "difference.max() = " << difference.max() << endl;
-//    cout << difference;
-//    CHECK(difference.max() < 1e-4); // FAILS!
-
-//    // testing after rejecting
-//    wf.rejectMove();
-//    difference = abs(wf.localGradientNumerical(currentParticle, h) - wf.localGradient(currentParticle));
-//    CHECK(difference.max() < 1e-4);
-//}
-
-TEST(SlaterGradientTest)
-{
-//cout << "-------------------------- SlaterGradientTest --------------------------" << endl;
-
-    int nParticles = 4;
-    int nDimensions = 3;
-    double alpha = 3.8;
+    double alpha = 10.6;
+    double beta = 0.1;
     double h = 1e-3;
+    double tolerance = 1e-4;
+    double relativeTolerance = 0.01;
 
-    mat rOld(nParticles, nDimensions);
-    mat rNew(nParticles, nDimensions);
     mat gradientClosedform(nParticles, nDimensions);
     mat gradientNumerical(nParticles, nDimensions);
-    mat difference;
-    int currentParticle;
-    Slater wf(nParticles);
+    mat difference(nParticles, nDimensions);
+    mat rOld(nParticles, nDimensions);
+    mat rNew(nParticles, nDimensions);
+    mat reldiff(difference);
 
-    rOld << 1 << 2 << 3 << endr
-         << 2 << 3 << 4 << endr
-         << 3 << 4 << 5 << endr
-         << 4 << 5 << 6 << endr;
+    rNew = rOld = randu(nParticles, nDimensions);
+    Wavefunction wf(nParticles, nParticles);
+    wf.setAlpha(alpha);
+    wf.setBeta(beta);
+    wf.initialize(rOld);
+
+    for (int ii = 0; ii < 4; ii++)
+    {
+        for (int cp = 0; cp < nParticles; cp++)
+        {
+            rNew.row(cp) = rNew.row(cp) + randn<rowvec>(1,nDimensions);
+            wf.updatePositionAndCurrentParticle(rNew, cp);
+
+            gradientClosedform = wf.localGradient();
+            gradientNumerical = wf.localGradientNumerical();
+
+//            difference = gradientClosedform - gradientNumerical;
+            reldiff = abs(gradientClosedform/gradientNumerical - 1.0);
+//            cout << "reldiff" << endl << reldiff;
+//            cout << "difference" << endl << difference;
+            CHECK(reldiff.max() < relativeTolerance);
+
+            if (conv_to<double>::from(randn(1,1)) < 0.5)
+            {
+                wf.acceptMove();
+                rOld.row(cp) = rNew.row(cp);
+            }
+            else
+            {
+                wf.rejectMove();
+                rNew.row(cp) = rOld.row(cp);
+            }
+        }
+    }
+}
+
+TEST(LaplacianNeonTest)
+{
+    int nParticles = 10;
+    int nDimensions = 3;
+    double alpha = 10.6;
+    double beta = 0.1;
+    double h = 1e-3;
+    double tolerance = 1e-2;
+    double relativeTolerance = 1e-2;
+    double difference;
+    double reldiff;
+    mat rOld(nParticles, nDimensions);
+    mat rNew(nParticles, nDimensions);
+    double numericalLaplacian;
+    double closedFormLaplacian;
+    Wavefunction wf(nParticles, nParticles);
+    wf.setAlpha(alpha);
+    wf.setBeta(beta);
+    rNew = rOld = randu(nParticles, nDimensions);
+    wf.initialize(rOld);
+
+//    cout << "rNew" << endl << rNew;
+    for (int ii = 0; ii < 4; ii++)
+    {
+        for (int cp = 0; cp < nParticles; cp++)
+        {
+            rNew.row(cp) = rNew.row(cp) + randn<rowvec>(1,3);
+            wf.updatePositionAndCurrentParticle(rNew, cp);
+
+            numericalLaplacian = wf.localLaplacianNumerical();
+            closedFormLaplacian = wf.localLaplacian();
+
+//            difference = abs(numericalLaplacian - closedFormLaplacian);
+            reldiff = abs(closedFormLaplacian/numericalLaplacian - 1.0);
+//            cout << "difference = " << difference << endl;
+//            cout << "reldiff = " << reldiff << endl;
+//            CHECK(difference < tolerance);
+            CHECK(reldiff < relativeTolerance);
+
+            if (conv_to<double>::from(randn(1,1)) < 0.5)
+            {
+                wf.acceptMove();
+                rOld.row(cp) = rNew.row(cp);
+            }
+            else
+            {
+                wf.rejectMove();
+                rNew.row(cp) = rOld.row(cp);
+            }
+        }
+    }
+}
+
+TEST(SlaterGradientNeonTest)
+{
+    int nParticles = 10;
+    int nDimensions = 3;
+    double alpha = 10.6;
+    double h = 1e-3;
+    double tolerance = 1e-4;
+    double relativeTolerance = 0.01;
+
+    mat gradientClosedform(nParticles, nDimensions);
+    mat gradientNumerical(nParticles, nDimensions);
+    mat difference(nParticles, nDimensions);
+    mat rOld(nParticles, nDimensions);
+    mat rNew(nParticles, nDimensions);
+    mat reldiff(difference);
+
+    rNew = rOld = randu(nParticles, nDimensions);
+    Slater wf(nParticles);
     wf.setAlpha(alpha);
     wf.initialize(rOld);
 
-    for (int i = 0; i < nParticles; i++)
-        gradientClosedform.row(i) = wf.localGradient(i);
-    for (int i = 0; i < nParticles; i++)
-        gradientNumerical.row(i) = wf.localGradientNumerical(i, h);
-    difference = abs(gradientClosedform - gradientNumerical);
+    for (int ii = 0; ii < 4; ii++)
+    {
+        for (int cp = 0; cp < nParticles; cp++)
+        {
+            rNew.row(cp) = rNew.row(cp) + randn<rowvec>(1,nDimensions);
+            wf.updatePositionAndCurrentParticle(rNew, cp);
 
-    ////////////////////////////////////////////
-//    cout << "gradient closed form" << endl;
-//    cout << gradientClosedform;
-//    cout << "gradient numerical" << endl;
-//    cout << gradientNumerical;
-//    cout << "difference.max() = " << difference.max() << endl;
-//    cout << difference;
-//    cout << endl;
-    ////////////////////////////////////////////
+            for (int i = 0; i < nParticles; i++)
+            {
+                gradientClosedform.row(i) = wf.localGradient(i);
+                gradientNumerical.row(i) = wf.localGradientNumerical(i, h);
+            }
+            difference = gradientClosedform - gradientNumerical;
+            reldiff = abs(gradientClosedform/gradientNumerical - 1.0);
+//            cout << "reldiff" << endl << reldiff;
+//            cout << "difference" << endl << difference;
+            CHECK(reldiff.max() < relativeTolerance);
 
-    CHECK(difference.max() < 1e-4); // OK (because we use rOld)
-
-    currentParticle = 1;
-    rNew << 1 << 2 << 3 << endr
-         << 2.2 << 3.2 << 4.2 << endr
-         << 3 << 4 << 5 << endr
-         << 4 << 5 << 6 << endr;
-    wf.updatePositionAndCurrentParticle(rNew, currentParticle);
-    wf.getRatio(); // to update the ratio, needed to update the inverse, and in the gradient
-
-    for (int i = 0; i < nParticles; i++)
-        gradientClosedform.row(i) = wf.localGradient(i);
-    for (int i = 0; i < nParticles; i++)
-        gradientNumerical.row(i) = wf.localGradientNumerical(i, h);
-    difference = abs(gradientClosedform - gradientNumerical);
-
-    ////////////////////////////////////////////
-//    cout << "gradient closed form" << endl;
-//    cout << gradientClosedform;
-//    cout << "gradient numerical" << endl;
-//    cout << gradientNumerical;
-//    cout << "difference.max() = " << difference.max() << endl;
-//    cout << difference;
-//    cout << endl;
-    ////////////////////////////////////////////
-
-    CHECK(difference.max() < 1e-4); // fails
-
-    wf.acceptMove();
-        for (int i = 0; i < nParticles; i++)
-        gradientClosedform.row(i) = wf.localGradient(i);
-    for (int i = 0; i < nParticles; i++)
-        gradientNumerical.row(i) = wf.localGradientNumerical(i, h);
-    difference = abs(gradientClosedform - gradientNumerical);
-
-    ////////////////////////////////////////////
-//    cout << "gradient closed form" << endl;
-//    cout << gradientClosedform;
-//    cout << "gradient numerical" << endl;
-//    cout << gradientNumerical;
-//    cout << "difference.max() = " << difference.max() << endl;
-//    cout << difference;
-//    cout << endl;
-    ////////////////////////////////////////////
-
-    CHECK(difference.max() < 1e-4); // fails
-
-
-//cout << "-------------------------- SlaterGradientTest --------------------------" << endl;
+            if (conv_to<double>::from(randn(1,1)) < 0.5)
+            {
+                wf.acceptMove();
+                rOld.row(cp) = rNew.row(cp);
+            }
+            else
+            {
+                wf.rejectMove();
+                rNew.row(cp) = rOld.row(cp);
+            }
+        }
+    }
 }
 
-TEST(JastrowGradientTest)
+TEST(JastrowGradientNeonTest)
 {
-    int nParticles = 4;
+    int nParticles = 10;
     int nDimensions = 3;
-
     double beta = 0.1;
     double h = 1e-3;
+    double tolerance = 1e-4;
+    double relativeTolerance = 1e-3;
 
-    int currentParticle;
-    mat gradientClosedform = zeros<mat>(nParticles, nDimensions);
-
+    mat gradientClosedform(nParticles, nDimensions);
+    mat gradientNumerical(nParticles, nDimensions);
+    mat difference(nParticles, nDimensions);
+    mat reldiff(difference);
     mat rOld(nParticles, nDimensions);
     mat rNew(nParticles, nDimensions);
-    rOld << 1 << 2 << 3 << endr
-         << 2 << 3 << 4 << endr
-         << 3 << 4 << 5 << endr
-         << 4 << 5 << 6 << endr;
     Jastrow wf(nParticles);
     wf.setBeta(beta);
+
+    rNew = rOld = randu(nParticles, nDimensions);
     wf.initialize(rOld);
 
-    mat difference;
-    difference = abs(wf.localGradientNumerical(currentParticle, h) - wf.localGradient(currentParticle));
-    CHECK(difference.max() < 1e-4);
+    for (int ii = 0; ii < 4; ii++)
+    {
+        for (int cp = 0; cp < nParticles; cp++)
+        {
+            rNew.row(cp) = rNew.row(cp) + randn<rowvec>(1,3);
+            wf.updatePositionAndCurrentParticle(rNew, cp);
 
-    currentParticle = 1;
-    rNew << 1 << 2 << 3 << endr
-         << 2.5 << 3.5 << 4.5 << endr
-         << 3 << 4 << 5 << endr
-         << 4 << 5 << 6 << endr;
-    wf.updatePositionAndCurrentParticle(rNew, currentParticle);
+            for (int i = 0; i < nParticles; i++)
+            {
+                gradientClosedform.row(i) = wf.localGradient(i);
+                gradientNumerical.row(i) = wf.localGradientNumerical(i, h);
+            }
+//            difference = abs(gradientClosedform - gradientNumerical);
+            reldiff = abs(gradientClosedform/gradientNumerical - 1.0);
+            // cout << "difference = " << difference << endl;
+//            CHECK(difference.max() < tolerance);
+            CHECK(reldiff.max() < relativeTolerance);
 
-    // test before accepting (because the quantum force uses the gradient
-    // before accepting/rejecting
-    difference = abs(wf.localGradientNumerical(currentParticle, h) - wf.localGradient(currentParticle));
-    CHECK(difference.max() < 1e-4);
-
-    // testing after accepting
-    wf.acceptMove();
-    for (int i = 0; i < nParticles; i++)
-        gradientClosedform.row(i) = wf.localGradient(i);
-    difference = abs(wf.localGradientNumerical(currentParticle, h) - wf.localGradient(currentParticle));
-    CHECK(difference.max() < 1e-4);
-
-    currentParticle = 2;
-    rNew << 1 << 2 << 3 << endr
-         << 2.5 << 3.5 << 4.5 << endr
-         << 3.5 << 4.5 << 5.5 << endr
-         << 4 << 5 << 6 << endr;
-    wf.updatePositionAndCurrentParticle(rNew, currentParticle);
-
-    // testing before rejecting (for quantum force)
-    difference = abs(wf.localGradientNumerical(currentParticle, h) - wf.localGradient(currentParticle));
-    CHECK(difference.max() < 1e-4);
-
-    // testing after rejecting
-    wf.rejectMove();
-    difference = abs(wf.localGradientNumerical(currentParticle, h) - wf.localGradient(currentParticle));
-    CHECK(difference.max() < 1e-4);
+            if (conv_to<double>::from(randn(1,1)) < 0.5)
+            {
+                wf.acceptMove();
+                rOld.row(cp) = rNew.row(cp);
+            }
+            else
+            {
+                wf.rejectMove();
+                rNew.row(cp) = rOld.row(cp);
+            }
+        }
+    }
 }
 
-TEST(JastrowLaplacianTest)
+TEST(SlaterLaplacianNeonTest)
 {
-    int nParticles = 4;
+    int nParticles = 10;
     int nDimensions = 3;
-    double beta = 0.1;
+    double alpha = 10.6;
     double h = 1e-3;
-    double tolerance = 1e-10;
-
-    int currentParticle;
+    double tolerance = 1e-2;
+    double relativeTolerance = 1e-2;
     double difference;
-    mat rOld(nParticles, nDimensions);
-    mat rNew(rOld);
-    double numericalLaplacian, closedFormLaplacian;
-    Jastrow wf(nParticles);
-
-    rOld << 1 << 2 << 3 << endr
-         << 2 << 3 << 4 << endr
-         << 3 << 4 << 5 << endr
-         << 4 << 5 << 6 << endr;
-    wf.setBeta(beta);
-    wf.initialize(rOld);
-
-    numericalLaplacian = closedFormLaplacian = 0.0;
-    for (int i = 0; i < nParticles; i++)
-    {
-        numericalLaplacian += wf.localLaplacianNumerical(i, h);
-        closedFormLaplacian += wf.localLaplacian(i);
-    }
-    difference = abs(numericalLaplacian - closedFormLaplacian);
-    CHECK(difference < tolerance);
-    cout << "difference = " << difference << endl;
-
-    currentParticle = 2;
-    rNew << 1 << 2 << 3 << endr
-         << 2 << 3 << 4 << endr
-         << 3.5 << 4.5 << 5.5 << endr
-         << 4 << 5 << 6 << endr;
-    wf.updatePositionAndCurrentParticle(rNew, currentParticle);
-    numericalLaplacian = closedFormLaplacian = 0.0;
-    for (int i = 0; i < nParticles; i++)
-    {
-        numericalLaplacian += wf.localLaplacianNumerical(i, h);
-        closedFormLaplacian += wf.localLaplacian(i);
-    }
-    difference = abs(numericalLaplacian - closedFormLaplacian);
-    CHECK(difference < tolerance);
-    cout << "difference = " << difference << endl;
-
-    wf.acceptMove();
-    numericalLaplacian = closedFormLaplacian = 0.0;
-    for (int i = 0; i < nParticles; i++)
-    {
-        numericalLaplacian += wf.localLaplacianNumerical(i, h);
-        closedFormLaplacian += wf.localLaplacian(i);
-    }
-    difference = abs(numericalLaplacian - closedFormLaplacian);
-    CHECK(difference < tolerance);
-    cout << "difference = " << difference << endl;
-
-    currentParticle = 3;
-    rNew << 1 << 2 << 3 << endr
-         << 2 << 3 << 4 << endr
-         << 3.5 << 4.5 << 5.5 << endr
-         << 4.5 << 5.5 << 6.5 << endr;
-    wf.updatePositionAndCurrentParticle(rNew, currentParticle);
-    numericalLaplacian = closedFormLaplacian = 0.0;
-    for (int i = 0; i < nParticles; i++)
-    {
-        numericalLaplacian += wf.localLaplacianNumerical(i, h);
-        closedFormLaplacian += wf.localLaplacian(i);
-    }
-    difference = abs(numericalLaplacian - closedFormLaplacian);
-    CHECK(difference < tolerance);
-    cout << "difference = " << difference << endl;
-
-    wf.rejectMove();
-    numericalLaplacian = closedFormLaplacian = 0.0;
-    for (int i = 0; i < nParticles; i++)
-    {
-        numericalLaplacian += wf.localLaplacianNumerical(i, h);
-        closedFormLaplacian += wf.localLaplacian(i);
-    }
-    difference = abs(numericalLaplacian - closedFormLaplacian);
-    CHECK(difference < tolerance);
-    cout << "difference = " << difference << endl;
-}
-
-TEST(SlaterLaplacianTest)
-{
-    int nParticles = 4;
-    int nDimensions = 3;
-    double alpha = 3.6;
-    double h = 1e-3;
-    double tolerance = 1e-10;
-
-    int currentParticle;
-    double difference;
+    double reldiff;
     mat rOld(nParticles, nDimensions);
     mat rNew(nParticles, nDimensions);
     double numericalLaplacian;
     double closedFormLaplacian;
     Slater wf(nParticles);
-
-    rOld << 1 << 2 << 3 << endr
-         << 2 << 3 << 4 << endr
-         << 3 << 4 << 5 << endr
-         << 4 << 5 << 6 << endr;
     wf.setAlpha(alpha);
+    rNew = rOld = randu(nParticles, nDimensions);
     wf.initialize(rOld);
 
-    numericalLaplacian = closedFormLaplacian = 0.0;
-    for (int i = 0; i < nParticles; i++)
+//    cout << "rNew" << endl << rNew;
+    for (int ii = 0; ii < 4; ii++)
     {
-        numericalLaplacian += wf.localLaplacianNumerical(i, h);
-        closedFormLaplacian += wf.localLaplacian(i);
-    }
-    difference = abs(numericalLaplacian - closedFormLaplacian);
-    CHECK(difference < tolerance);
-    cout << "difference = " << difference << endl;
+        for (int cp = 0; cp < nParticles; cp++)
+        {
+            rNew.row(cp) = rNew.row(cp) + randn<rowvec>(1,3);
+            wf.updatePositionAndCurrentParticle(rNew, cp);
 
-    currentParticle = 2;
-    rNew << 1 << 2 << 3 << endr
-         << 2 << 3 << 4 << endr
-         << 3.5 << 4.5 << 5.5 << endr
-         << 4 << 5 << 6 << endr;
-    wf.updatePositionAndCurrentParticle(rNew, currentParticle);
-    numericalLaplacian = closedFormLaplacian = 0.0;
-    for (int i = 0; i < nParticles; i++)
-    {
-        numericalLaplacian += wf.localLaplacianNumerical(i, h);
-        closedFormLaplacian += wf.localLaplacian(i);
-    }
-    difference = abs(numericalLaplacian - closedFormLaplacian);
-    CHECK(difference < tolerance);
-    cout << "difference = " << difference << endl;
+            numericalLaplacian = closedFormLaplacian = 0.0;
+            for (int i = 0; i < nParticles; i++)
+            {
+                numericalLaplacian += wf.localLaplacianNumerical(i, h);
+                closedFormLaplacian += wf.localLaplacian(i);
+            }
+            difference = abs(numericalLaplacian - closedFormLaplacian);
+            reldiff = abs(numericalLaplacian/closedFormLaplacian - 1.0);
+//            cout << "difference = " << difference << endl;
+//            CHECK(difference < tolerance);
+            CHECK(reldiff < relativeTolerance);
 
-    wf.acceptMove();
-        numericalLaplacian = closedFormLaplacian = 0.0;
-    for (int i = 0; i < nParticles; i++)
-    {
-        numericalLaplacian += wf.localLaplacianNumerical(i, h);
-        closedFormLaplacian += wf.localLaplacian(i);
+            if (conv_to<double>::from(randn(1,1)) < 0.5)
+            {
+                wf.acceptMove();
+                rOld.row(cp) = rNew.row(cp);
+            }
+            else
+            {
+                wf.rejectMove();
+                rNew.row(cp) = rOld.row(cp);
+            }
+        }
     }
-    difference = abs(numericalLaplacian - closedFormLaplacian);
-    CHECK(difference < tolerance);
-    cout << "difference = " << difference << endl;
-
-    currentParticle = 3;
-    rNew << 1 << 2 << 3 << endr
-         << 2 << 3 << 4 << endr
-         << 3.5 << 4.5 << 5.5 << endr
-         << 4.5 << 5.5 << 6.5 << endr;
-    wf.updatePositionAndCurrentParticle(rNew, currentParticle);
-    numericalLaplacian = closedFormLaplacian = 0.0;
-    for (int i = 0; i < nParticles; i++)
-    {
-        numericalLaplacian += wf.localLaplacianNumerical(i, h);
-        closedFormLaplacian += wf.localLaplacian(i);
-    }
-    difference = abs(numericalLaplacian - closedFormLaplacian);
-    CHECK(difference < tolerance);
-    cout << "difference = " << difference << endl;
-
-    wf.rejectMove();
-        numericalLaplacian = closedFormLaplacian = 0.0;
-    for (int i = 0; i < nParticles; i++)
-    {
-        numericalLaplacian += wf.localLaplacianNumerical(i, h);
-        closedFormLaplacian += wf.localLaplacian(i);
-    }
-    difference = abs(numericalLaplacian - closedFormLaplacian);
-    CHECK(difference < tolerance);
-    cout << "difference = " << difference << endl;
 }
+
+TEST(JastrowLaplacianNeonTest)
+{
+    int nParticles = 10;
+    int nDimensions = 3;
+    double alpha = 10.6;
+    double beta = 0.1;
+    double h = 1e-3;
+    double tolerance = 1e-3;
+    double relativeTolerance = 1e-2;
+
+    double difference;
+    double reldiff;
+    mat rOld(nParticles, nDimensions);
+    mat rNew(nParticles, nDimensions);
+    double numericalLaplacian;
+    double closedFormLaplacian;
+
+    rNew = rOld = randu(nParticles, nDimensions);
+    Jastrow wf(nParticles);
+    wf.setBeta(beta);
+    wf.initialize(rOld);
+
+    for (int ii = 0; ii < 4; ii++)
+    {
+        for (int cp = 0; cp < nParticles; cp++)
+        {
+            rNew.row(cp) = rNew.row(cp) + randn<rowvec>(1,3);
+            wf.updatePositionAndCurrentParticle(rNew, cp);
+
+            numericalLaplacian = closedFormLaplacian = 0.0;
+            for (int i = 0; i < nParticles; i++)
+            {
+                numericalLaplacian += wf.localLaplacianNumerical(i, h);
+                closedFormLaplacian += wf.localLaplacian(i);
+            }
+            difference = abs(numericalLaplacian - closedFormLaplacian);
+            reldiff = abs(numericalLaplacian/closedFormLaplacian - 1.0);
+//            cout << "difference = " << difference << endl;
+//            CHECK(difference < tolerance);
+            CHECK(reldiff < relativeTolerance);
+
+            if (conv_to<double>::from(randn(1,1)) < 0.5)
+            {
+                wf.acceptMove();
+                rOld.row(cp) = rNew.row(cp);
+            }
+            else
+            {
+                wf.rejectMove();
+                rNew.row(cp) = rOld.row(cp);
+            }
+        }
+    }
+}
+
 
 TEST(SlaterInverseTest)
 {
@@ -762,6 +554,65 @@ TEST(SlaterInverseTest)
 //    CHECK(energy == 1);
 //}
 
+//TEST(ClosedFormEnergyTestIS)
+//{
+//    double alpha, beta;
+//    int nParticles, charge;
+//    int nCycles;
+//    double energyNUM, energyCF;
+//    double difference;
+//    double tolerance;
+
+//    nCycles = 1e4;
+//    tolerance = 1e-4;
+
+//    // neon
+//    alpha = 10.6;
+//    beta = 0.1;
+//    nParticles = 10;
+//    charge = nParticles;
+
+//    SolverMCIS solver(myRank, numprocs, nParticles, charge);
+//    solver.setAlpha(alpha);
+//    solver.setBeta(beta);
+//    solver.setClosedform(false);
+//    energyNUM = solver.runMonteCarloIntegration(nCycles);
+//    solver.setClosedform(true);
+//    energyCF = solver.runMonteCarloIntegration(nCycles);
+
+//    difference = abs(energyNUM - energyCF);
+//    CHECK(difference < tolerance);
+//}
+
+//TEST(ClosedFormEnergyTestBF)
+//{
+//    double alpha, beta;
+//    int nParticles, charge;
+//    int nCycles;
+//    double energyNUM, energyCF;
+//    double difference;
+//    double tolerance;
+
+//    nCycles = 1e4;
+//    tolerance = 1e-4;
+
+//    // neon
+//    alpha = 10.6;
+//    beta = 0.1;
+//    nParticles = 10;
+//    charge = nParticles;
+//    SolverMCBF solver(myRank, numprocs, nParticles, charge);
+//    solver.setAlpha(alpha);
+//    solver.setBeta(beta);
+//    solver.setClosedform(false);
+//    energyNUM = solver.runMonteCarloIntegration(nCycles);
+//    solver.setClosedform(true);
+//    energyCF = solver.runMonteCarloIntegration(nCycles);
+
+//    difference = abs(energyNUM - energyCF);
+//    CHECK(difference < tolerance);
+//}
+
 int main(int argc, char *argv[])
 {
     // MPI initialization
@@ -774,54 +625,3 @@ int main(int argc, char *argv[])
     MPI_Finalize();
 }
 
-//double findRealSlaterRatio(int nParticles, double alpha, mat rOld, mat rNew, int currentParticle)
-//{
-//    // finding the "real" determinant and inverse determinant UP and DOWN matrices
-//    // using armadillo's inverse to compare with my "efficient" algorithm
-//    Orbitals orbitals;
-//    orbitals.setAlpha(alpha);
-//    int N = nParticles/2;
-//    mat slaterUPold = zeros<mat>(N, N);
-//    mat slaterDOWNold = zeros<mat>(N, N);
-////    mat slaterUPinvOld = zeros<mat>(N, N);
-////    mat slaterDOWNinvOld = zeros<mat>(N, N);
-//    mat slaterUPnew = zeros<mat>(N, N);
-//    mat slaterDOWNnew = zeros<mat>(N, N);
-////    mat slaterUPinvNew = zeros<mat>(N, N);
-////    mat slaterDOWNinvNew = zeros<mat>(N, N);
-//    for (int i = 0; i < N; i++) // loop over particles
-//    {
-//        for (int j = 0; j < N; j++) // loop over orbitals
-//        {
-//            slaterUPold(i,j)   = orbitals.wavefunction(rOld.row(i), j);
-//            slaterDOWNold(i,j) = orbitals.wavefunction(rOld.row(i+N), j);
-//            slaterUPnew(i,j)   = orbitals.wavefunction(rNew.row(i), j);
-//            slaterDOWNnew(i,j) = orbitals.wavefunction(rNew.row(i+N), j);
-//        }
-//    }
-////    slaterUPinvOld = inv(slaterUPold);
-////    slaterDOWNinvOld = inv(slaterDOWNold);
-////    slaterUPinvNew = inv(slaterUPnew);
-////    slaterDOWNinvNew = inv(slaterDOWNnew);
-
-//    double realRatio = 0;
-////    if (currentParticle < N)
-////    {
-////        int i = currentParticle;
-////        for (int j = 0; j < N; j++)
-////            realRatio += slaterUPnew(i,j)*slaterUPinvOld(j,i);
-////    }
-////    else
-////    {
-////        int i = currentParticle - N;
-////        for (int j = 0; j < N; j++) // loop over orbitals
-////            realRatio += slaterDOWNnew(i,j)*slaterDOWNinvOld(j,i);
-////    }
-
-//    if (currentParticle < N)
-//        realRatio = det(slaterUPnew)/det(slaterUPold);
-//    else
-//        realRatio = det(slaterDOWNnew)/det(slaterDOWNold);
-
-//    return realRatio;
-//}

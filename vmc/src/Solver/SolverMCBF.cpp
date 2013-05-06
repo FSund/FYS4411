@@ -5,9 +5,7 @@ SolverMCBF::SolverMCBF(int &myRank,
         int &nParticles,
         int &charge):
     Solver(myRank, numprocs, nParticles, charge),
-    stepLength(1.0),
-    closedForm(false)
-//    closedForm(true)
+    stepLength(1.0)
 {
 }
 
@@ -102,27 +100,15 @@ double SolverMCBF::runMonteCarloIntegration(const int &nCycles_)
             else
                 deltaE = wf->localEnergyNumerical();
 
+//            wf->localEnergy();
+//            cout << "deltaE   NUM = " << wf->localEnergyNumerical() << endl;
+//            cout << "deltaE    CF = " << wf->localEnergy() << endl;
+//            cout << endl;
+
             energySum += deltaE;
             energySquaredSum += deltaE*deltaE;
         }
     }
-
-//    energy = energySum/(nCycles*nParticles);
-//    energySquared = energySquaredSum/(nCycles*nParticles);
-//    double totalEnergy = 0.0;
-//    double totalEnergySquared = 0.0;
-//    int totalNAccepted = 0;
-
-//    MPI_Reduce(&energy, &totalEnergy, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-//    MPI_Reduce(&energySquared, &totalEnergySquared, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-//    MPI_Reduce(&nAccepted, &totalNAccepted, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-
-//    energy = totalEnergy/numprocs;
-//    energySquared = totalEnergySquared/numprocs;
-//    acceptanceRate = double(totalNAccepted)/double(nCycles_*nParticles);
-
-//    if (myRank == 0) cout << "Energy: " << energy << " Energy (squared sum): " << energySquared << endl;
-//    if (myRank == 0) cout << "acceptance rate: " << acceptanceRate << endl;
 
     finalize();
 

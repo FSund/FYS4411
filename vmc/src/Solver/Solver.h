@@ -24,6 +24,9 @@ public:
 
     double getEnergy() { return energy; }
     double getVariance() { return variance; }
+    double getAcceptanceRate() { return acceptanceRate; }
+
+    void setClosedform(const bool &closedForm_) { closedForm = closedForm_; }
 protected:
     double gaussianDeviate(long *seed);
     void finalize();
@@ -54,6 +57,8 @@ protected:
     double energySquaredSum;
     double variance;
     double deltaE;
+
+    bool closedForm;
 };
 
 #endif // SOLVER_H

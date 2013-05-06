@@ -48,7 +48,7 @@ private:
     double ddwavefunction;
 
     // closed form gradient and laplacian
-    double rij, rki, brki;
+    double rkij, rkj, rki, brki, brkj, rij;
     rowvec grad;
     double lapl;
 

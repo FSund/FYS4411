@@ -109,7 +109,8 @@ void Slater::acceptMove()
 
 void Slater::rejectMove()
 {
-    rNew.row(currentParticle) = rOld.row(currentParticle);
+//    rNew.row(currentParticle) = rOld.row(currentParticle);
+    rNew = rOld;
 
     // now updating the inverse as well, since we update it for every new set
     // of positions with the new closed form gradient
@@ -123,6 +124,11 @@ void Slater::rejectMove()
         slaterDOWNnew.row(currentParticle-N) = slaterDOWNold.row(currentParticle-N);
         slaterDOWNinvNew = slaterDOWNinvOld;
     }
+}
+
+double Slater::wavefunction()
+{
+    return det(slaterUPnew)*det(slaterDOWNnew);
 }
 
 double Slater::wavefunction(const mat &r)
@@ -148,7 +154,7 @@ rowvec Slater::localGradient(const int &i)
 {
     /* Calculates the gradient for particle k */
 
-    grad.zeros();
+    grad = zeros<vec>(nDimensions);
     if (i < N)
         for (int j = 0; j < N; j++)
 //            grad += orbitals->gradient(r.row(i),j)*slaterUPinvOld(j,i)/ratioUP;
@@ -165,7 +171,7 @@ rowvec Slater::localGradientNumerical(const mat &r, const int &k, const double &
 {
     /* Calculates the the gradient for particle k */
 
-    dwavefunction.zeros();
+    dwavefunction = zeros<vec>(nDimensions);
     rPlus = rMinus = r;
     wfCurrent = wavefunction(r);
     for (int i = 0; i < nDimensions; i++)
@@ -222,9 +228,7 @@ void Slater::updateSlater()
     int i = currentParticle;
     if (UP)
         for (int j = 0; j < N; j++) // loop over orbitals
-        {
             slaterUPnew(i,j) = orbitals->wavefunction(rNew.row(i), j);
-        }
     else
         for (int j = 0; j < N; j++) // loop over orbitals
             slaterDOWNnew(i-N,j) = orbitals->wavefunction(rNew.row(i), j);

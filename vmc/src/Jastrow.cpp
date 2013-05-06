@@ -51,7 +51,7 @@ double Jastrow::getRatio()
     for (int i = k+1; i < nParticles; i++)
         dU += fijNew(k, i) - fijOld(k, i);
 
-    return exp(dU + dU); // squared
+    return exp(2.0*dU); // squared
 }
 
 void Jastrow::acceptMove()
@@ -136,16 +136,15 @@ rowvec Jastrow::localGradient(const int &k)
 
     // lecture notes p. 515-517
     grad = zeros<rowvec>(nDimensions);
-    double rij;
     for (int i = 0; i < k; i++)
     {
         rij = rijNew(i,k);
-        grad += (rNew.row(k) - rNew.row(i)) * a(i,k)/(rij*pow((1 + beta*rij),2));
+        grad += (rNew.row(k) - rNew.row(i)) * a(i,k)/(rij*pow((1.0 + beta*rij),2));
     }
     for (int i = k+1; i < nParticles; i++)
     {
         rij = rijNew(k,i);
-        grad -= (rNew.row(i) - rNew.row(k)) * a(k,i)/(rij*pow((1 + beta*rij),2));
+        grad += (rNew.row(k) - rNew.row(i)) * a(i,k)/(rij*pow((1.0 + beta*rij),2));
     }
 
     return grad;
@@ -210,15 +209,14 @@ double Jastrow::localLaplacian(const int &k)
         lapl += a(k,i)/(rki*pow(brki, 3));
     }
     lapl *= 2.0;
-    lapl += dot(localGradient(k), localGradient(k)); // inefficient!!
+    vec temp = localGradient(k);
+    lapl += dot(temp, temp);
     // lapl += dot(grad, grad); // should have calculated the gradient before this
 
     return lapl;
-
+////////////////////////////////////////////////////////////////////////////////
 
 //// version from slides p. 175 ////////////////////////////////////////////////
-//    mat r = rNew;
-//    double rkij, rkj, rki, brki, brkj;
 //    lapl = 0.0;
 //    for (int i = 0; i < nParticles; i++)
 //    {
@@ -226,9 +224,9 @@ double Jastrow::localLaplacian(const int &k)
 //        for (int j = 0; j < nParticles; j++)
 //        {
 //            if (j == k) continue;
-//            rkij = dot(r.row(k) - r.row(i), r.row(k) - r.row(j));
-//            rki = norm(r.row(k) - r.row(i), 2);
-//            rkj = norm(r.row(k) - r.row(j), 2);
+//            rkij = dot(rNew.row(k) - rNew.row(i), rNew.row(k) - rNew.row(j));
+//            rki = norm(rNew.row(k) - rNew.row(i), 2);
+//            rkj = norm(rNew.row(k) - rNew.row(j), 2);
 
 //            brki = (1.0 + beta*rki)*(1.0 + beta*rki);
 //            brkj = (1.0 + beta*rkj)*(1.0 + beta*rkj);
@@ -238,7 +236,7 @@ double Jastrow::localLaplacian(const int &k)
 //    for (int j = 0; j < nParticles; j++)
 //    {
 //        if (j == k) continue;
-//        rkj = norm(r.row(k) - r.row(j), 2);
+//        rkj = norm(rNew.row(k) - rNew.row(j), 2);
 
 //        brkj = (1.0 + beta*rkj);
 //        lapl += 2.0*a(k,j)/(brkj*brkj)*( 1.0/rkj - beta/brkj );

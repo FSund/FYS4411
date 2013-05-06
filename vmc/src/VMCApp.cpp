@@ -12,32 +12,37 @@ void VMCApp::runApplication()
     int nParticles, charge;
 
     // helium
-    alpha = 1.8;
+    alpha = 2.0; // 1.8
     beta = 0.36;
     nParticles = 2;
     charge = nParticles;
 
     // beryllium
-    alpha = 3.8;
+    alpha = 4.0; // 3.8
     beta = 0.1;
     nParticles = 4;
     charge = nParticles;
 
     // neon
-    alpha = 10.6;
+    alpha = 10.6; // 10.6
     beta = 0.1;
     nParticles = 10;
     charge = nParticles;
 
-//    SolverMCIS solver(myRank, numprocs, nParticles, charge);
-    SolverMCBF solver(myRank, numprocs, nParticles, charge);
+    SolverMCIS solver(myRank, numprocs, nParticles, charge);
+//    SolverMCBF solver(myRank, numprocs, nParticles, charge);
     solver.setAlpha(alpha);
     solver.setBeta(beta);
 
-    int nCycles = 2;
+    int nCycles = 10;
     double energy = solver.runMonteCarloIntegration(nCycles);
 
-    if (myRank == 0) cout << "Energy = " << energy << endl;
+    if (myRank == 0)
+    {
+        cout << "Energy = " << energy << endl;
+        cout << "Variance = " << solver.getVariance() << endl;
+        cout << "Acceptance ratio = " << solver.getAcceptanceRate() << endl;
+    }
 }
 
 void VMCApp::minimize()

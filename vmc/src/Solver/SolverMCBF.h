@@ -17,6 +17,5 @@ public:
     virtual double runMonteCarloIntegration(const int &nCycles_);
 protected:
     double stepLength;
-    bool closedForm;
 };
 #endif // SOLVERMCBF_H

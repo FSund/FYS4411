@@ -9,8 +9,7 @@ SolverMCIS::SolverMCIS(int &myRank,
     qForceNew(zeros<mat>(nParticles, nDimensions)),
     D(0.5),
     dt(1e-3),
-    Ddt(D*dt),
-    closedForm(true)
+    Ddt(D*dt)
 {
 }
 
@@ -32,7 +31,7 @@ double SolverMCIS::runMonteCarloIntegration(const int &nCycles_)
     wf->initialize(rOld);
 
     if (closedForm)
-        qForceOld = 2.0*wf->localGradient(); // rOld == rNew in Wavefunction now
+        qForceOld = 2.0*wf->localGradient(); // rOld == rNew in Wavefunction
     else
         qForceOld = 2.0*wf->localGradientNumerical(rOld);
 
@@ -76,6 +75,8 @@ double SolverMCIS::runMonteCarloIntegration(const int &nCycles_)
 
             omegaRatio = exp(0.5*omegaRatio);
 
+//            cout << "expratio = " << omegaRatio << endl;
+
             // Check for step acceptance (if yes, update position, if no, reset position)
             if (ran2(&idum) <= omegaRatio*ratio)
             {
@@ -98,28 +99,12 @@ double SolverMCIS::runMonteCarloIntegration(const int &nCycles_)
             else
                 deltaE = wf->localEnergyNumerical();
 
-
+//            cout << "deltaE = " << deltaE << endl;
 
             energySum += deltaE;
             energySquaredSum += deltaE*deltaE;
         }
     }
-//    energy = energySum/(nCycles*nParticles);
-//    energySquared = energySquaredSum/(nCycles*nParticles);
-//    double totalEnergy = 0.0;
-//    double totalEnergySquared = 0.0;
-//    int totalNAccepted = 0;
-
-//    MPI_Reduce(&energy, &totalEnergy, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-//    MPI_Reduce(&energySquared, &totalEnergySquared, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-//    MPI_Reduce(&nAccepted, &totalNAccepted, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-
-//    energy = totalEnergy/numprocs;
-//    energySquared = totalEnergySquared/numprocs;
-//    acceptanceRate = double(totalNAccepted)/double(nCycles_*nParticles);
-
-//    if (myRank == 0) cout << "Energy: " << energy << " Energy (squared sum): " << energySquared << endl;
-//    if (myRank == 0) cout << "acceptance rate: " << acceptanceRate << endl;
 
     finalize();
 

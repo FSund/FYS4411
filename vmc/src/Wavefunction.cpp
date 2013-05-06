@@ -13,6 +13,9 @@ Wavefunction::Wavefunction(const int &nParticles, const double &charge):
 
     jastrow = new Jastrow(nParticles);
     slater = new Slater(nParticles);
+
+    useJastrow = false;
+//    useJastrow = true;
 }
 
 Wavefunction::~Wavefunction()
@@ -56,28 +59,26 @@ void Wavefunction::setParameters(const vec &parameters)
 
 double Wavefunction::wavefunction()
 {
-    return slater->wavefunction()*jastrow->wavefunction();
-//    return slater->wavefunction();
+    if (useJastrow)
+        return slater->wavefunction()*jastrow->wavefunction();
+    else
+        return slater->wavefunction();
 }
 
 double Wavefunction::wavefunction(const mat &r)
 {
-    return slater->wavefunction(r)*jastrow->wavefunction(r);
-//    return slater->wavefunction(r);
-
-    // dummy wavefunction for tests
-//    double answer = 0.0;
-//    for (int i = 0; i < nParticles; i++)
-//    {
-//        answer += dot(r.row(i), r.row(i));
-//    }
-//    return answer;
+    if (useJastrow)
+        return slater->wavefunction(r)*jastrow->wavefunction(r);
+    else
+        return slater->wavefunction(r);
 }
 
 double Wavefunction::getRatio()
 {
-    ratio = slater->getRatio()*jastrow->getRatio();
-//    ratio = slater->getRatio();
+    if (useJastrow)
+        ratio = slater->getRatio()*jastrow->getRatio();
+    else
+        ratio = slater->getRatio();
 
     return ratio; // squared in slater and jastrow
 }
@@ -100,21 +101,31 @@ void Wavefunction::rejectMove()
 
 double Wavefunction::localEnergy()
 {
-    double kinetic = -0.5*localLaplacian();
-    double potential = electronNucleusPotential() + electronElectronPotential();
+    double kinetic, potential;
+
+    kinetic = -0.5*localLaplacian();
+    if (useJastrow)
+        potential = electronNucleusPotential() + electronElectronPotential();
+    else
+        potential = electronNucleusPotential();
 
     cout << "kinetic   CF = " << kinetic << endl;
-//    cout << "potential CF = " << potential << endl;
+    cout << "potential CF = " << potential << endl;
 
     return kinetic + potential;
 }
 
 double Wavefunction::localEnergyNumerical()
 {
-    double kinetic = -0.5*localLaplacianNumerical();
-    double potential = electronNucleusPotential() + electronElectronPotential();
+    double kinetic, potential;
 
-    cout << "kinetic   NUM = " << kinetic << endl;
+    kinetic = -0.5*localLaplacianNumerical();
+    if (useJastrow)
+        potential = electronNucleusPotential() + electronElectronPotential();
+    else
+        potential = electronNucleusPotential();
+
+//    cout << "kinetic  NUM = " << kinetic << endl;
 //    cout << "potential NUM = " << potential << endl;
 
     return kinetic + potential;
@@ -123,20 +134,15 @@ double Wavefunction::localEnergyNumerical()
 mat Wavefunction::localGradient()
 {
     grad = zeros<mat>(nParticles, nDimensions);
-    for (int i = 0; i < nParticles; i++)
-        grad.row(i) = slater->localGradient(i) + jastrow->localGradient(i);
+    if (useJastrow)
+        for (int i = 0; i < nParticles; i++)
+            grad.row(i) = slater->localGradient(i) + jastrow->localGradient(i);
+    else
+        for (int i = 0; i < nParticles; i++)
+            grad.row(i) = slater->localGradient(i);
 
     return grad;
 }
-
-//mat Wavefunction::localGradient(const mat &r)
-//{
-//    grad = zeros<mat>(nParticles, nDimensions);
-//    for (int i = 0; i < nParticles; i++)
-//        grad.row(i) = slater->localGradient(i) + jastrow->localGradient(r, i);
-
-//    return grad;
-//}
 
 mat Wavefunction::localGradientNumerical(const mat &r)
 {
@@ -160,28 +166,20 @@ mat Wavefunction::localGradientNumerical(const mat &r)
 
 double Wavefunction::localLaplacian()
 {
-    // we have this "extra" version of the laplacian, because the closed form
-    // solutions for the gradient and laplacian in the Jastrow class is faster
-    // if we use the no-argument version, because they can reuse rij's from
-    // earlier calculations
-
     lapl = 0.0;
-    for (int i = 0; i < nParticles; i++)
-        lapl += slater->localLaplacian(i) + jastrow->localLaplacian(i)
-                + 2.0*dot(slater->localGradient(i), jastrow->localGradient(i));
+
+    if (useJastrow)
+        for (int i = 0; i < nParticles; i++)
+        {
+            lapl += slater->localLaplacian(i) + jastrow->localLaplacian(i)
+                    + 2.0*dot(slater->localGradient(i), jastrow->localGradient(i));
+        }
+    else
+        for (int i = 0; i < nParticles; i++)
+            lapl += slater->localLaplacian(i);
 
     return lapl;
 }
-
-//double Wavefunction::localLaplacian(const mat &r)
-//{
-//    lapl = 0.0;
-//    for (int i = 0; i < nParticles; i++)
-//        lapl += slater->localLaplacian(i) + jastrow->localLaplacian(r,i)
-//                + 2.0*dot(slater->localGradient(i), jastrow->localGradient(r,i));
-
-//    return lapl;
-//}
 
 double Wavefunction::localLaplacianNumerical(const mat &r)
 {
