@@ -1,8 +1,5 @@
 #include <unittest++/UnitTest++.h>
 #include <armadillo>
-//#include <src/Jastrow.h>
-//#include <src/Slater.h>
-//#include <src/Orbitals.h>
 #include <src/Wavefunction.h>
 #include <src/Solver/Solver.h>
 #include <src/Solver/SolverMCIS.h>
@@ -82,7 +79,7 @@ TEST(SlaterRatioTest) {
 TEST(JastrowRatioTest) {
     int nParticles = 4;
     int nDimensions = 3;
-    double beta = (conv_to<double>::from(randu(1,1)))*nParticles;
+    double beta = 0.1;
     int currentParticle;
     double realRatio = 0.0;
 
@@ -147,9 +144,9 @@ TEST(GradientTestNeon)
     int nDimensions = 3;
     double alpha = 10.6;
     double beta = 0.1;
-    double h = 1e-3;
-    double tolerance = 1e-4;
-    double relativeTolerance = 0.01;
+//    double h = 1e-3;
+//    double tolerance = 1e-4;
+    double relativeTolerance = 1e-4;
 
     mat gradientClosedform(nParticles, nDimensions);
     mat gradientNumerical(nParticles, nDimensions);
@@ -200,10 +197,10 @@ TEST(LaplacianNeonTest)
     int nDimensions = 3;
     double alpha = 10.6;
     double beta = 0.1;
-    double h = 1e-3;
-    double tolerance = 1e-2;
-    double relativeTolerance = 1e-2;
-    double difference;
+//    double h = 1e-3;
+//    double tolerance = 1e-2;
+    double relativeTolerance = 1e-5;
+//    double difference;
     double reldiff;
     mat rOld(nParticles, nDimensions);
     mat rNew(nParticles, nDimensions);
@@ -253,8 +250,8 @@ TEST(SlaterGradientNeonTest)
     int nDimensions = 3;
     double alpha = 10.6;
     double h = 1e-3;
-    double tolerance = 1e-4;
-    double relativeTolerance = 0.01;
+//    double tolerance = 1e-4;
+    double relativeTolerance = 1e-4;
 
     mat gradientClosedform(nParticles, nDimensions);
     mat gradientNumerical(nParticles, nDimensions);
@@ -306,8 +303,8 @@ TEST(JastrowGradientNeonTest)
     int nDimensions = 3;
     double beta = 0.1;
     double h = 1e-3;
-    double tolerance = 1e-4;
-    double relativeTolerance = 1e-3;
+//    double tolerance = 1e-4;
+    double relativeTolerance = 1e-4;
 
     mat gradientClosedform(nParticles, nDimensions);
     mat gradientNumerical(nParticles, nDimensions);
@@ -359,9 +356,9 @@ TEST(SlaterLaplacianNeonTest)
     int nDimensions = 3;
     double alpha = 10.6;
     double h = 1e-3;
-    double tolerance = 1e-2;
-    double relativeTolerance = 1e-2;
-    double difference;
+//    double tolerance = 1e-2;
+    double relativeTolerance = 1e-4;
+//    double difference;
     double reldiff;
     mat rOld(nParticles, nDimensions);
     mat rNew(nParticles, nDimensions);
@@ -386,7 +383,7 @@ TEST(SlaterLaplacianNeonTest)
                 numericalLaplacian += wf.localLaplacianNumerical(i, h);
                 closedFormLaplacian += wf.localLaplacian(i);
             }
-            difference = abs(numericalLaplacian - closedFormLaplacian);
+//            difference = abs(numericalLaplacian - closedFormLaplacian);
             reldiff = abs(numericalLaplacian/closedFormLaplacian - 1.0);
 //            cout << "difference = " << difference << endl;
 //            CHECK(difference < tolerance);
@@ -410,13 +407,13 @@ TEST(JastrowLaplacianNeonTest)
 {
     int nParticles = 10;
     int nDimensions = 3;
-    double alpha = 10.6;
+//    double alpha = 10.6;
     double beta = 0.1;
     double h = 1e-3;
-    double tolerance = 1e-3;
-    double relativeTolerance = 1e-2;
+//    double tolerance = 1e-3;
+    double relativeTolerance = 1e-5;
 
-    double difference;
+//    double difference;
     double reldiff;
     mat rOld(nParticles, nDimensions);
     mat rNew(nParticles, nDimensions);
@@ -441,7 +438,7 @@ TEST(JastrowLaplacianNeonTest)
                 numericalLaplacian += wf.localLaplacianNumerical(i, h);
                 closedFormLaplacian += wf.localLaplacian(i);
             }
-            difference = abs(numericalLaplacian - closedFormLaplacian);
+//            difference = abs(numericalLaplacian - closedFormLaplacian);
             reldiff = abs(numericalLaplacian/closedFormLaplacian - 1.0);
 //            cout << "difference = " << difference << endl;
 //            CHECK(difference < tolerance);
@@ -460,7 +457,6 @@ TEST(JastrowLaplacianNeonTest)
         }
     }
 }
-
 
 TEST(SlaterInverseTest)
 {

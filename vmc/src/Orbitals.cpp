@@ -1,4 +1,4 @@
-#include "Orbitals.h"
+#include <src/Orbitals.h>
 
 Orbitals::Orbitals():
     nDimensions(3),
@@ -36,8 +36,6 @@ double Orbitals::wavefunction(const rowvec &rvec, const int &qNum)
         cout << "! We don't have this orbital yet!" << endl;
         exit(1);
     }
-
-//    return wfCurrent;
 }
 
 rowvec Orbitals::gradient(const rowvec &rvec, const int &qNum)
@@ -72,8 +70,6 @@ rowvec Orbitals::gradient(const rowvec &rvec, const int &qNum)
         cout << "Please implement more hydrogen wavefunctions" << endl;
         exit(1);
     }
-
-//    return grad;
 }
 
 double Orbitals::laplacian(const rowvec &rvec, const int &qNum)

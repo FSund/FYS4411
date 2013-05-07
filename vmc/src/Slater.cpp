@@ -1,4 +1,4 @@
-#include "Slater.h"
+#include <src/Slater.h>
 
 Slater::Slater(const int &nParticles):
     nParticles(nParticles),
@@ -85,7 +85,9 @@ double Slater::getRatio()
         int i = currentParticle - N;
         ratioDOWN = 0.0;
         for (int j = 0; j < N; j++) // loop over orbitals
+        {
             ratioDOWN += slaterDOWNnew(i,j)*slaterDOWNinvOld(j,i);
+        }
 
         return ratioDOWN*ratioDOWN;
     }
@@ -195,11 +197,19 @@ double Slater::localLaplacian(const int &i)
 
     lapl = 0.0;
     if (i < N)
+    {
         for (int j = 0; j < N; j++)
+        {
             lapl += orbitals->laplacian(rNew.row(i),j)*slaterUPinvNew(j,i);
+        }
+    }
     else
+    {
         for (int j = 0; j < N; j++)
+        {
             lapl += orbitals->laplacian(rNew.row(i),j)*slaterDOWNinvNew(j,i-N);
+        }
+    }
 
     return lapl;
 }
@@ -236,7 +246,7 @@ void Slater::updateSlater()
 
 void Slater::updateInverse()
 {
-    getRatio();
+    ratio = getRatio();
 
     if (UP) // only updating the UP matrix
     {

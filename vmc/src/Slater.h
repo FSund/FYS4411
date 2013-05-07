@@ -2,7 +2,7 @@
 #define SLATER_H
 
 #include <armadillo>
-#include "Orbitals.h"
+#include <src/Orbitals.h>
 
 using namespace std;
 using namespace arma;

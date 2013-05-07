@@ -17,6 +17,8 @@ HEADERS += $$SRC_DIR/Slater.h \
            $$SRC_DIR/Solver/SolverMCBF.h \
            $$SRC_DIR/Solver/SolverMCIS.h \
            $$SRC_DIR/lib.h \
+           $$SRC_DIR/Datalogger.h \
+
 
 SOURCES += $$SRC_DIR/Slater.cpp \
            $$SRC_DIR/Orbitals.cpp \
@@ -26,3 +28,4 @@ SOURCES += $$SRC_DIR/Slater.cpp \
            $$SRC_DIR/Solver/SolverMCBF.cpp \
            $$SRC_DIR/Solver/SolverMCIS.cpp \
            $$SRC_DIR/lib.cpp \
+           $$SRC_DIR/Datalogger.cpp \

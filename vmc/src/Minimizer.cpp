@@ -1,4 +1,4 @@
-#include "Minimizer.h"
+#include <src/Minimizer.h>
 
 Minimizer::Minimizer(int &myRank, int &numprocs, int &nParticles, int &charge, int &nParameters):
     myRank(myRank),
@@ -7,30 +7,34 @@ Minimizer::Minimizer(int &myRank, int &numprocs, int &nParticles, int &charge, i
 {
 //    solver = new SolverMCBF(myRank, numprocs, nParticles, charge);
     solver = new SolverMCIS(myRank, numprocs, nParticles, charge);
+
+    solver->setBlocking(false);
 }
 
-vec Minimizer::runMinimizer(const vec &guess)
+vec Minimizer::runMinimizer(const vec &guess, const int &nCycles)
 {
     cout << "Minimizer::runMinimizer()" << endl;
 
-//    bruteforce();
+    bruteforce(nCycles);
 
     cout << "Exiting Minimizer::runMinimizer()" << endl;
 
-//    return zeros<vec>(nParameters);
+    return guess;
 //    return steepestDescent(parameters);
-    return newtonsMethod(guess);
+//    return newtonsMethod(guess);
 }
 
-void Minimizer::bruteforce()
+void Minimizer::bruteforce(const int &nCycles)
 {
     mat minmax(nParameters, 2);
-    minmax << 3.0 << 4.1 << endr
-           << 0.0 << 1.0 << endr;
 
-    // benchmark: 56s -n 2 at home, 1m52s -n 1 at home
-//    minmax << 3.4 << 3.4 << endr
-//           << 0.1 << 0.2 << endr;
+    // beryllium
+    minmax << 3.0 << 4.1 << endr
+           << 0.0 << 0.5 << endr;
+
+//    // neon
+//    minmax << 9.0 << 11.0 << endr
+//           << 0.0 << 0.5 << endr;
 
     vec step(nParameters);
     step << 0.05 << endr << 0.05;
@@ -41,7 +45,6 @@ void Minimizer::bruteforce()
         ofile.open("minimization.dat");
     }
 
-    int nCycles = 1e5;
     double energy = 0.0;
     for (double alpha = minmax(0,0); alpha <= minmax(0,1); alpha += step(0))
     {
@@ -53,10 +56,12 @@ void Minimizer::bruteforce()
 
             if (myRank == 0)
             {
-                ofile << alpha << " " << beta << " " << energy << endl;
+                ofile << alpha << " " << beta << " " << energy << " " << solver->getVariance() << endl;
                 cout << "alpha = " << setw(4) << alpha;
                 cout << ", beta = " << setw(4) << beta;
-                cout << ", energy = " << energy << endl;
+                cout << ", energy = " << setw(8) << energy;
+                cout << ", variance = " << solver->getVariance();
+                cout << endl;
             }
         }
     }
@@ -142,7 +147,7 @@ vec Minimizer::steepestDescent(const vec &param)
 
 vec Minimizer::newtonsMethod(const vec &guess)
 {
-    double tolerance = 1e-10;
+//    double tolerance = 1e-10;
     int iterMax = 100;
     int nCycles = 1e4;
 

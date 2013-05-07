@@ -1,4 +1,4 @@
-#include "VMCApp.h"
+#include <src/VMCApp.h>
 
 VMCApp::VMCApp(int &myRank, int &numprocs):
     myRank(myRank),
@@ -24,8 +24,8 @@ void VMCApp::runApplication()
     charge = nParticles;
 
     // neon
-    alpha = 10.6; // 10.6
-    beta = 0.1;
+    alpha = 10.0; // 10.6
+    beta = 0.2;
     nParticles = 10;
     charge = nParticles;
 
@@ -33,8 +33,9 @@ void VMCApp::runApplication()
 //    SolverMCBF solver(myRank, numprocs, nParticles, charge);
     solver.setAlpha(alpha);
     solver.setBeta(beta);
+//    solver.setBlocking(false);
 
-    int nCycles = 10;
+    int nCycles = 1e4;
     double energy = solver.runMonteCarloIntegration(nCycles);
 
     if (myRank == 0)
@@ -47,15 +48,25 @@ void VMCApp::runApplication()
 
 void VMCApp::minimize()
 {
-    vec guess(2);
-    vec minParam(2);
-    guess << 3.5 << 0.5;
-    int nParameters = 2;
-    int nParticles = 4;
-    int charge = 4;
+    int nParameters, nParticles, charge;
+    nParameters = 2;
+    vec guess(nParameters);
+    vec minParam(nParameters);
 
+    // beryllium
+    guess << 3.5 << 0.5;
+    nParticles = 4;
+    charge = nParticles;
+
+//    // neon
+//    guess << 10.0 << 0.2;
+//    nParticles = 10;
+//    charge = nParticles;
+
+    int nCycles = 1e4;
     Minimizer m(myRank, numprocs, nParticles, charge, nParameters);
-    minParam = m.runMinimizer(guess);
+    minParam = m.runMinimizer(guess, nCycles);
 
     cout << "minParam = " << minParam.t() << endl;
 }
+

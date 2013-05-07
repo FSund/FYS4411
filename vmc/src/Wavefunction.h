@@ -2,8 +2,8 @@
 #define WAVEFUNCTION_H
 
 #include <armadillo>
-#include "Jastrow.h"
-#include "Slater.h"
+#include <src/Jastrow.h>
+#include <src/Slater.h>
 
 using namespace std;
 using namespace arma;

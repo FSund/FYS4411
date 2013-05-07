@@ -1,4 +1,4 @@
-#include "Jastrow.h"
+#include <src/Jastrow.h>
 
 Jastrow::Jastrow(const int &nParticles):
     nParticles(nParticles),
@@ -133,8 +133,6 @@ double Jastrow::wavefunction(const mat &r)
 rowvec Jastrow::localGradient(const int &k)
 {
     /* Calculates the gradient for particle k */
-
-    // lecture notes p. 515-517
     grad = zeros<rowvec>(nDimensions);
     for (int i = 0; i < k; i++)
     {
@@ -148,30 +146,11 @@ rowvec Jastrow::localGradient(const int &k)
     }
 
     return grad;
-
-//    mat grad = zeros<mat>(nParticles, nDimensions);
-//    double rij;
-//    for (int k = 0; k < nParticles; k++)
-//    {
-//        for (int i = 0; i < k; i++)
-//        {
-//            rij = rijNew(i,k);
-//            grad.row(k) += ((rNew.row(k) - rNew.row(i))/rij)*
-//                               ( a(i,k)/(1 + beta*rij)*(1 + beta*rij) );
-//        }
-//        for (int i = k+1; i < nParticles; i++)
-//        {
-//            rij = rijNew(k,i);
-//            grad.row(k) -= ((rNew.row(i) - rNew.row(k))/rij)*
-//                               ( a(k,i)/(1 + beta*rij)*(1 + beta*rij) );
-//        }
-//    }
 }
 
 rowvec Jastrow::localGradientNumerical(const mat &r, const int &k, const double &h)
 {
     /* Calculates the the gradient for particle k */
-
     dwavefunction = zeros<rowvec>(nDimensions);
     rPlus = rMinus = r;
     wfCurrent = wavefunction(r);
@@ -192,9 +171,7 @@ rowvec Jastrow::localGradientNumerical(const mat &r, const int &k, const double 
 
 double Jastrow::localLaplacian(const int &k)
 {
-//    /* Calculates the laplacian for particle k */
-
-//// version from https://github.com/sigvebs/VMC/blob/master/QD/QD_Jastrow.cpp
+    /* Calculates the laplacian for particle k */
     lapl = 0.0;
     for (int i = 0; i < k; i++)
     {
@@ -211,97 +188,8 @@ double Jastrow::localLaplacian(const int &k)
     lapl *= 2.0;
     vec temp = localGradient(k);
     lapl += dot(temp, temp);
-    // lapl += dot(grad, grad); // should have calculated the gradient before this
 
     return lapl;
-////////////////////////////////////////////////////////////////////////////////
-
-//// version from slides p. 175 ////////////////////////////////////////////////
-//    lapl = 0.0;
-//    for (int i = 0; i < nParticles; i++)
-//    {
-//        if (i == k) continue;
-//        for (int j = 0; j < nParticles; j++)
-//        {
-//            if (j == k) continue;
-//            rkij = dot(rNew.row(k) - rNew.row(i), rNew.row(k) - rNew.row(j));
-//            rki = norm(rNew.row(k) - rNew.row(i), 2);
-//            rkj = norm(rNew.row(k) - rNew.row(j), 2);
-
-//            brki = (1.0 + beta*rki)*(1.0 + beta*rki);
-//            brkj = (1.0 + beta*rkj)*(1.0 + beta*rkj);
-//            lapl += rkij/(rki*rkj)*a(k,i)/brki*a(k,j)/brkj;
-//        }
-//    }
-//    for (int j = 0; j < nParticles; j++)
-//    {
-//        if (j == k) continue;
-//        rkj = norm(rNew.row(k) - rNew.row(j), 2);
-
-//        brkj = (1.0 + beta*rkj);
-//        lapl += 2.0*a(k,j)/(brkj*brkj)*( 1.0/rkj - beta/brkj );
-//    }
-
-//    return lapl;
-////////////////////////////////////////////////////////////////////////////////
-
-
-//    lapl = zeros<rowvec>(nParticles);
-//    double arg, rki, rkj;
-//    for (int k = 0; k < nParticles; k++)
-//    {
-//        for (int j = 0; j < nParticles; j++)
-//        {
-//            if (j == k) continue;
-//            rkj = 0.0;
-//            for (int l = 0; l < nDimensions; l++)
-//                rkj += rNew(k,l) - rNew(k,j);
-//            rkj = sqrt(rkj);
-//            lapl(k) += 2.0*a(k,j)*(1.0/rkj + 1.0/(1.0 + beta*rkj))/pow((1 + beta*rkj),2);
-//            for (int i = 0; i < nParticles; i++)
-//            {
-//                if (i == k) continue;
-//                arg = rki = 0.0;
-//                for (int l = 0; l < nDimensions; l++)
-//                {
-//                    arg += (rNew(k,l) - rNew(i,l))*(rNew(k,l) - rNew(j,l)); // dot product
-//                    rki += rNew(k,l) - rNew(k,i);
-//                }
-//                rki = sqrt(rki);
-//                lapl(k) += arg
-//                    *(a(k,i)/(rki*pow((1.0 + beta*rki),2)))
-//                    *(a(k,j)/(rkj*pow((1.0 + beta*rkj),2)));
-//            }
-//        }
-//    }
-
-//    lapl = 0.0;
-//    double arg, rki, rkj;
-//    for (int j = 0; j < nParticles; j++)
-//    {
-//        if (j == k) continue;
-//        rkj = 0.0;
-//        for (int l = 0; l < nDimensions; l++)
-//            rkj += rNew(k,l) - rNew(k,j);
-//        rkj = sqrt(rkj);
-//        lapl += 2.0*a(k,j)*(1.0/rkj + 1.0/(1.0 + beta*rkj))/pow((1 + beta*rkj),2);
-//        for (int i = 0; i < nParticles; i++)
-//        {
-//            if (i == k) continue;
-//            arg = rki = 0.0;
-//            for (int l = 0; l < nDimensions; l++)
-//            {
-//                arg += (rNew(k,l) - rNew(i,l))*(rNew(k,l) - rNew(j,l)); // dot product
-//                rki += rNew(k,l) - rNew(k,i);
-//            }
-//            rki = sqrt(rki);
-//            lapl += arg
-//                    *(a(k,i)/(rki*pow((1.0 + beta*rki),2)))
-//                    *(a(k,j)/(rkj*pow((1.0 + beta*rkj),2)));
-//        }
-//    }
-
-//    return lapl;
 }
 
 double Jastrow::localLaplacianNumerical(const mat &r, const int &k, const double &h)

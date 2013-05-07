@@ -1,6 +1,6 @@
 #include <mpi.h>
-#include "VMCApp.h"
-#include "Minimizer.h"
+#include <src/VMCApp.h>
+#include <src/Minimizer.h>
 
 using namespace std;
 
@@ -13,8 +13,8 @@ int main(int argc, char *argv[])
     MPI_Comm_size (MPI_COMM_WORLD, &numprocs);
 
     VMCApp m(myRank, numprocs);
-    m.runApplication();
-//    m.minimize();
+//    m.runApplication();
+    m.minimize();
 
     MPI_Finalize();
     return 0;

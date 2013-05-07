@@ -17,7 +17,8 @@ SOURCES += main.cpp \
     Solver/Solver.cpp \
     Solver/SolverMCIS.cpp \
     Minimizer.cpp \
-    VMCApp.cpp
+    VMCApp.cpp \
+    Datalogger.cpp
 
 HEADERS += \
     lib.h \
@@ -29,5 +30,6 @@ HEADERS += \
     Solver/SolverMCIS.h \
     Solver/SolverMCBF.h \
     Minimizer.h \
-    VMCApp.h
+    VMCApp.h \
+    Datalogger.h
 

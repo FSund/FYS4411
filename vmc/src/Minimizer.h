@@ -15,7 +15,7 @@ class Minimizer
 {
 public:
     Minimizer(int &myRank, int &numprocs, int &nParticles, int &charge, int &nParameters);
-    vec runMinimizer(const vec &guess);
+    vec runMinimizer(const vec &guess, const int &nCycles);
 protected:
     int myRank, numprocs;
     int nParameters;
@@ -23,7 +23,7 @@ protected:
 
     Solver* solver;
 private:
-    void bruteforce();
+    void bruteforce(const int &nCycles);
 
     vec energyGradientNumerical(const vec &param);
     double energyGradientNumerical(const vec &param, const int &k);

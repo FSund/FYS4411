@@ -1,11 +1,12 @@
 #ifndef SOLVER_H
 #define SOLVER_H
 
-#include "../lib.h"
-#include "../Wavefunction.h"
 #include <mpi.h>
 #include <armadillo>
 #include <iostream>
+#include <src/lib.h>
+#include <src/Wavefunction.h>
+#include <src/Datalogger.h>
 
 using namespace std;
 using namespace arma;
@@ -16,7 +17,8 @@ public:
     Solver(int &myRank, int &numprocs, int &nParticles, int &charge);
     ~Solver();
 
-    virtual double runMonteCarloIntegration(const int &nCycles_) = 0;
+    double runMonteCarloIntegration(const int &nCycles_);
+    virtual void runCycle() = 0;
 
     void setAlpha(const double &alpha);
     void setBeta(const double &beta);
@@ -27,11 +29,13 @@ public:
     double getAcceptanceRate() { return acceptanceRate; }
 
     void setClosedform(const bool &closedForm_) { closedForm = closedForm_; }
+    void setBlocking(const bool &blocking_) { blocking = blocking_; }
 protected:
     double gaussianDeviate(long *seed);
     void finalize();
 
     Wavefunction *wf;
+    Datalogger *logger;
 
     int nDimensions;
     int nParticles;
@@ -48,6 +52,7 @@ protected:
     int myRank;
     int numprocs;
     int local_nCycles;
+    int nThermalize;
 
     double ratio;
     double acceptanceRate;
@@ -59,6 +64,7 @@ protected:
     double deltaE;
 
     bool closedForm;
+    bool blocking;
 };
 
 #endif // SOLVER_H
