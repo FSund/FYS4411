@@ -198,6 +198,18 @@ double Wavefunction::localLaplacianNumerical(const mat &r)
     return ddwavefunction;
 }
 
+vec Wavefunction::variationalDerivative()
+{
+    varGrad = zeros<vec>(2);
+    for (int i = 0; i < nParticles; i++)
+    {
+        varGrad(0) += slater->alphaGradient(i);
+        varGrad(1) += jastrow->betaGradient(i);
+    }
+
+    return varGrad;
+}
+
 double Wavefunction::electronNucleusPotential()
 {
     // potential energy

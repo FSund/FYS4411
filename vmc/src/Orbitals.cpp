@@ -25,17 +25,25 @@ double Orbitals::wavefunction(const rowvec &rvec, const int &qNum)
     case 1 :
         arg = alpha*r*0.5;
         return (1.0 - arg)*exp(-arg);
-    case 2:
+    case 2 :
         return rvec(0)*exp(-0.5*alpha*r);
-    case 3:
+    case 3 :
         return rvec(1)*exp(-0.5*alpha*r);
-    case 4:
+    case 4 :
         return rvec(2)*exp(-0.5*alpha*r);
     default :
         // Process for all other cases.
         cout << "! We don't have this orbital yet!" << endl;
         exit(1);
     }
+	
+	// return
+		// qNum == 0 ? exp(-alpha*r):
+		// qNum == 1 ? (1.0 - alpha*r*0.5)*exp(-alpha*r*0.5):
+		// qNum == 2 ? rvec(0)*exp(-0.5*alpha*r):
+		// qNum == 3 ? rvec(0)*exp(-0.5*alpha*r):
+		// qNum == 4 ? rvec(0)*exp(-0.5*alpha*r):
+			// something default
 }
 
 rowvec Orbitals::gradient(const rowvec &rvec, const int &qNum)
@@ -47,26 +55,26 @@ rowvec Orbitals::gradient(const rowvec &rvec, const int &qNum)
     r = sqrt(r);
     switch (qNum)
     {
-    case 0:
+    case 0 :
         return (-alpha/r*exp(-alpha*r))*rvec;
-    case 1:
+    case 1 :
         return alpha*rvec*(alpha*r - 4.0)*exp(-alpha*r/2.0)/(4.0*r);
-    case 2:
+    case 2 :
         dphi = -alpha*rvec*rvec(0);
         dphi(0) += 2.0*r;
         dphi *= exp(-alpha*r/2.0)/(2.0*r);
         return dphi;
-    case 3:
+    case 3 :
         dphi = -alpha*rvec*rvec(1);
         dphi(1) += 2.0*r;
         dphi *= exp(-alpha*r/2.0)/(2.0*r);
         return dphi;
-    case 4:
+    case 4 :
         dphi = -alpha*rvec*rvec(2);
         dphi(2) += 2.0*r;
         dphi *= exp(-alpha*r/2.0)/(2.0*r);
         return dphi;
-    default:
+    default :
         cout << "Please implement more hydrogen wavefunctions" << endl;
         exit(1);
     }
@@ -76,15 +84,15 @@ double Orbitals::laplacian(const rowvec &rvec, const int &qNum)
 {
     switch (qNum)
     {
-    case 0:
+    case 0 :
         return ddphi1s(rvec);
-    case 1:
+    case 1 :
         return ddphi2s(rvec);
-    case 2:
+    case 2 :
         return ddphi2p(rvec, 0);
-    case 3:
+    case 3 :
         return ddphi2p(rvec, 1);
-    case 4:
+    case 4 :
         return ddphi2p(rvec, 2);
     default:
         cout << "Please implement more hydrogen wavefunctions" << endl;
@@ -110,7 +118,7 @@ double Orbitals::ddphi2s(const rowvec &rvec)
     }
     r = sqrt(r2);
 
-    return -alpha*(alpha*alpha*r2 - 10*alpha*r + 16)*exp(-alpha*r/2)/(8*r);
+    return -alpha*(alpha*alpha*r2 - 10.0*alpha*r + 16.0)*exp(-alpha*r/2.0)/(8.0*r);
 }
 
 double Orbitals::ddphi2p(const rowvec &rvec, const int &k)
@@ -122,4 +130,30 @@ double Orbitals::ddphi2p(const rowvec &rvec, const int &k)
     r = sqrt(r);
 
     return alpha*rvec(k)*(alpha*r - 8.0)*exp(-alpha*r/2.0)/(4.0*r);
+}
+
+double Orbitals::alphaGradient(const rowvec &rvec, const int &qNum)
+{
+    r = 0.0;
+    for (int i = 0; i < nDimensions; i++)
+        r += rvec(i)*rvec(i);
+    r = sqrt(r);
+
+    switch (qNum)
+    {
+    case 0 :
+        return -r*exp(-alpha*r);
+    case 1 :
+        return r*(alpha*r - 4.0)*exp(-alpha*r/2.0)/4.0;
+    case 2 :
+        return -rvec(0)*(alpha*r - 2.0)*exp(-alpha*r/2.0)/2.0;
+    case 3 :
+        return -rvec(1)*(alpha*r - 2.0)*exp(-alpha*r/2.0)/2.0;
+    case 4 :
+        return -rvec(2)*(alpha*r - 2.0)*exp(-alpha*r/2.0)/2.0;
+    default :
+        // Process for all other cases.
+        cout << "! We don't have this orbital yet!" << endl;
+        exit(1);
+    }
 }

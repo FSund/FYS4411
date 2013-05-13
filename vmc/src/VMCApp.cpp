@@ -35,7 +35,7 @@ void VMCApp::runApplication()
     solver.setBeta(beta);
 //    solver.setBlocking(false);
 
-    int nCycles = 1e4;
+    int nCycles = 1e5;
     double energy = solver.runMonteCarloIntegration(nCycles);
 
     if (myRank == 0)
@@ -54,16 +54,16 @@ void VMCApp::minimize()
     vec minParam(nParameters);
 
     // beryllium
-    guess << 3.5 << 0.5;
-    nParticles = 4;
-    charge = nParticles;
-
-//    // neon
-//    guess << 10.0 << 0.2;
-//    nParticles = 10;
+//    guess << 3.5 << .3;
+//    nParticles = 4;
 //    charge = nParticles;
 
-    int nCycles = 1e4;
+    // neon
+    guess << 9.0 << 0.5;
+    nParticles = 10;
+    charge = nParticles;
+
+    int nCycles = 4e4;
     Minimizer m(myRank, numprocs, nParticles, charge, nParameters);
     minParam = m.runMinimizer(guess, nCycles);
 

@@ -29,8 +29,8 @@ private:
     double energyGradientNumerical(const vec &param, const int &k);
 //    vec energyGradientNumerical(const vec &param);
     mat energyHessianNumerical();
-    vec steepestDescent(const vec &param);
-    vec newtonsMethod(const vec &param);
+    vec steepestDescent(const vec &guess);
+    vec newtonsMethod(const vec &guess);
 //    vec CGM();
 };
 

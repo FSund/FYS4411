@@ -14,6 +14,7 @@ public:
     double wavefunction(const rowvec &rvec, const int &qNum);
     rowvec gradient(const rowvec &rvec, const int &qNum);
     double laplacian(const rowvec &rvec, const int &qNum);
+    double alphaGradient(const rowvec &rvec, const int &qNum);
 protected:
 //    double phi1s(const rowvec &rvec);
 //    double phi2s(const rowvec &rvec);

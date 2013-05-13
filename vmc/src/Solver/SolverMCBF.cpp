@@ -37,21 +37,20 @@ void SolverMCBF::runCycle()
                 rNew.row(i) = rOld.row(i);
                 wf->rejectMove();
             }
+        }
+        if (cycle >= nThermalize)
+        {
+            // update energies
+            if (closedForm)
+                deltaE = wf->localEnergy();
+            else
+                deltaE = wf->localEnergyNumerical();
 
-            if (cycle >= nThermalize)
-            {
-                // update energies
-                if (closedForm)
-                    deltaE = wf->localEnergy();
-                else
-                    deltaE = wf->localEnergyNumerical();
+            if (blocking)
+                logger->log(deltaE);
 
-                if (blocking)
-                    logger->log(deltaE);
-
-                energySum += deltaE;
-                energySquaredSum += deltaE*deltaE;
-            }
+            energySum += deltaE;
+            energySquaredSum += deltaE*deltaE;
         }
     }
 }

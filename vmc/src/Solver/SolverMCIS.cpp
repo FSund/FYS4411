@@ -66,20 +66,25 @@ void SolverMCIS::runCycle()
                 qForceNew = qForceOld;
                 wf->rejectMove();
             }
+        }
+        if (cycle >= nThermalize)
+        {
+            // update energies
+            if (closedForm)
+                deltaE = wf->localEnergy();
+            else
+                deltaE = wf->localEnergyNumerical();
 
-            if (cycle >= nThermalize)
+            if (blocking)
+                logger->log(deltaE);
+
+            energySum += deltaE;
+            energySquaredSum += deltaE*deltaE;
+            if (minimizing)
             {
-                // update energies
-                if (closedForm)
-                    deltaE = wf->localEnergy();
-                else
-                    deltaE = wf->localEnergyNumerical();
-
-                if (blocking)
-                    logger->log(deltaE);
-
-                energySum += deltaE;
-                energySquaredSum += deltaE*deltaE;
+                tempGradVar = wf->variationalDerivative();
+                gradVarSum += tempGradVar;
+                gradVarEsum += tempGradVar*deltaE;
             }
         }
     }

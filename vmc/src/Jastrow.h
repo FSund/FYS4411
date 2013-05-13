@@ -21,6 +21,7 @@ public:
     double wavefunction(const mat &r);
     rowvec localGradient(const int &k);
     double localLaplacian(const int &k);
+    double betaGradient(const int &k);
 
     // for debugging/tests
     rowvec localGradientNumerical(const mat &r, const int &k, const double &h);

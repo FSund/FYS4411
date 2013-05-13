@@ -24,6 +24,7 @@ public:
     double wavefunction(const mat &r);
     rowvec localGradient(const int &i);
     double localLaplacian(const int &i);
+    double alphaGradient(const int &i);
 
 
     // for debugging/tests

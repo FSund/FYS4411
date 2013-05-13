@@ -24,12 +24,14 @@ public:
     void setBeta(const double &beta);
     void setParameters(const vec &parameters);
 
-    double getEnergy() { return energy; }
-    double getVariance() { return variance; }
-    double getAcceptanceRate() { return acceptanceRate; }
+    double& getEnergy() { return energy; }
+    double& getVariance() { return variance; }
+    double& getAcceptanceRate() { return acceptanceRate; }
+    vec& getGradVar() { return gradVar; }
 
     void setClosedform(const bool &closedForm_) { closedForm = closedForm_; }
     void setBlocking(const bool &blocking_) { blocking = blocking_; }
+    void setMinimizing(const bool &minimizing_) { minimizing = minimizing_; }
 protected:
     double gaussianDeviate(long *seed);
     void finalize();
@@ -40,9 +42,17 @@ protected:
     int nDimensions;
     int nParticles;
     int charge;
+    int nParameters;
 
     mat rOld;
     mat rNew;
+    vec tempGradVar;
+    vec gradVar;
+    vec gradVarSum;
+    vec gradVarEsum;
+//    double* gradVar;
+//    double* gradVarSum;
+//    double* gradVarEsum;
 
     long idum;
 
@@ -65,6 +75,7 @@ protected:
 
     bool closedForm;
     bool blocking;
+    bool minimizing;
 };
 
 #endif // SOLVER_H

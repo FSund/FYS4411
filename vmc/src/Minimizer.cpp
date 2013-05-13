@@ -9,18 +9,19 @@ Minimizer::Minimizer(int &myRank, int &numprocs, int &nParticles, int &charge, i
     solver = new SolverMCIS(myRank, numprocs, nParticles, charge);
 
     solver->setBlocking(false);
+    solver->setMinimizing(true);
 }
 
 vec Minimizer::runMinimizer(const vec &guess, const int &nCycles)
 {
     cout << "Minimizer::runMinimizer()" << endl;
 
-    bruteforce(nCycles);
+//    bruteforce(nCycles);
 
     cout << "Exiting Minimizer::runMinimizer()" << endl;
 
-    return guess;
-//    return steepestDescent(parameters);
+//    return guess;
+    return steepestDescent(guess);
 //    return newtonsMethod(guess);
 }
 
@@ -67,44 +68,40 @@ void Minimizer::bruteforce(const int &nCycles)
     }
 }
 
-vec Minimizer::steepestDescent(const vec &param)
+vec Minimizer::steepestDescent(const vec &guess)
 {
-    solver->setParameters(param);
-
 //    double tolerance = 1e-10;
-    int iterMax = 100;
-//    int i;
+    int iterMax = 1000;
+    int nCycles = 1e4;
     vec r(nParameters);
-    vec oldParam = param;
+    vec oldParam = guess;
     vec newParam = oldParam;
-//    mat A(nParameters, nParameters);
-//    double alpha;
-    double stepSize = 0.00001;
+    double stepSize = .01;
+    solver->setParameters(oldParam);
+    solver->runMonteCarloIntegration(nCycles);
 
-//    A = energyHessianNumerical();
-//    i = 0;
-//    while (i <= iterMax || norm(oldParam-parameters, 2) < tolerance )
     for (int i = 0; i < iterMax; i++)
     {
-        r = -energyGradientNumerical(oldParam);
-//        alpha = dot(r,r)/dot(r, A*r);
+        r = -solver->getGradVar();
         newParam = oldParam + stepSize*r;
+        for (int ii = 0; ii < nParameters; ii++)
+            if (newParam(ii) < 0) newParam(ii) = -newParam(ii)/2.0;
 
-//        cout << "i = " << i << endl;
+        cout << "i = " << i << endl;
 //        cout << "A = " << endl << A;
-//        cout << "r = " << r.t();
+        cout << "r = " << r.t();
 //        cout << "alpha = " << alpha << endl;
 //        cout << "alpha*r = " << endl << alpha*r;
-        cout << "parameters = " << newParam.t() << endl;
+        cout << "new parameters = " << newParam.t() << endl;
         solver->setParameters(newParam);
-        cout << "energy = " << solver->runMonteCarloIntegration(1e4);
+        solver->runMonteCarloIntegration(nCycles);
+        cout << "energy = " << solver->getEnergy() << endl;
 
         oldParam = newParam;
-
-//        i++;
+        stepSize /= 0.7;
     }
 
-    return parameters;
+    return oldParam;
 }
 
 //vec Minimizer::steepestDescent()
@@ -165,10 +162,11 @@ vec Minimizer::newtonsMethod(const vec &guess)
     cout << "fpp = " << fpp << endl;
 
 //    while () ???
+    int j = 0;
     for (int i = 0; i < iterMax; i++)
     {
-        for (int j = 0; j < nParameters; j++)
-        {
+//        for (int j = 0; j < nParameters; j++)
+//        {
             solver->setParameters(paramp);
             solver->runMonteCarloIntegration(nCycles);
             fp = solver->getVariance();
@@ -182,7 +180,7 @@ vec Minimizer::newtonsMethod(const vec &guess)
             fpp = fp;
 
             cout << "parameters = " << param.t();
-        }
+//        }
 
 //        cout << "parameters = " << param.t();
     }
@@ -252,7 +250,7 @@ vec Minimizer::energyGradientNumerical(const vec &param)
 {
     const double h = 1e-3;
 //    double h2 = 1e6;
-    const int nCycles = 1e4;
+    const int nCycles = 1e5;
     vec paramPlus(nParameters), paramMinus(nParameters);
     vec dE(nParameters);
     double energyPlus, energyMinus;
@@ -281,7 +279,7 @@ double Minimizer::energyGradientNumerical(const vec &param, const int &k)
 {
     const double h = 1e-3;
 //    double h2 = 1e6;
-    const int nCycles = 1e4;
+    const int nCycles = 1e5;
     vec paramPlus(nParameters), paramMinus(nParameters);
     double dE;
     double energyPlus, energyMinus;

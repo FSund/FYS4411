@@ -192,6 +192,24 @@ double Jastrow::localLaplacian(const int &k)
     return lapl;
 }
 
+double Jastrow::betaGradient(const int &k)
+{
+    /* Calculates the gradient for particle k */
+    double delta = 0.0;
+    for (int i = 0; i < k; i++)
+    {
+        rij = rijNew(i,k);
+        delta -= a(i,k)*rij*rij/((beta*rij + 1.0)*(beta*rij + 1.0));
+    }
+    for (int i = k+1; i < nParticles; i++)
+    {
+        rij = rijNew(k,i);
+        delta -= a(i,k)*rij*rij/((beta*rij + 1.0)*(beta*rij + 1.0));
+    }
+
+    return delta;
+}
+
 double Jastrow::localLaplacianNumerical(const mat &r, const int &k, const double &h)
 {
     /* Calculates the laplacian for particle k */

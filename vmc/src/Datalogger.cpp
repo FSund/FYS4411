@@ -16,7 +16,7 @@ Datalogger::~Datalogger()
 
 void Datalogger::initialize(const int &nCycles, const int &nParticles, const string &filename)
 {
-    N = nCycles*nParticles;
+    N = nCycles;
     energy = new double[maxCycles]; // each process creates individual vector
     cycle = 0;
 

@@ -31,8 +31,7 @@ public:
     mat localGradientNumerical(const mat &r);
     double localLaplacian();
     double localLaplacianNumerical(const mat &r);
-
-    //    double localEnergyClosedForm(const mat &r) const;
+    vec variationalDerivative();
 
     double wavefunction();
     double wavefunction(const mat &r);
@@ -55,13 +54,16 @@ private:
     mat fijNew, fijOld;
     double ratio;
 
+    // numerical gradient and laplacian
     double wfMinus, wfPlus, wfCurrent;
     double dfactor;
     double ddwavefunction;
     mat dwavefunction;
     mat rPlus, rMinus;
+    // closed form gradient and laplacian
     mat grad;
     double lapl;
+    vec varGrad;
 
     Jastrow* jastrow;
     Slater* slater;

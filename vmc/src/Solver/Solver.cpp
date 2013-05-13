@@ -7,16 +7,24 @@ Solver::Solver(int &myRank,
     nDimensions(3),
     nParticles(nParticles),
     charge(charge),
-    rOld(zeros<mat>(nParticles, nDimensions)),
-    rNew(zeros<mat>(nParticles, nDimensions)),
+    nParameters(2),
+    rOld(mat(nParticles, nDimensions)),
+    rNew(mat(nParticles, nDimensions)),
+    gradVar(vec(nParameters)),
+    gradVarSum(vec(nParameters)),
+    gradVarEsum(vec(nParameters)),
+//    gradVar(new double(nParameters)),
+//    gradVarSum(new double(nParameters)),
+//    gradVarEsum(new double(nParameters)),
     nAccepted(0),
     myRank(myRank),
     numprocs(numprocs),
-    nThermalize(1e3),
+    nThermalize(1e4),
 //    closedForm(false)
     closedForm(true),
 //    blocking(false)
-    blocking(true)
+    blocking(true),
+    minimizing(false)
 {
     idum = -1 - myRank;
     logger = new Datalogger(myRank, numprocs);
@@ -76,6 +84,8 @@ double Solver::runMonteCarloIntegration(const int &nCycles_)
 {
     energySum = 0;
     energySquaredSum = 0;
+    gradVarSum = zeros<vec>(nParameters);
+    gradVarEsum = zeros<vec>(nParameters);
     nAccepted = 0;
 
     double dt = 1e-3;
@@ -105,8 +115,8 @@ double Solver::runMonteCarloIntegration(const int &nCycles_)
 
 void Solver::finalize()
 {
-    energy = energySum/(nCycles*nParticles);
-    energySquared = energySquaredSum/(nCycles*nParticles);
+    energy = energySum/nCycles;
+    energySquared = energySquaredSum/nCycles;
     double totalEnergy = 0.0;
     double totalEnergySquared = 0.0;
     int totalNAccepted = 0;
@@ -119,4 +129,27 @@ void Solver::finalize()
     energySquared = totalEnergySquared/numprocs;
     acceptanceRate = double(totalNAccepted)/double(nCycles*numprocs*nParticles);
     variance = energySquared - energy*energy;
+
+    if (minimizing)
+    {
+//        cout << "gradVarSum = " << gradVarSum.t();
+//        cout << "gradVarEsum = " << gradVarEsum.t();
+
+        vec totalGradVar = zeros<vec>(nParameters);
+        vec totalGradVarE = zeros<vec>(nParameters);
+        for (int i = 0; i < nParameters; i++)
+        {
+            MPI_Allreduce(&gradVarSum(i), &totalGradVar(i), 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+            MPI_Allreduce(&gradVarEsum(i), &totalGradVarE(i), 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+        }
+
+//        cout << "totalgradVarSum = " << totalGradVar.t();
+//        cout << "totalgradVarEsum = " << totalGradVarE.t();
+
+        totalGradVar /= (nCycles*numprocs);
+        totalGradVarE /= (nCycles*numprocs);
+        gradVar = 2.0*(totalGradVarE - energy*totalGradVar);
+
+//        cout << "gradVar = " << gradVar.t();
+    }
 }

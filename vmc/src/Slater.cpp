@@ -214,6 +214,20 @@ double Slater::localLaplacian(const int &i)
     return lapl;
 }
 
+double Slater::alphaGradient(const int &i)
+{
+    /* Calculates the gradient for particle i */
+    double delta = 0.0;
+    if (i < N)
+        for (int j = 0; j < N; j++)
+            delta += orbitals->alphaGradient(rNew.row(i),j)*slaterUPinvNew(j,i);
+    else
+        for (int j = 0; j < N; j++)
+            delta += orbitals->alphaGradient(rNew.row(i),j)*slaterDOWNinvNew(j,i-N);
+
+    return delta;
+}
+
 double Slater::localLaplacianNumerical(const mat &r, const int &k, const double &h)
 {
     /* Calculates the laplacian for particle k */
