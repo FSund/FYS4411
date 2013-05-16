@@ -1,23 +1,22 @@
 #include <src/Datalogger.h>
 
-Datalogger::Datalogger(const int &myRank, const int &numprocs):
+Datalogger::Datalogger(const int &myRank, const int &numprocs, const bool &binary):
     myRank(myRank),
     numprocs(numprocs),
     maxCycles(1e3),
-//    binary(true)
-    binary(false)
+    binary(binary)
 {
 }
 
 Datalogger::~Datalogger()
 {
-    delete energy;
+    delete data;
 }
 
 void Datalogger::initialize(const int &nCycles, const int &nParticles, const string &filename)
 {
     N = nCycles;
-    energy = new double[maxCycles]; // each process creates individual vector
+    data = new double[maxCycles]; // each process creates individual vector
     cycle = 0;
 
     ostringstream fileName;
@@ -33,9 +32,9 @@ void Datalogger::initialize(const int &nCycles, const int &nParticles, const str
     }
 }
 
-void Datalogger::log(const double &deltaE)
+void Datalogger::log(const double &dataToLog)
 {
-    energy[cycle] = deltaE;
+    data[cycle] = dataToLog;
     cycle++;
 
     if (cycle >= maxCycles)
@@ -51,11 +50,11 @@ void Datalogger::writeToFile()
     {
 //        for (int i = 0; i < maxCycles; i++)
 //            ofile.write(energy[i], sizeof<)
-        ofile.write((char*)energy, maxCycles*sizeof(double));
+        ofile.write((char*)data, maxCycles*sizeof(double));
     }
     else
     for (int i = 0; i < maxCycles; i++)
-        ofile << energy[i] << endl;
+        ofile << data[i] << endl;
 
 }
 
@@ -63,10 +62,10 @@ void Datalogger::finish()
 {
     if (binary)
     {
-        ofile.write((char*)energy, cycle*sizeof(double));
+        ofile.write((char*)data, cycle*sizeof(double));
     }
     else
     for (int i = 0; i < cycle; i++)
-        ofile << energy[i] << endl;
+        ofile << data[i] << endl;
 }
 

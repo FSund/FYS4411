@@ -1,6 +1,12 @@
 #include <src/Wavefunction.h>
 
-Wavefunction::Wavefunction(const int &nParticles, const double &charge):
+Wavefunction::Wavefunction()
+{
+    cout << "! Error: Using default constructor in Wavefunction! " << endl;
+    exit(1);
+}
+
+Wavefunction::Wavefunction(const int &nParticles, const double &charge, const string &orbitalType):
     nParticles(nParticles),
     nDimensions(3),
     charge(charge),
@@ -12,7 +18,7 @@ Wavefunction::Wavefunction(const int &nParticles, const double &charge):
     rNew = rOld = zeros(nParticles, nDimensions);
 
     jastrow = new Jastrow(nParticles);
-    slater = new Slater(nParticles);
+    slater = new Slater(nParticles, orbitalType);
 
 //    useJastrow = false;
     useJastrow = true;
@@ -51,10 +57,16 @@ void Wavefunction::setBeta(const double &newBeta)
     jastrow->setBeta(newBeta);
 }
 
+void Wavefunction::setR(const double &dist)
+{
+    slater->setR(dist);
+}
+
 void Wavefunction::setParameters(const vec &parameters)
 {
     slater->setAlpha(parameters(0));
     jastrow->setBeta(parameters(1));
+//    slater->setR(parameters(2));
 }
 
 double Wavefunction::wavefunction()
@@ -97,32 +109,6 @@ void Wavefunction::rejectMove()
 
     jastrow->rejectMove();
     slater->rejectMove();
-}
-
-double Wavefunction::localEnergy()
-{
-    double kinetic, potential;
-
-    kinetic = -0.5*localLaplacian();
-    if (useJastrow)
-        potential = electronNucleusPotential() + electronElectronPotential();
-    else
-        potential = electronNucleusPotential();
-
-    return kinetic + potential;
-}
-
-double Wavefunction::localEnergyNumerical()
-{
-    double kinetic, potential;
-
-    kinetic = -0.5*localLaplacianNumerical();
-    if (useJastrow)
-        potential = electronNucleusPotential() + electronElectronPotential();
-    else
-        potential = electronNucleusPotential();
-
-    return kinetic + potential;
 }
 
 mat Wavefunction::localGradient()
@@ -198,7 +184,7 @@ double Wavefunction::localLaplacianNumerical(const mat &r)
     return ddwavefunction;
 }
 
-vec Wavefunction::variationalDerivative()
+vec Wavefunction::variationalDerivatives()
 {
     varGrad = zeros<vec>(2);
     for (int i = 0; i < nParticles; i++)
@@ -208,39 +194,4 @@ vec Wavefunction::variationalDerivative()
     }
 
     return varGrad;
-}
-
-double Wavefunction::electronNucleusPotential()
-{
-    // potential energy
-    double potentialEnergy = 0.0;
-    double r;
-    for (int i = 0; i < nParticles; i++) {
-        r = 0.0;
-        for (int j = 0; j < nDimensions; j++)
-            r += rNew(i,j)*rNew(i,j);
-        r = sqrt(r);
-        potentialEnergy += 1.0/r;
-    }
-    potentialEnergy *= -charge;
-
-    return potentialEnergy;
-}
-
-double Wavefunction::electronElectronPotential()
-{
-    // contribution from electron-electron potential
-    double potentialEnergy = 0.0;
-    double rij = 0;
-    for (int i = 0; i < nParticles; i++) {
-        for (int j = i + 1; j < nParticles; j++) {
-            rij = 0;
-            for (int k = 0; k < nDimensions; k++) {
-                rij += (rNew(i,k) - rNew(j,k))*(rNew(i,k) - rNew(j,k));
-            }
-            potentialEnergy += 1/sqrt(rij);
-        }
-    }
-
-    return potentialEnergy;
 }

@@ -13,7 +13,8 @@ using namespace arma;
 class SolverMCBF : public Solver
 {
 public:
-    SolverMCBF(int &myRank, int &numprocs, int &nParticles, int &charge);
+    SolverMCBF();
+    SolverMCBF(int &myRank, int &numprocs, int &nParticles, int &charge, string &orbitalType);
     virtual void runCycle();
 protected:
     double stepLength;

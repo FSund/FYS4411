@@ -10,10 +10,13 @@ using namespace arma;
 class Datalogger
 {
 public:
-    Datalogger(const int &myRank, const int &numprocs);
+    Datalogger(
+            const int &myRank,
+            const int &numprocs,
+            const bool &binary = false);
     ~Datalogger();
     void initialize(const int &nCycles, const int &nParticles, const string &filename);
-    void log(const double &deltaE);
+    void log(const double &dataToLog);
     void writeToFile();
     void finish();
 private:
@@ -21,7 +24,7 @@ private:
     int N;
     int cycle;
     int maxCycles;
-    double* energy;
+    double* data;
     ofstream ofile;
     bool binary;
 };

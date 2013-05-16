@@ -1,10 +1,17 @@
 #include <src/Solver/SolverMCBF.h>
 
+SolverMCBF::SolverMCBF()
+{
+    cout << "! Error: Using default constructor in SolverMCBF! " << endl;
+    exit(1);
+}
+
 SolverMCBF::SolverMCBF(int &myRank,
         int &numprocs,
         int &nParticles,
-        int &charge):
-    Solver(myRank, numprocs, nParticles, charge),
+        int &charge,
+        string &orbitalType):
+    Solver(myRank, numprocs, nParticles, charge, orbitalType),
     stepLength(1.0)
 {
 }
@@ -30,7 +37,7 @@ void SolverMCBF::runCycle()
             {
                 rOld.row(i) = rNew.row(i);
                 wf->acceptMove();
-                nAccepted++;
+                if (cycle > nThermalize) nAccepted++;
             }
             else
             {
@@ -41,16 +48,22 @@ void SolverMCBF::runCycle()
         if (cycle >= nThermalize)
         {
             // update energies
-            if (closedForm)
-                deltaE = wf->localEnergy();
-            else
-                deltaE = wf->localEnergyNumerical();
+//            if (closedForm)
+//                deltaE = localEnergy->evaluate(rNew, wf);
+//            else
+                deltaE = localEnergy->evaluate(rNew, wf);
 
             if (blocking)
                 logger->log(deltaE);
 
             energySum += deltaE;
             energySquaredSum += deltaE*deltaE;
+            if (minimizing)
+            {
+                tempVariationalGradient = wf->variationalDerivatives();
+                variationalGradientSum += tempVariationalGradient;
+                variationalGradientESum += tempVariationalGradient*deltaE;
+            }
         }
     }
 }

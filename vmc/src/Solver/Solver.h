@@ -7,6 +7,9 @@
 #include <src/lib.h>
 #include <src/Wavefunction.h>
 #include <src/Datalogger.h>
+#include <src/Localenergy/LocalEnergy.h>
+#include <src/Localenergy/SingleAtomLocalEnergy.h>
+#include <src/Localenergy/DiatomicLocalEnergy.h>
 
 using namespace std;
 using namespace arma;
@@ -14,7 +17,12 @@ using namespace arma;
 class Solver
 {
 public:
-    Solver(int &myRank, int &numprocs, int &nParticles, int &charge);
+    Solver();
+    Solver(const int &myRank,
+           const int &numprocs,
+           const int &nParticles,
+           const int &charge,
+           const string &orbitalType);
     ~Solver();
 
     double runMonteCarloIntegration(const int &nCycles_);
@@ -22,12 +30,13 @@ public:
 
     void setAlpha(const double &alpha);
     void setBeta(const double &beta);
+    void setR(const double &dist);
     void setParameters(const vec &parameters);
 
-    double& getEnergy() { return energy; }
-    double& getVariance() { return variance; }
-    double& getAcceptanceRate() { return acceptanceRate; }
-    vec& getGradVar() { return gradVar; }
+    const double& getEnergy() const { return energy; }
+    const double& getVariance() const { return variance; }
+    const double& getAcceptanceRate() const { return acceptanceRate; }
+    const vec& getVariationalGradient() const { return variationalGradient; }
 
     void setClosedform(const bool &closedForm_) { closedForm = closedForm_; }
     void setBlocking(const bool &blocking_) { blocking = blocking_; }
@@ -38,6 +47,7 @@ protected:
 
     Wavefunction *wf;
     Datalogger *logger;
+    LocalEnergy *localEnergy;
 
     int nDimensions;
     int nParticles;
@@ -46,13 +56,13 @@ protected:
 
     mat rOld;
     mat rNew;
-    vec tempGradVar;
-    vec gradVar;
-    vec gradVarSum;
-    vec gradVarEsum;
-//    double* gradVar;
-//    double* gradVarSum;
-//    double* gradVarEsum;
+    vec tempVariationalGradient;
+    vec variationalGradient;
+    vec variationalGradientSum;
+    vec variationalGradientESum;
+//    double* variationalGradient;
+//    double* variationalGradientSum;
+//    double* variationalGradientESum;
 
     long idum;
 
@@ -72,6 +82,7 @@ protected:
     double energySquaredSum;
     double variance;
     double deltaE;
+    double r12Sum, r12;
 
     bool closedForm;
     bool blocking;

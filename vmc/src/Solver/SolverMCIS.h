@@ -13,7 +13,8 @@ using namespace arma;
 class SolverMCIS : public Solver
 {
 public:
-    SolverMCIS(int &myRank, int &numprocs, int &nParticles, int &charge);
+    SolverMCIS();
+    SolverMCIS(int &myRank, int &numprocs, int &nParticles, int &charge, string &orbitalType);
     virtual void runCycle();
     double testSolver(const int &nCycles_);
 private:

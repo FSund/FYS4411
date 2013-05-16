@@ -11,7 +11,11 @@ using namespace arma;
 class Wavefunction
 {
 public:
-    Wavefunction(const int &nParticles, const double &charge);
+    Wavefunction();
+    Wavefunction(
+            const int &nParticles,
+            const double &charge,
+            const string &orbitalType);
     ~Wavefunction();
 
     double getRatio();
@@ -20,6 +24,7 @@ public:
     void updatePositionAndCurrentParticle(mat &r, int &k);
     void setAlpha(const double &newAlpha);
     void setBeta(const double &newBeta);
+    void setR(const double &dist);
     void setParameters(const vec &parameters);
 
     void acceptMove();
@@ -31,7 +36,7 @@ public:
     mat localGradientNumerical(const mat &r);
     double localLaplacian();
     double localLaplacianNumerical(const mat &r);
-    vec variationalDerivative();
+    vec variationalDerivatives();
 
     double wavefunction();
     double wavefunction(const mat &r);

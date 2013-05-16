@@ -2,7 +2,9 @@
 #define SLATER_H
 
 #include <armadillo>
-#include <src/Orbitals.h>
+#include <src/Orbitals/Orbitals.h>
+#include <src/Orbitals/Hydrogenic.h>
+#include <src/Orbitals/Diatomic.h>
 
 using namespace std;
 using namespace arma;
@@ -10,11 +12,13 @@ using namespace arma;
 class Slater
 {
 public:
-    Slater(const int &nParticles);
+    Slater();
+    Slater(const int &nParticles, const string &orbitalType);
     ~Slater();
 
     void initialize(const mat &r);
     void setAlpha(const double &newAlpha);
+    void setR(const double &dist);
     void updatePositionAndCurrentParticle(mat &r, int &k);
     double getRatio();
     void acceptMove();

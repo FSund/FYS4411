@@ -1,6 +1,6 @@
 #include <mpi.h>
 #include <src/VMCApp.h>
-#include <src/Minimizer.h>
+#include <src/Minimizer/Minimizer.h>
 
 using namespace std;
 
@@ -14,6 +14,7 @@ int main(int argc, char *argv[])
 
     VMCApp m(myRank, numprocs);
 //    m.runApplication();
+//    m.diatomic();
     m.minimize();
 
     MPI_Finalize();

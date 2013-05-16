@@ -1,10 +1,17 @@
 #include <src/Solver/SolverMCIS.h>
 
+SolverMCIS::SolverMCIS()
+{
+    cout << "! Error: Using default constructor in SolverMCIS! " << endl;
+    exit(1);
+}
+
 SolverMCIS::SolverMCIS(int &myRank,
         int &numprocs,
         int &nParticles,
-        int &charge):
-    Solver(myRank, numprocs, nParticles, charge),
+        int &charge,
+        string &orbitalType):
+    Solver(myRank, numprocs, nParticles, charge, orbitalType),
     qForceOld(zeros<mat>(nParticles, nDimensions)),
     qForceNew(zeros<mat>(nParticles, nDimensions)),
     D(0.5),
@@ -70,21 +77,31 @@ void SolverMCIS::runCycle()
         if (cycle >= nThermalize)
         {
             // update energies
-            if (closedForm)
-                deltaE = wf->localEnergy();
-            else
-                deltaE = wf->localEnergyNumerical();
+//            if (closedForm)
+//                deltaE = localEnergy->evaluate(rNew, wf);
+//            else
+                deltaE = localEnergy->evaluate(rNew, wf);
+
+//                cout << "deltaE = " << deltaE << endl;
+//                cout << endl;
 
             if (blocking)
                 logger->log(deltaE);
 
             energySum += deltaE;
             energySquaredSum += deltaE*deltaE;
+            if (nParticles == 2)
+            {
+                r12 = 0.0;
+                for (int ii = 0; ii < nDimensions; ii++)
+                    r12 += (rOld(0,ii) - rOld(1,ii))*(rOld(0,ii) - rOld(1,ii));
+                r12Sum += sqrt(r12);
+            }
             if (minimizing)
             {
-                tempGradVar = wf->variationalDerivative();
-                gradVarSum += tempGradVar;
-                gradVarEsum += tempGradVar*deltaE;
+                tempVariationalGradient = wf->variationalDerivatives();
+                variationalGradientSum += tempVariationalGradient;
+                variationalGradientESum += tempVariationalGradient*deltaE;
             }
         }
     }

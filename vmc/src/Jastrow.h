@@ -9,6 +9,7 @@ using namespace arma;
 class Jastrow
 {
 public:
+    Jastrow();
     Jastrow(const int &nParticles);
     void initialize(const mat &r);
     void updatePositionAndCurrentParticle(mat &r, int &k);

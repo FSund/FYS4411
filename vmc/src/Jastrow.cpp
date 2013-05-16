@@ -1,5 +1,11 @@
 #include <src/Jastrow.h>
 
+Jastrow::Jastrow()
+{
+    cout << "! Error: Using default constructor in Jastrow ! " << endl;
+    exit(1);
+}
+
 Jastrow::Jastrow(const int &nParticles):
     nParticles(nParticles),
     nDimensions(3),
@@ -204,7 +210,7 @@ double Jastrow::betaGradient(const int &k)
     for (int i = k+1; i < nParticles; i++)
     {
         rij = rijNew(k,i);
-        delta -= a(i,k)*rij*rij/((beta*rij + 1.0)*(beta*rij + 1.0));
+        delta -= a(k,i)*rij*rij/((beta*rij + 1.0)*(beta*rij + 1.0));
     }
 
     return delta;

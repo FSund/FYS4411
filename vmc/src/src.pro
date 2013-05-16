@@ -10,26 +10,40 @@ TARGET = vmc
 SOURCES += main.cpp \
     lib.cpp \
     Jastrow.cpp \
-    Orbitals.cpp \
     Slater.cpp \
     Wavefunction.cpp \
     Solver/SolverMCBF.cpp \
     Solver/Solver.cpp \
     Solver/SolverMCIS.cpp \
-    Minimizer.cpp \
     VMCApp.cpp \
-    Datalogger.cpp
+    Datalogger.cpp \
+    Localenergy/LocalEnergy.cpp \
+    Localenergy/SingleAtomLocalEnergy.cpp \
+    Localenergy/DiatomicLocalEnergy.cpp \
+    Orbitals/Orbitals.cpp \
+    Orbitals/Hydrogenic.cpp \
+    Orbitals/Diatomic.cpp \
+    Minimizer/Minimizer.cpp \
+    Minimizer/BruteForce.cpp \
+    Minimizer/SteepestDescent.cpp
 
 HEADERS += \
     lib.h \
     Jastrow.h \
     Slater.h \
-    Orbitals.h \
     Wavefunction.h \
     Solver/Solver.h \
     Solver/SolverMCIS.h \
     Solver/SolverMCBF.h \
-    Minimizer.h \
     VMCApp.h \
-    Datalogger.h
+    Datalogger.h \
+    Localenergy/LocalEnergy.h \
+    Localenergy/SingleAtomLocalEnergy.h \
+    Localenergy/DiatomicLocalEnergy.h \
+    Orbitals/Hydrogenic.h \
+    Orbitals/Orbitals.h \
+    Orbitals/Diatomic.h \
+    Minimizer/Minimizer.h \
+    Minimizer/BruteForce.h \
+    Minimizer/SteepestDescent.h
 

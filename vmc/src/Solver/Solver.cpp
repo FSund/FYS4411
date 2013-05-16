@@ -1,21 +1,30 @@
 #include <src/Solver/Solver.h>
 
-Solver::Solver(int &myRank,
-        int &numprocs,
-        int &nParticles,
-        int &charge):
+Solver::Solver()
+{
+    cout << "! Error: Using default constructor in Solver! " << endl;
+    exit(1);
+}
+
+Solver::Solver(
+        const int &myRank,
+        const int &numprocs,
+        const int &nParticles,
+        const int &charge,
+        const string &orbitalType
+        ):
     nDimensions(3),
     nParticles(nParticles),
     charge(charge),
     nParameters(2),
     rOld(mat(nParticles, nDimensions)),
     rNew(mat(nParticles, nDimensions)),
-    gradVar(vec(nParameters)),
-    gradVarSum(vec(nParameters)),
-    gradVarEsum(vec(nParameters)),
-//    gradVar(new double(nParameters)),
-//    gradVarSum(new double(nParameters)),
-//    gradVarEsum(new double(nParameters)),
+    variationalGradient(vec(nParameters)),
+    variationalGradientSum(vec(nParameters)),
+    variationalGradientESum(vec(nParameters)),
+//    variationalGradient(new double(nParameters)),
+//    variationalGradientSum(new double(nParameters)),
+//    variationalGradientESum(new double(nParameters)),
     nAccepted(0),
     myRank(myRank),
     numprocs(numprocs),
@@ -29,25 +38,53 @@ Solver::Solver(int &myRank,
     idum = -1 - myRank;
     logger = new Datalogger(myRank, numprocs);
 
-    if (nParticles == 2)
+    if (orbitalType == "Hydrogenic")
     {
-        wf = new Wavefunction(nParticles, charge);
-        cout << "Helium" << endl;
+        localEnergy = new SingleAtomLocalEnergy(nParticles, nDimensions, charge);
+        if (nParticles == 2)
+        {
+            wf = new Wavefunction(nParticles, charge, orbitalType);
+            cout << "Helium" << endl;
+        }
+        else if (nParticles == 4)
+        {
+            wf = new Wavefunction(nParticles, charge, orbitalType);
+            cout << "Beryllium" << endl;
+        }
+        else if (nParticles == 10)
+        {
+            wf = new Wavefunction(nParticles, charge, orbitalType);
+            cout << "Neon" << endl;
+        }
+        else
+        {
+            cout << "! Unknown element/number of particles, exiting." << endl;
+            exit(1);
+        }
     }
-    else if (nParticles == 4)
+    if (orbitalType == "Diatomic")
     {
-        wf = new Wavefunction(nParticles, charge);
-        cout << "Beryllium" << endl;
-    }
-    else if (nParticles == 10)
-    {
-        wf = new Wavefunction(nParticles, charge);
-        cout << "Neon" << endl;
-    }
-    else
-    {
-        cout << "! Unknown element/number of particles, exiting." << endl;
-        exit(1);
+        localEnergy = new DiatomicLocalEnergy(nParticles, nDimensions, charge);
+        if (nParticles == 2)
+        {
+            wf = new Wavefunction(nParticles, charge, orbitalType);
+            cout << "H2" << endl;
+        }
+        else if (nParticles == 8)
+        {
+            wf = new Wavefunction(nParticles, charge, orbitalType);
+            cout << "Be2" << endl;
+        }
+//        else if (nParticles == 20)
+//        {
+//            wf = new Wavefunction(nParticles, charge, orbitalType);
+//            cout << "Neon" << endl;
+//        }
+        else
+        {
+            cout << "! Unknown element/number of particles, exiting." << endl;
+            exit(1);
+        }
     }
 }
 
@@ -64,6 +101,12 @@ void Solver::setAlpha(const double &alpha)
 void Solver::setBeta(const double &beta)
 {
     wf->setBeta(beta);
+}
+
+void Solver::setR(const double &dist)
+{
+    localEnergy->setR(dist);
+    wf->setR(dist);
 }
 
 void Solver::setParameters(const vec &parameters)
@@ -84,8 +127,9 @@ double Solver::runMonteCarloIntegration(const int &nCycles_)
 {
     energySum = 0;
     energySquaredSum = 0;
-    gradVarSum = zeros<vec>(nParameters);
-    gradVarEsum = zeros<vec>(nParameters);
+    r12Sum = 0.0;
+    variationalGradientSum = zeros<vec>(nParameters);
+    variationalGradientESum = zeros<vec>(nParameters);
     nAccepted = 0;
 
     double dt = 1e-3;
@@ -117,39 +161,36 @@ void Solver::finalize()
 {
     energy = energySum/nCycles;
     energySquared = energySquaredSum/nCycles;
+    r12 = r12Sum/nCycles;
     double totalEnergy = 0.0;
     double totalEnergySquared = 0.0;
+    double totalr12 = 0.0;
     int totalNAccepted = 0;
 
     MPI_Allreduce(&energy, &totalEnergy, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     MPI_Allreduce(&energySquared, &totalEnergySquared, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(&r12, &totalr12, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     MPI_Allreduce(&nAccepted, &totalNAccepted, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
     energy = totalEnergy/numprocs;
     energySquared = totalEnergySquared/numprocs;
+    r12 = totalr12/numprocs;
     acceptanceRate = double(totalNAccepted)/double(nCycles*numprocs*nParticles);
-    variance = energySquared - energy*energy;
+    variance = (energySquared - energy*energy)/double(nCycles*numprocs);
+//    variance = energySquared - energy*energy;
 
     if (minimizing)
     {
-//        cout << "gradVarSum = " << gradVarSum.t();
-//        cout << "gradVarEsum = " << gradVarEsum.t();
-
-        vec totalGradVar = zeros<vec>(nParameters);
-        vec totalGradVarE = zeros<vec>(nParameters);
+        vec totalVariationalGradient = zeros<vec>(nParameters);
+        vec totalVariationalGradientE = zeros<vec>(nParameters);
         for (int i = 0; i < nParameters; i++)
         {
-            MPI_Allreduce(&gradVarSum(i), &totalGradVar(i), 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-            MPI_Allreduce(&gradVarEsum(i), &totalGradVarE(i), 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+            MPI_Allreduce(&variationalGradientSum(i), &totalVariationalGradient(i), 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+            MPI_Allreduce(&variationalGradientESum(i), &totalVariationalGradientE(i), 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
         }
 
-//        cout << "totalgradVarSum = " << totalGradVar.t();
-//        cout << "totalgradVarEsum = " << totalGradVarE.t();
-
-        totalGradVar /= (nCycles*numprocs);
-        totalGradVarE /= (nCycles*numprocs);
-        gradVar = 2.0*(totalGradVarE - energy*totalGradVar);
-
-//        cout << "gradVar = " << gradVar.t();
+        totalVariationalGradient /= (nCycles*numprocs);
+        totalVariationalGradientE /= (nCycles*numprocs);
+        variationalGradient = 2.0*(totalVariationalGradientE - energy*totalVariationalGradient);
     }
 }

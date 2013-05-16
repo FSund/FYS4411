@@ -1,6 +1,12 @@
 #include <src/Slater.h>
 
-Slater::Slater(const int &nParticles):
+Slater::Slater()
+{
+    cout << "! Error: Using default constructor in Slater ! " << endl;
+    exit(1);
+}
+
+Slater::Slater(const int &nParticles, const string &orbitalType):
     nParticles(nParticles),
     nDimensions(3),
     rOld(mat(nParticles, nDimensions)),
@@ -19,7 +25,15 @@ Slater::Slater(const int &nParticles):
     dwavefunction(rowvec(nDimensions)),
     grad(rowvec(nDimensions))
 {
-    orbitals = new Orbitals;
+    if (orbitalType == "Hydrogenic")
+        orbitals = new Hydrogenic();
+    else if (orbitalType == "Diatomic")
+        orbitals = new Diatomic();
+    else
+    {
+        cout << "! Orbitaltype " << orbitalType << " not implemented yet" << endl;
+        exit(1);
+    }
 }
 
 Slater::~Slater()
@@ -53,6 +67,11 @@ void Slater::initialize(const mat &r)
 void Slater::setAlpha(const double &newAlpha)
 {
     orbitals->setAlpha(newAlpha);
+}
+
+void Slater::setR(const double &dist)
+{
+    orbitals->setR(dist);
 }
 
 void Slater::updatePositionAndCurrentParticle(mat &r, int &k)
