@@ -15,7 +15,7 @@ SolverMCIS::SolverMCIS(int &myRank,
     qForceOld(zeros<mat>(nParticles, nDimensions)),
     qForceNew(zeros<mat>(nParticles, nDimensions)),
     D(0.5),
-    dt(1e-3),
+    dt(5e-3),
     Ddt(D*dt)
 {
 }
@@ -102,6 +102,10 @@ void SolverMCIS::runCycle()
                 tempVariationalGradient = wf->variationalDerivatives();
                 variationalGradientSum += tempVariationalGradient;
                 variationalGradientESum += tempVariationalGradient*deltaE;
+            }
+            if (onebody)
+            {
+                onebodylogger->log(rOld);
             }
         }
     }

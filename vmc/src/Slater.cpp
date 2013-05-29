@@ -233,16 +233,25 @@ double Slater::localLaplacian(const int &i)
     return lapl;
 }
 
-double Slater::alphaGradient(const int &i)
+double Slater::alphaDerivative()
 {
-    /* Calculates the gradient for particle i */
+    /* Calculates the gradient for ALL particles */
     double delta = 0.0;
-    if (i < N)
+    for (int i = 0; i < N; i++)
+    {
         for (int j = 0; j < N; j++)
-            delta += orbitals->alphaGradient(rNew.row(i),j)*slaterUPinvNew(j,i);
-    else
-        for (int j = 0; j < N; j++)
-            delta += orbitals->alphaGradient(rNew.row(i),j)*slaterDOWNinvNew(j,i-N);
+        {
+            delta += slaterUPinvNew(i,j)*orbitals->alphaGradient(rNew.row(j), i)
+                + slaterDOWNinvNew(i,j)*orbitals->alphaGradient(rNew.row(j+N), i);
+        }
+    }
+
+//    if (i < N)
+//        for (int j = 0; j < N; j++)
+//            delta += orbitals->alphaGradient(rNew.row(i),j)*slaterUPinvNew(j,i);
+//    else
+//        for (int j = 0; j < N; j++)
+//            delta += orbitals->alphaGradient(rNew.row(i),j)*slaterDOWNinvNew(j,i-N);
 
     return delta;
 }

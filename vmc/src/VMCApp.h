@@ -21,6 +21,7 @@ public:
     void runApplication();
     void diatomic();
     void minimize();
+    void minimizeMolecules();
 private:
 //    void variational_paramenters();
 //    void minimum();

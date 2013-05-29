@@ -10,6 +10,7 @@
 #include <src/Localenergy/LocalEnergy.h>
 #include <src/Localenergy/SingleAtomLocalEnergy.h>
 #include <src/Localenergy/DiatomicLocalEnergy.h>
+#include <src/OneBodyDensity.h>
 
 using namespace std;
 using namespace arma;
@@ -41,6 +42,7 @@ public:
     void setClosedform(const bool &closedForm_) { closedForm = closedForm_; }
     void setBlocking(const bool &blocking_) { blocking = blocking_; }
     void setMinimizing(const bool &minimizing_) { minimizing = minimizing_; }
+    void setOnebody(const bool &onebody_) { onebody = onebody_; }
 protected:
     double gaussianDeviate(long *seed);
     void finalize();
@@ -48,6 +50,7 @@ protected:
     Wavefunction *wf;
     Datalogger *logger;
     LocalEnergy *localEnergy;
+    OneBodyLogger *onebodylogger;
 
     int nDimensions;
     int nParticles;
@@ -87,6 +90,7 @@ protected:
     bool closedForm;
     bool blocking;
     bool minimizing;
+    bool onebody;
 };
 
 #endif // SOLVER_H

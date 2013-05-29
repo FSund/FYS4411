@@ -18,8 +18,18 @@ Jastrow::Jastrow(const int &nParticles):
     a(zeros<mat>(nParticles, nParticles))
 {
     for (int i = 0; i < nParticles; i++)
+    {
         for (int j = 0; j < nParticles; j++)
-            a(i,j) = ((i+j)%2 == 0) ? 0.25 : 0.5;
+        {
+//            a(i,j) = ((i+j)%2 == 0) ? 0.25 : 0.5;
+            a(i,j) = (i == j) ? NAN :
+                     (i  < nParticles/2 && j  < nParticles/2) ? 0.25 :
+                     (i  < nParticles/2 && j >= nParticles/2) ? 0.50 :
+                     (i >= nParticles/2 && j >= nParticles/2) ? 0.25 :
+                     (i >= nParticles/2 && j  < nParticles/2) ? 0.50 :
+                     0.0; // default
+        }
+    }
 }
 
 void Jastrow::initialize(const mat &r)
@@ -198,20 +208,29 @@ double Jastrow::localLaplacian(const int &k)
     return lapl;
 }
 
-double Jastrow::betaGradient(const int &k)
+double Jastrow::betaDerivative()
 {
-    /* Calculates the gradient for particle k */
+    /* Calculates the derivative for all particles */
     double delta = 0.0;
-    for (int i = 0; i < k; i++)
+    for (int i = 0; i < nParticles; i++)
     {
-        rij = rijNew(i,k);
-        delta -= a(i,k)*rij*rij/((beta*rij + 1.0)*(beta*rij + 1.0));
+        for (int j = i+1; j < nParticles; j++)
+        {
+            rij = rijNew(i,j);
+            delta -= a(i,j)*rij*rij/((beta*rij + 1.0)*(beta*rij + 1.0));
+        }
     }
-    for (int i = k+1; i < nParticles; i++)
-    {
-        rij = rijNew(k,i);
-        delta -= a(k,i)*rij*rij/((beta*rij + 1.0)*(beta*rij + 1.0));
-    }
+
+//    for (int i = 0; i < k; i++)
+//    {
+//        rij = rijNew(i,k);
+//        delta -= a(i,k)*rij*rij/((beta*rij + 1.0)*(beta*rij + 1.0));
+//    }
+//    for (int i = k+1; i < nParticles; i++)
+//    {
+//        rij = rijNew(k,i);
+//        delta -= a(k,i)*rij*rij/((beta*rij + 1.0)*(beta*rij + 1.0));
+//    }
 
     return delta;
 }

@@ -25,7 +25,9 @@ SOURCES += main.cpp \
     Orbitals/Diatomic.cpp \
     Minimizer/Minimizer.cpp \
     Minimizer/BruteForce.cpp \
-    Minimizer/SteepestDescent.cpp
+    Minimizer/SteepestDescent.cpp \
+    OneBodyDensity.cpp \
+    Minimizer/Filip.cpp
 
 HEADERS += \
     lib.h \
@@ -45,5 +47,7 @@ HEADERS += \
     Orbitals/Diatomic.h \
     Minimizer/Minimizer.h \
     Minimizer/BruteForce.h \
-    Minimizer/SteepestDescent.h
+    Minimizer/SteepestDescent.h \
+    OneBodyDensity.h \
+    Minimizer/Filip.h
 

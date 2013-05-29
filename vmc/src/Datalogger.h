@@ -10,12 +10,10 @@ using namespace arma;
 class Datalogger
 {
 public:
-    Datalogger(
-            const int &myRank,
-            const int &numprocs,
-            const bool &binary = false);
+    Datalogger(const int &myRank,
+            const int &numprocs);
     ~Datalogger();
-    void initialize(const int &nCycles, const int &nParticles, const string &filename);
+    void initialize(const int &nCycles, const int &nParticles);
     void log(const double &dataToLog);
     void writeToFile();
     void finish();

@@ -16,6 +16,7 @@ int main(int argc, char *argv[])
 //    m.runApplication();
 //    m.diatomic();
     m.minimize();
+//    m.minimizeMolecules(); // NOT WORKING, need R-gradient
 
     MPI_Finalize();
     return 0;

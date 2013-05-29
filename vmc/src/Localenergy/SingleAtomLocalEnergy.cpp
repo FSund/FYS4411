@@ -12,6 +12,7 @@ SingleAtomLocalEnergy::SingleAtomLocalEnergy(
         const double &charge):
     LocalEnergy(nParticles, nDimensions, charge)
 {
+
 }
 
 void SingleAtomLocalEnergy::setR(const double &dist)

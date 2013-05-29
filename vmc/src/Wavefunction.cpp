@@ -66,7 +66,7 @@ void Wavefunction::setParameters(const vec &parameters)
 {
     slater->setAlpha(parameters(0));
     jastrow->setBeta(parameters(1));
-//    slater->setR(parameters(2));
+    slater->setR(parameters(2));
 }
 
 double Wavefunction::wavefunction()
@@ -186,12 +186,16 @@ double Wavefunction::localLaplacianNumerical(const mat &r)
 
 vec Wavefunction::variationalDerivatives()
 {
-    varGrad = zeros<vec>(2);
-    for (int i = 0; i < nParticles; i++)
-    {
-        varGrad(0) += slater->alphaGradient(i);
-        varGrad(1) += jastrow->betaGradient(i);
-    }
+    varGrad = vec(2,1);
+    varGrad(0) = slater->alphaDerivative();
+    varGrad(1) = jastrow->betaDerivative();
+
+//    varGrad = zeros<vec>(2);
+//    for (int i = 0; i < nParticles; i++)
+//    {
+//        varGrad(0) += slater->alphaGradient(i);
+//        varGrad(1) += jastrow->betaGradient(i);
+//    }
 
     return varGrad;
 }

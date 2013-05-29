@@ -19,6 +19,7 @@ Solver::Solver(
     nParameters(2),
     rOld(mat(nParticles, nDimensions)),
     rNew(mat(nParticles, nDimensions)),
+    tempVariationalGradient(vec(nParameters)),
     variationalGradient(vec(nParameters)),
     variationalGradientSum(vec(nParameters)),
     variationalGradientESum(vec(nParameters)),
@@ -28,15 +29,17 @@ Solver::Solver(
     nAccepted(0),
     myRank(myRank),
     numprocs(numprocs),
-    nThermalize(1e4),
+    nThermalize(1e5),
 //    closedForm(false)
     closedForm(true),
 //    blocking(false)
-    blocking(true),
-    minimizing(false)
+    blocking(false),
+    minimizing(false),
+    onebody(false)
 {
     idum = -1 - myRank;
     logger = new Datalogger(myRank, numprocs);
+    onebodylogger = new OneBodyLogger(myRank, numprocs, nParticles);
 
     if (orbitalType == "Hydrogenic")
     {
@@ -91,6 +94,8 @@ Solver::Solver(
 Solver::~Solver()
 {
     delete wf;
+    delete logger;
+    delete onebodylogger;
 }
 
 void Solver::setAlpha(const double &alpha)
@@ -146,13 +151,18 @@ double Solver::runMonteCarloIntegration(const int &nCycles_)
     nCycles = nCycles_/numprocs;
 
     if (blocking)
-        logger->initialize(nCycles, nParticles, "test2");
+        logger->initialize(nCycles, nParticles);
+    if (onebody)
+        onebodylogger->initialize(nCycles);
 
     runCycle();
-    finalize();
 
     if (blocking)
         logger->finish();
+    if (onebody)
+        onebodylogger->finish();
+
+    finalize();
 
     return energy;
 }
