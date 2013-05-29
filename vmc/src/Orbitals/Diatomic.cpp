@@ -21,8 +21,6 @@ void Diatomic::setAlpha(const double &newAlpha)
 void Diatomic::setR(const double &dist)
 {
     R(0) = dist/2.0;
-
-//    cout << "R orbitals = " << R;
 }
 
 double Diatomic::wavefunction(const rowvec &rvec, const int &qNum)

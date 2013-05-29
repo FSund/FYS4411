@@ -4,13 +4,14 @@ Datalogger::Datalogger(const int &myRank, const int &numprocs):
     myRank(myRank),
     numprocs(numprocs),
     maxCycles(1e6),
-    binary(false)
+    binary(false),
+    data(new double[0])
 {
 }
 
 Datalogger::~Datalogger()
 {
-    delete data;
+    delete[] data;
 }
 
 void Datalogger::initialize(const int &nCycles, const int &nParticles)

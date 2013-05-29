@@ -88,6 +88,7 @@ Solver::Solver(
 Solver::~Solver()
 {
     delete wf;
+    delete localEnergy;
     delete logger;
     delete onebodylogger;
 }
@@ -131,7 +132,7 @@ double Solver::runMonteCarloIntegration(const int &nCycles_)
     variationalGradientESum = zeros<vec>(nParameters);
     nAccepted = 0;
 
-    double dt = 1e-3;
+    double dt = 5e-3;
     // initial trial positions
     for(int i = 0; i < nParticles; i++)
     {

@@ -27,7 +27,6 @@ public:
     ~Solver();
 
     double runMonteCarloIntegration(const int &nCycles_);
-    virtual void runCycle() = 0;
 
     void setAlpha(const double &alpha);
     void setBeta(const double &beta);
@@ -52,6 +51,7 @@ public:
         localEnergy->setUseJastrow(useJastrow);
     }
 protected:
+    virtual void runCycle() = 0;
     double gaussianDeviate(long *seed);
     void finalize();
 

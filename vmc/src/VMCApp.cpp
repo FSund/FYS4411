@@ -11,6 +11,8 @@ void VMCApp::runApplication()
     double alpha, beta;
     int nParticles, charge;
 
+    int nCycles = 1e7;
+
     // helium
     alpha = 1.8307; // 1.8
     beta = 0.4936;
@@ -41,10 +43,9 @@ void VMCApp::runApplication()
 //    solver.setOnebody(true); // default = false
 //    solver.setBlocking(true); // default = false
 //    solver.setUseJastrow(false); // default = true
-//    solver.setClosedform(false); // default = true
+    solver.setClosedform(false); // default = true
     ////
 
-    int nCycles = 1e6;
     solver.runMonteCarloIntegration(nCycles);
 
     if (myRank == 0)
@@ -60,12 +61,14 @@ void VMCApp::diatomic()
     double alpha, beta, dist;
     int nParticles, charge;
 
+    int nCycles = 1e6;
+
     // H2
-    alpha = 2.0; // 10.6
-    beta = 0.4;
+    alpha = 1.75169;
+    beta = 0.36;
     nParticles = 2;
     charge = 1;
-    dist = 1.4;
+    dist = 1.8;
 
 //    // Be2
 //    alpha = 4.0; // 10.6
@@ -77,12 +80,19 @@ void VMCApp::diatomic()
     string orbitalType = "Diatomic";
 //    SolverMCBF solver(myRank, numprocs, nParticles, charge, orbitalType);
     SolverMCIS solver(myRank, numprocs, nParticles, charge, orbitalType);
+
+    ////
     solver.setAlpha(alpha);
     solver.setBeta(beta);
     solver.setR(dist);
-    solver.setBlocking(false);
+//    solver.setThermalizationSteps(0); // default = 1e5
+//    solver.setMinimizing(false); // default = false
+//    solver.setOnebody(true); // default = false
+//    solver.setBlocking(true); // default = false
+//    solver.setUseJastrow(false); // default = true
+//    solver.setClosedform(false); // default = true
+    ////
 
-    int nCycles = 1e5;
     solver.runMonteCarloIntegration(nCycles);
 
     if (myRank == 0)
@@ -157,19 +167,20 @@ void VMCApp::minimize()
 void VMCApp::minimizeMolecules()
 {
     int nParameters, nParticles, charge;
-    nParameters = 3;
+    double minR, maxR, dR;
+    nParameters = 2;
 
     /* steepest descent thing */
     vec guess(nParameters);
     vec minParam(nParameters);
 
     // H2
-    guess << 2.0 << 0.4 << 1.4;
-//    alpha = 2.0; // 10.6
-//    beta = 0.4;
+    guess << 2.0 << 0.4;
     nParticles = 2;
     charge = 1;
-//    dist = 1.4;
+    minR = 1.0;
+    maxR = 1.8;
+    dR = 0.005;
 
 //    // Be2
 //    alpha = 4.0; // 10.6
@@ -179,12 +190,24 @@ void VMCApp::minimizeMolecules()
 //    dist = 2.4;
 
     string orbitalType = "Diatomic";
-    int nCycles = 1e5;
+    int nCycles = 1e7;
     Solver *solver = new SolverMCIS(myRank, numprocs, nParticles, charge, orbitalType);
-    solver->setMinimizing(true);
-    SteepestDescent *m = new SteepestDescent(myRank, numprocs, nParameters, solver);
 
-    minParam = m->runMinimizer(guess, nCycles);
-    if (myRank == 0) cout << "minParam = " << minParam.t() << endl;
+    ////
+//    solver->setThermalizationSteps(1e5); // default = 1e5
+    solver->setMinimizing(true); // default = false
+//    solver->setOnebody(true); // default = false
+//    solver->setBlocking(true); // default = false
+//    solver->setUseJastrow(false); // default = true
+//    solver->setClosedform(false); // default = true
+    ////
+
+    MoleculeMinimizer *m = new MoleculeMinimizer(myRank, numprocs, nParameters, solver);
+    m->runMinimizer(nCycles, guess, minR, maxR, dR);
+
+    cout << "After runMinimizer" << endl;
+
+    delete m;
+    delete solver;
 }
 

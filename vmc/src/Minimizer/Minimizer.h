@@ -19,7 +19,6 @@ public:
             int &numprocs,
             int &nParameters,
             Solver *solver);
-//    virtual vec runMinimizer(const vec &guess, const int &nCycles) = 0;
 
 protected:
     void printToFile(const vec &parameters, const Solver *solver);

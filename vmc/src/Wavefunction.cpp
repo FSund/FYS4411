@@ -65,7 +65,6 @@ void Wavefunction::setParameters(const vec &parameters)
 {
     slater->setAlpha(parameters(0));
     jastrow->setBeta(parameters(1));
-    slater->setR(parameters(2));
 }
 
 double Wavefunction::wavefunction()

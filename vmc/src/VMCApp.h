@@ -10,6 +10,7 @@
 #include <src/Minimizer/Minimizer.h>
 #include <src/Minimizer/BruteForce.h>
 #include <src/Minimizer/SteepestDescent.h>
+#include <src/Minimizer/MoleculeMinimizer.h>
 
 using namespace std;
 using namespace arma;
