@@ -15,13 +15,15 @@ public:
     virtual ~LocalEnergy();
     virtual void setR(const double &dist) = 0;
     virtual double evaluate(const mat &r, Wavefunction *wf) = 0;
+    void setClosedForm(const bool &closedForm_) { closedForm = closedForm_; }
+    void setUseJastrow(const bool &useJastrow_) { useJastrow = useJastrow_; }
 protected:
     int nParticles;
     int nDimensions;
     double charge;
 //    rowvec R;
+    bool closedForm;
     bool useJastrow;
-    bool numerical;
 };
 
 #endif // LOCALENERGY_H

@@ -19,22 +19,39 @@ public:
     ~Wavefunction();
 
     double getRatio();
-
     void initialize(mat &r);
     void updatePositionAndCurrentParticle(mat &r, int &k);
+    void acceptMove();
+    void rejectMove();
+
     void setAlpha(const double &newAlpha);
     void setBeta(const double &newBeta);
     void setR(const double &dist);
     void setParameters(const vec &parameters);
+    void setClosedForm(const bool &closedForm_) { closedForm = closedForm_; }
+    void setUseJastrow(const bool &useJastrow_) { useJastrow = useJastrow_; }
 
-    void acceptMove();
-    void rejectMove();
+    double localEnergy() {
+        return closedForm ?
+            localEnergyClosedForm() :
+            localEnergyNumerical();
+    }
+    mat localGradient() {
+        return closedForm ?
+            localGradientClosedForm() :
+            localGradientNumerical();
+    }
+    double localLaplacian() {
+        return closedForm ?
+            localLaplacianClosedForm() :
+            localLaplacianNumerical();
+    }
 
-    double localEnergy();
+    double localEnergyClosedForm();
     double localEnergyNumerical();
-    mat localGradient();
+    mat localGradientClosedForm();
     mat localGradientNumerical(const mat &r);
-    double localLaplacian();
+    double localLaplacianClosedForm();
     double localLaplacianNumerical(const mat &r);
     vec variationalDerivatives();
 
@@ -73,6 +90,7 @@ private:
     Jastrow* jastrow;
     Slater* slater;
 
+    bool closedForm;
     bool useJastrow;
 };
 

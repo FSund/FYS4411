@@ -22,13 +22,13 @@ void SingleAtomLocalEnergy::setR(const double &dist)
 
 double SingleAtomLocalEnergy::evaluate(const mat &r, Wavefunction *wf)
 {
-    if (numerical)
-        return localEnergyNumerical(r, wf);
+    if (closedForm)
+        return localEnergyClosedForm(r, wf);
     else
-        return localEnergy(r, wf);
+        return localEnergyNumerical(r, wf);
 }
 
-double SingleAtomLocalEnergy::localEnergy(const mat &r, Wavefunction *wf)
+double SingleAtomLocalEnergy::localEnergyClosedForm(const mat &r, Wavefunction *wf)
 {
     double kinetic, potential;
 

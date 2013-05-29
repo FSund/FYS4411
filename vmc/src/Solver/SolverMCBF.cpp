@@ -47,11 +47,7 @@ void SolverMCBF::runCycle()
         }
         if (cycle >= nThermalize)
         {
-            // update energies
-//            if (closedForm)
-//                deltaE = localEnergy->evaluate(rNew, wf);
-//            else
-                deltaE = localEnergy->evaluate(rNew, wf);
+            deltaE = localEnergy->evaluate(rNew, wf);
 
             if (blocking)
                 logger->log(deltaE);

@@ -10,8 +10,8 @@ LocalEnergy::LocalEnergy(const int &nParticles, const int &nDimensions, const in
     nParticles(nParticles),
     nDimensions(nDimensions),
     charge(charge),
-    useJastrow(true),
-    numerical(false)
+    closedForm(true),
+    useJastrow(true)
 {
 }
 

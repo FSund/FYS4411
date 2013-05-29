@@ -23,16 +23,10 @@ Solver::Solver(
     variationalGradient(vec(nParameters)),
     variationalGradientSum(vec(nParameters)),
     variationalGradientESum(vec(nParameters)),
-//    variationalGradient(new double(nParameters)),
-//    variationalGradientSum(new double(nParameters)),
-//    variationalGradientESum(new double(nParameters)),
     nAccepted(0),
     myRank(myRank),
     numprocs(numprocs),
     nThermalize(1e5),
-//    closedForm(false)
-    closedForm(true),
-//    blocking(false)
     blocking(false),
     minimizing(false),
     onebody(false)

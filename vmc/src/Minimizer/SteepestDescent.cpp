@@ -17,8 +17,8 @@ vec SteepestDescent::runMinimizer(vec &guess, int &nCycles)
 //    double tolerance = 1e-10;
     int iterMax = 100;
     int n = 10;
-    double gamma0 = 5.0;
-    double k = 0.75;
+    double gamma0 = 0.5;
+    double k = 0.85;
     double gamma;
 
     vec r(nParameters);
@@ -36,6 +36,11 @@ vec SteepestDescent::runMinimizer(vec &guess, int &nCycles)
     double meanE = 0.0;
     double stdE = 100;
 
+    solver->setMinimizing(true);
+    solver->setBlocking(false);
+    solver->setOnebody(false);
+    solver->setUseJastrow(true);
+    solver->setClosedform(true);
     solver->setParameters(oldParam);
     solver->runMonteCarloIntegration(nCycles);
     oldEnergy = solver->getEnergy();

@@ -39,10 +39,18 @@ public:
     const double& getAcceptanceRate() const { return acceptanceRate; }
     const vec& getVariationalGradient() const { return variationalGradient; }
 
-    void setClosedform(const bool &closedForm_) { closedForm = closedForm_; }
     void setBlocking(const bool &blocking_) { blocking = blocking_; }
     void setMinimizing(const bool &minimizing_) { minimizing = minimizing_; }
     void setOnebody(const bool &onebody_) { onebody = onebody_; }
+    void setThermalizationSteps(const int &steps) { nThermalize = steps; }
+    void setClosedform(const bool &closedForm) {
+        wf->setClosedForm(closedForm);
+        localEnergy->setClosedForm(closedForm);
+    }
+    void setUseJastrow(const bool &useJastrow) {
+        wf->setUseJastrow(useJastrow);
+        localEnergy->setUseJastrow(useJastrow);
+    }
 protected:
     double gaussianDeviate(long *seed);
     void finalize();
@@ -87,7 +95,6 @@ protected:
     double deltaE;
     double r12Sum, r12;
 
-    bool closedForm;
     bool blocking;
     bool minimizing;
     bool onebody;

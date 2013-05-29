@@ -18,7 +18,7 @@ public:
     virtual void setR(const double &dist);
     virtual double evaluate(const mat &r, Wavefunction *wf);
 private:
-    double localEnergy(const mat &r, Wavefunction *wf);
+    double localEnergyClosedForm(const mat &r, Wavefunction *wf);
     double localEnergyNumerical(const mat &r, Wavefunction *wf);
     double electronNucleusPotential(const mat &rNew);
     double electronElectronPotential(const mat &rNew);

@@ -11,7 +11,9 @@ Wavefunction::Wavefunction(const int &nParticles, const double &charge, const st
     nDimensions(3),
     charge(charge),
     h(1e-3),
-    h2(1e6)
+    h2(1e6),
+    closedForm(true),
+    useJastrow(true)
 {
     dwavefunction = zeros<mat>(nParticles, nDimensions);
     rPlus = rMinus = zeros<mat>(nParticles, nDimensions);
@@ -19,9 +21,6 @@ Wavefunction::Wavefunction(const int &nParticles, const double &charge, const st
 
     jastrow = new Jastrow(nParticles);
     slater = new Slater(nParticles, orbitalType);
-
-//    useJastrow = false;
-    useJastrow = true;
 }
 
 Wavefunction::~Wavefunction()
@@ -87,10 +86,22 @@ double Wavefunction::wavefunction(const mat &r)
 
 double Wavefunction::getRatio()
 {
-    if (useJastrow)
-        ratio = slater->getRatio()*jastrow->getRatio();
+    if (closedForm)
+    {
+        if (useJastrow)
+            ratio = slater->getRatio()*jastrow->getRatio();
+        else
+            ratio = slater->getRatio();
+    }
     else
-        ratio = slater->getRatio();
+    {
+        if (useJastrow)
+            ratio = slater->wavefunction(rNew)*jastrow->wavefunction(rNew)
+                /(slater->wavefunction(rOld)*jastrow->wavefunction(rOld));
+        else
+            ratio = slater->wavefunction(rNew)/slater->wavefunction(rOld);
+        ratio = ratio*ratio;
+    }
 
     return ratio; // squared in slater and jastrow
 }
@@ -111,7 +122,7 @@ void Wavefunction::rejectMove()
     slater->rejectMove();
 }
 
-mat Wavefunction::localGradient()
+mat Wavefunction::localGradientClosedForm()
 {
     grad = zeros<mat>(nParticles, nDimensions);
     if (useJastrow)
@@ -144,7 +155,7 @@ mat Wavefunction::localGradientNumerical(const mat &r)
     return dwavefunction;
 }
 
-double Wavefunction::localLaplacian()
+double Wavefunction::localLaplacianClosedForm()
 {
     lapl = 0.0;
 

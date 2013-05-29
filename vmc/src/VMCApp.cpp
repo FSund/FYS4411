@@ -11,11 +11,11 @@ void VMCApp::runApplication()
     double alpha, beta;
     int nParticles, charge;
 
-//    // helium
-//    alpha = 1.84; // 1.8
-//    beta = 0.349;
-//    nParticles = 2;
-//    charge = nParticles;
+    // helium
+    alpha = 1.8307; // 1.8
+    beta = 0.4936;
+    nParticles = 2;
+    charge = nParticles;
 
     // beryllium
 //    alpha = 3.97;
@@ -23,21 +23,28 @@ void VMCApp::runApplication()
 //    nParticles = 4;
 //    charge = nParticles;
 
-    // neon
-    alpha = 10.26;
-    beta = 0.083;
-    nParticles = 10;
-    charge = nParticles;
+//    // neon
+//    alpha = 10.26;
+//    beta = 0.083;
+//    nParticles = 10;
+//    charge = nParticles;
 
     string orbitalType = "Hydrogenic";
 //    SolverMCBF solver(myRank, numprocs, nParticles, charge, orbitalType);
     SolverMCIS solver(myRank, numprocs, nParticles, charge, orbitalType);
+
+    ////
     solver.setAlpha(alpha);
     solver.setBeta(beta);
-    solver.setOnebody(true);
-    solver.setBlocking(true);
+    solver.setThermalizationSteps(1e5); // default = 1e5
+//    solver.setMinimizing(false); // default = false
+//    solver.setOnebody(true); // default = false
+//    solver.setBlocking(true); // default = false
+//    solver.setUseJastrow(false); // default = true
+//    solver.setClosedform(false); // default = true
+    ////
 
-    int nCycles = 1e7;
+    int nCycles = 1e6;
     solver.runMonteCarloIntegration(nCycles);
 
     if (myRank == 0)
@@ -95,25 +102,33 @@ void VMCApp::minimize()
     vec guess(nParameters);
     vec minParam(nParameters);
 
-    // helium
-    guess << 2.0 << 0.5;
-    nParticles = 2;
-    charge = nParticles;
+//    // helium
+//    guess << 2.0 << 0.5;
+//    nParticles = 2;
+//    charge = nParticles;
 
 //    // beryllium
 //    nParticles = 4;
 //    charge = nParticles;
 //    guess << nParticles << 0.5;
 
-//    // neon
-//    nParticles = 10;
-//    charge = nParticles;
-//    guess << nParticles << 0.5;
+    // neon
+    nParticles = 10;
+    charge = nParticles;
+    guess << nParticles << 0.5;
 
     int nCycles = 1e6;
     string orbitalType = "Hydrogenic";
     Solver *solver = new SolverMCIS(myRank, numprocs, nParticles, charge, orbitalType);
+
+    ////
+    solver->setThermalizationSteps(1e5); // default = 1e5
     solver->setMinimizing(true);
+//    solver->setOnebody(true); // default = false
+//    solver->setBlocking(true); // default = false
+    solver->setUseJastrow(true); // default = true
+    solver->setClosedform(true); // default = true
+    ////
 
     SteepestDescent *m = new SteepestDescent(myRank, numprocs, nParameters, solver);
     minParam = m->runMinimizer(guess, nCycles);

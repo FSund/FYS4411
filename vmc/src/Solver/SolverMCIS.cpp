@@ -22,10 +22,7 @@ SolverMCIS::SolverMCIS(int &myRank,
 
 void SolverMCIS::runCycle()
 {
-    if (closedForm)
-        qForceOld = 2.0*wf->localGradient(); // rOld == rNew in Wavefunction
-    else
-        qForceOld = 2.0*wf->localGradientNumerical(rOld);
+    qForceOld = 2.0*wf->localGradient();
 
     // loop over Monte Carlo cycles
     for (int cycle = 0; cycle < nCycles+nThermalize; cycle++)
@@ -42,10 +39,7 @@ void SolverMCIS::runCycle()
             wf->updatePositionAndCurrentParticle(rNew, i);
             ratio = wf->getRatio(); // squared in Wavefunction
 
-            if (closedForm)
-                qForceNew = 2.0*wf->localGradient();
-            else
-                qForceNew = 2.0*wf->localGradientNumerical();
+            qForceNew = 2.0*wf->localGradient();
 
             // Green's function ratio
             omegaRatio = 0.0;
@@ -77,19 +71,14 @@ void SolverMCIS::runCycle()
         if (cycle >= nThermalize)
         {
             // update energies
-//            if (closedForm)
-//                deltaE = localEnergy->evaluate(rNew, wf);
-//            else
-                deltaE = localEnergy->evaluate(rNew, wf);
-
-//                cout << "deltaE = " << deltaE << endl;
-//                cout << endl;
+            deltaE = localEnergy->evaluate(rNew, wf);
 
             if (blocking)
                 logger->log(deltaE);
 
             energySum += deltaE;
             energySquaredSum += deltaE*deltaE;
+
             if (nParticles == 2)
             {
                 r12 = 0.0;
