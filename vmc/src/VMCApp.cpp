@@ -63,7 +63,7 @@ void VMCApp::runApplicationDiatomic()
     double alpha, beta, dist;
     int nParticles, charge;
 
-    int nCycles = 1e6;
+    int nCycles = 5;
 
 //    // H2
 //    alpha = 1.29;
