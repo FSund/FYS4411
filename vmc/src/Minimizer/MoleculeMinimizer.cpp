@@ -16,12 +16,12 @@ MoleculeMinimizer::~MoleculeMinimizer()
     delete minimizer;
 }
 
-void MoleculeMinimizer::runMinimizer(int &nCycles, vec &guess, double minR, double maxR, double &dR)
+void MoleculeMinimizer::runMinimizer(int &nCycles, vec &guess, double minR, double maxR, double &dR, int iterMax_)
 {
     int nR = int((maxR - minR)/dR);
     vec parameters = guess;
     double R;
-    int iterMax = 50;
+    int iterMax = iterMax_;
 
     ofstream ofile;
     ofile.open("BF_moleculeMinimizer.dat");

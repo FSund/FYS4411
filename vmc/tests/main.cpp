@@ -19,7 +19,8 @@ TEST(SlaterRatioTest) {
     double realRatio;
     mat rOld(nParticles, nDimensions);
     mat rNew(nParticles, nDimensions);
-    Slater slater(nParticles);
+    string orbitalTyle = "Hydrogenic";
+    Slater slater(nParticles, orbitalTyle);
 
     rOld << 1 << 1 << 1 << endr
          << 2 << 3 << 4 << endr
@@ -156,7 +157,8 @@ TEST(GradientTestNeon)
     mat reldiff(difference);
 
     rNew = rOld = randu(nParticles, nDimensions);
-    Wavefunction wf(nParticles, nParticles);
+    string orbitalType = "Hydrogenic";
+    Wavefunction wf(nParticles, nParticles, orbitalType);
     wf.setAlpha(alpha);
     wf.setBeta(beta);
     wf.initialize(rOld);
@@ -206,7 +208,8 @@ TEST(LaplacianNeonTest)
     mat rNew(nParticles, nDimensions);
     double numericalLaplacian;
     double closedFormLaplacian;
-    Wavefunction wf(nParticles, nParticles);
+    string orbitalType = "Hydrogenic";
+    Wavefunction wf(nParticles, nParticles, orbitalType);
     wf.setAlpha(alpha);
     wf.setBeta(beta);
     rNew = rOld = randu(nParticles, nDimensions);
@@ -261,7 +264,8 @@ TEST(SlaterGradientNeonTest)
     mat reldiff(difference);
 
     rNew = rOld = randu(nParticles, nDimensions);
-    Slater wf(nParticles);
+    string orbitalType = "Hydrogenic";
+    Slater wf(nParticles, orbitalType);
     wf.setAlpha(alpha);
     wf.initialize(rOld);
 
@@ -364,7 +368,8 @@ TEST(SlaterLaplacianNeonTest)
     mat rNew(nParticles, nDimensions);
     double numericalLaplacian;
     double closedFormLaplacian;
-    Slater wf(nParticles);
+    string orbitalType = "Hydrogenic";
+    Slater wf(nParticles, orbitalType);
     wf.setAlpha(alpha);
     rNew = rOld = randu(nParticles, nDimensions);
     wf.initialize(rOld);
@@ -467,7 +472,8 @@ TEST(SlaterInverseTest)
     mat difference;
     mat rOld(nParticles, nDimensions);
     mat rNew(nParticles, nDimensions);
-    Slater wf(nParticles);
+    string orbitalType = "Hydrogenic";
+    Slater wf(nParticles, orbitalType);
 
     rOld << 1 << 2 << 3 << endr
          << 2 << 3 << 4 << endr

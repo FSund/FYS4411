@@ -25,25 +25,41 @@ void Diatomic::setR(const double &dist)
 
 double Diatomic::wavefunction(const rowvec &rvec, const int &qNum)
 {
-    return hydrogenic->wavefunction(rvec + R, qNum)
-            + hydrogenic->wavefunction(rvec - R, qNum);
+    if (qNum%2 == 0)
+        return hydrogenic->wavefunction(rvec + R, qNum/2)
+                + hydrogenic->wavefunction(rvec - R, qNum/2);
+    else
+        return hydrogenic->wavefunction(rvec + R, qNum/2)
+                - hydrogenic->wavefunction(rvec - R, qNum/2);
 }
 
 rowvec Diatomic::gradient(const rowvec &rvec, const int &qNum)
 {
-    return hydrogenic->gradient(rvec + R, qNum)
-            + hydrogenic->gradient(rvec - R, qNum);
+    if (qNum%2 == 0)
+        return hydrogenic->gradient(rvec + R, qNum/2)
+                + hydrogenic->gradient(rvec - R, qNum/2);
+    else
+        return hydrogenic->gradient(rvec + R, qNum/2)
+                - hydrogenic->gradient(rvec - R, qNum/2);
 }
 
 double Diatomic::laplacian(const rowvec &rvec, const int &qNum)
 {
-    return hydrogenic->laplacian(rvec + R, qNum)
-            + hydrogenic->laplacian(rvec - R, qNum);
+    if (qNum%2 == 0)
+        return hydrogenic->laplacian(rvec + R, qNum/2)
+                + hydrogenic->laplacian(rvec - R, qNum/2);
+    else
+        return hydrogenic->laplacian(rvec + R, qNum/2)
+                - hydrogenic->laplacian(rvec - R, qNum/2);
 }
 
 double Diatomic::alphaGradient(const rowvec &rvec, const int &qNum)
 {
-    return hydrogenic->alphaGradient(rvec + R, qNum)
-            + hydrogenic->alphaGradient(rvec - R, qNum);
+    if (qNum%2 == 0)
+        return hydrogenic->alphaGradient(rvec + R, qNum/2)
+                + hydrogenic->alphaGradient(rvec - R, qNum/2);
+    else
+        return hydrogenic->alphaGradient(rvec + R, qNum/2)
+                - hydrogenic->alphaGradient(rvec - R, qNum/2);
 }
 

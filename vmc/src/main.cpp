@@ -13,10 +13,13 @@ int main(int argc, char *argv[])
     MPI_Comm_size (MPI_COMM_WORLD, &numprocs);
 
     VMCApp m(myRank, numprocs);
-    m.runApplication();
-//    m.diatomic();
+
+//    m.runApplication();
+    m.runApplicationDiatomic();
 //    m.minimize();
 //    m.minimizeMolecules();
+//    m.minimizeMoleculesConstR();
+//    m.timing();
 
     MPI_Finalize();
     return 0;

@@ -13,7 +13,7 @@ class Slater
 {
 public:
     Slater();
-    Slater(const int &nParticles, const string &orbitalType);
+    Slater(const int &nParticles, const string &orbitalType_);
     ~Slater();
 
     void initialize(const mat &r);

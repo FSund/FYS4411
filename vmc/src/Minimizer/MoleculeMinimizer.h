@@ -17,7 +17,7 @@ public:
             int &nParameters,
             Solver *solver);
     ~MoleculeMinimizer();
-    void runMinimizer(int &nCycles, vec &guess, double minR, double maxR, double &dR);
+    void runMinimizer(int &nCycles, vec &guess, double minR, double maxR, double &dR, int iterMax_);
 private:
     SteepestDescent *minimizer;
 };

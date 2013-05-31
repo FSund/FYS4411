@@ -36,6 +36,7 @@ public:
     const double& getEnergy() const { return energy; }
     const double& getVariance() const { return variance; }
     const double& getAcceptanceRate() const { return acceptanceRate; }
+    const double& getr12() const { return r12; }
     const vec& getVariationalGradient() const { return variationalGradient; }
 
     void setBlocking(const bool &blocking_) { blocking = blocking_; }

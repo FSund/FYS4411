@@ -1,4 +1,4 @@
-function [count centers] = onebody(filename, numprocs, nParticles, nSamples, binary)
+function [count centers] = onebody(filename, numprocs, nParticles, nSamples, binary, coordinate)
     % loading data from all processors into "data"
     data = [];
     endings = "xyzr";
@@ -41,14 +41,14 @@ function [count centers] = onebody(filename, numprocs, nParticles, nSamples, bin
     size(data)
     
     figure;
-    [count centers] = hist(data(:,4), 500);
+    [count centers] = hist(data(:,coordinate), 500);
     fac = (centers(2) - centers(1)).*centers.*centers;
-    plot(centers, count./fac, '.')
+    plot(centers, count./fac, '.');
     
     %trapz(centers, count)
     
     figure;
-    plot(centers, count, '.')
+    plot(centers, count, '.');
     
     %figure;
     %[count centers] = hist(data(:,1), 500);
