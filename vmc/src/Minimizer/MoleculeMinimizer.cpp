@@ -12,7 +12,6 @@ MoleculeMinimizer::MoleculeMinimizer(
 
 MoleculeMinimizer::~MoleculeMinimizer()
 {
-    cout << "before delete" << endl;
     delete minimizer;
 }
 
@@ -46,6 +45,4 @@ void MoleculeMinimizer::runMinimizer(int &nCycles, vec &guess, double minR, doub
             ofile << endl;
         }
     }
-
-    cout << "before exit MoleculeMinimizer" << endl;
 }

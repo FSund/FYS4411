@@ -50,8 +50,6 @@ void Datalogger::writeToFile()
 {
     if (binary)
     {
-//        for (int i = 0; i < maxCycles; i++)
-//            ofile.write(energy[i], sizeof<)
         ofile.write((char*)data, maxCycles*sizeof(double));
     }
     else

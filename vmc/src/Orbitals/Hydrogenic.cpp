@@ -40,14 +40,6 @@ double Hydrogenic::wavefunction(const rowvec &rvec, const int &qNum)
         cout << "! We don't have this orbital yet!" << endl;
         exit(1);
     }
-
-//	 return
-//		 qNum == 0 ? exp(-alpha*r):
-//		 qNum == 1 ? (1.0 - alpha*r*0.5)*exp(-alpha*r*0.5):
-//		 qNum == 2 ? rvec(0)*exp(-0.5*alpha*r):
-//		 qNum == 3 ? rvec(0)*exp(-0.5*alpha*r):
-//		 qNum == 4 ? rvec(0)*exp(-0.5*alpha*r):
-//			 something default
 }
 
 rowvec Hydrogenic::gradient(const rowvec &rvec, const int &qNum)

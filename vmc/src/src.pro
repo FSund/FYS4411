@@ -27,7 +27,6 @@ SOURCES += main.cpp \
     Minimizer/BruteForce.cpp \
     Minimizer/SteepestDescent.cpp \
     OneBodyDensity.cpp \
-    Minimizer/Filip.cpp \
     Minimizer/MoleculeMinimizer.cpp
 
 HEADERS += \
@@ -50,6 +49,5 @@ HEADERS += \
     Minimizer/BruteForce.h \
     Minimizer/SteepestDescent.h \
     OneBodyDensity.h \
-    Minimizer/Filip.h \
     Minimizer/MoleculeMinimizer.h
 

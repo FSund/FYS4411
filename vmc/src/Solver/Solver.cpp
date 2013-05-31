@@ -72,11 +72,6 @@ Solver::Solver(
             wf = new Wavefunction(nParticles, charge, orbitalType);
             cout << "Be2" << endl;
         }
-//        else if (nParticles == 20)
-//        {
-//            wf = new Wavefunction(nParticles, charge, orbitalType);
-//            cout << "Neon" << endl;
-//        }
         else
         {
             cout << "! Unknown element/number of particles, exiting." << endl;

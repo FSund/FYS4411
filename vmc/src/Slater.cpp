@@ -49,8 +49,6 @@ void Slater::initialize(const mat &r)
 {
     rNew = rOld = r;
 
-    cout << "rNew = " << endl << rNew << endl;
-
     for (int i = 0; i < N; i++) // loop over particles
     {
         for (int j = 0; j < N; j++) // loop over orbitals
@@ -69,8 +67,6 @@ void Slater::initialize(const mat &r)
     slaterDOWNinvNew = slaterDOWNinvOld;
 
     ratioUP = ratioDOWN = 1.0;
-
-    cout << "wf slater = " << wavefunction() << endl;
 }
 
 void Slater::setAlpha(const double &newAlpha)
@@ -254,13 +250,6 @@ double Slater::alphaDerivative()
                 + slaterDOWNinvNew(i,j)*orbitals->alphaGradient(rNew.row(j+N), i);
         }
     }
-
-//    if (i < N)
-//        for (int j = 0; j < N; j++)
-//            delta += orbitals->alphaGradient(rNew.row(i),j)*slaterUPinvNew(j,i);
-//    else
-//        for (int j = 0; j < N; j++)
-//            delta += orbitals->alphaGradient(rNew.row(i),j)*slaterDOWNinvNew(j,i-N);
 
     return delta;
 }

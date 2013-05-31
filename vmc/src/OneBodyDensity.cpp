@@ -98,10 +98,6 @@ void OneBodyLogger::finish()
 {
     data.resize(cycle*nParticles, 4);
 
-//    cout << "hei" << endl;
-
-//    cout << data << endl;
-
     if (binary)
     {
         vec datacol(cycle*nParticles,1);

@@ -11,13 +11,13 @@ void VMCApp::runApplication()
     double alpha, beta;
     int nParticles, charge;
 
-    int nCycles = 1e7;
+    int nCycles = 1e4;
 
-    // helium
-    alpha = 1.8307; // 1.8
-    beta = 0.4936;
-    nParticles = 2;
-    charge = nParticles;
+//    // helium
+//    alpha = 1.8307; // 1.8
+//    beta = 0.4936;
+//    nParticles = 2;
+//    charge = nParticles;
 
 //    // beryllium
 //    alpha = 3.97;
@@ -25,11 +25,11 @@ void VMCApp::runApplication()
 //    nParticles = 4;
 //    charge = nParticles;
 
-//    // neon
-//    alpha = 10.26;
-//    beta = 0.083;
-//    nParticles = 10;
-//    charge = nParticles;
+    // neon
+    alpha = 10.26;
+    beta = 0.083;
+    nParticles = 10;
+    charge = nParticles;
 
     string orbitalType = "Hydrogenic";
 //    SolverMCBF solver(myRank, numprocs, nParticles, charge, orbitalType);
@@ -63,14 +63,14 @@ void VMCApp::runApplicationDiatomic()
     double alpha, beta, dist;
     int nParticles, charge;
 
-    int nCycles = 5;
+    int nCycles = 1e4;
 
-//    // H2
-//    alpha = 1.29;
-//    beta = 0.39;
-//    nParticles = 2;
-//    charge = 1;
-//    dist = 1.4;
+    // H2
+    alpha = 1.29;
+    beta = 0.39;
+    nParticles = 2;
+    charge = 1;
+    dist = 1.4;
 
     // Be2
     alpha = 3.79846; // 10.6
@@ -87,11 +87,11 @@ void VMCApp::runApplicationDiatomic()
     solver.setAlpha(alpha);
     solver.setBeta(beta);
     solver.setR(dist);
-    solver.setThermalizationSteps(1e6); // default = 1e5
+//    solver.setThermalizationSteps(0); // default = 1e5
 //    solver.setMinimizing(false); // default = false
-    solver.setOnebody(true); // default = false
-    solver.setBlocking(true); // default = false
-    solver.setUseJastrow(false); // default = true
+//    solver.setOnebody(true); // default = false
+//    solver.setBlocking(true); // default = false
+//    solver.setUseJastrow(false); // default = true
 //    solver.setClosedform(false); // default = true
     ////
 

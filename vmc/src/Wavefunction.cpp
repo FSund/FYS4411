@@ -200,12 +200,5 @@ vec Wavefunction::variationalDerivatives()
     varGrad(0) = slater->alphaDerivative();
     varGrad(1) = jastrow->betaDerivative();
 
-//    varGrad = zeros<vec>(2);
-//    for (int i = 0; i < nParticles; i++)
-//    {
-//        varGrad(0) += slater->alphaGradient(i);
-//        varGrad(1) += jastrow->betaGradient(i);
-//    }
-
     return varGrad;
 }

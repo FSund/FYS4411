@@ -18,8 +18,6 @@ DiatomicLocalEnergy::DiatomicLocalEnergy(
 void DiatomicLocalEnergy::setR(const double &dist)
 {
     R(0) = dist/2.0;
-
-//    cout << "R local energy = " << R;
 }
 
 double DiatomicLocalEnergy::evaluate(const mat &r, Wavefunction *wf)
@@ -41,15 +39,6 @@ double DiatomicLocalEnergy::evaluate(const mat &r, Wavefunction *wf)
         }
         potential += -charge*(1.0/sqrt(rp1) + 1.0/sqrt(rp2));
     }
-
-    ////
-//    cout << "rNew = " << endl << r;
-    cout << "potential energy PE = " << potential << endl;
-    cout << "potential EE        = " << electronElectronPotential(r) << endl;
-    cout << "potential energy PP = " << charge*charge/(2.0*R(0)) << endl;
-    cout << "kinetic energy = " << kinetic << endl;
-    ////
-
 
     potential += electronElectronPotential(r);
     potential += charge*charge/(2.0*abs(R(0)));
