@@ -15,9 +15,9 @@ int main(int argc, char *argv[])
     VMCApp m(myRank, numprocs);
 
 //    m.runApplication();
-//    m.runApplicationDiatomic();
+    m.runApplicationDiatomic();
 //    m.minimize();
-    m.minimizeMolecules();
+//    m.minimizeMolecules();
 //    m.minimizeMoleculesConstR();
 //    m.timing();
 

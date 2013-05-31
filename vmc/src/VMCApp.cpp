@@ -63,7 +63,7 @@ void VMCApp::runApplicationDiatomic()
     double alpha, beta, dist;
     int nParticles, charge;
 
-    int nCycles = 1e4;
+    int nCycles = 5;
 
 //    // H2
 //    alpha = 1.29;
@@ -72,16 +72,9 @@ void VMCApp::runApplicationDiatomic()
 //    charge = 1;
 //    dist = 1.4;
 
-    // H2
-    alpha = 1.29;
-    beta = 0.39;
-    nParticles = 2;
-    charge = 1;
-    dist = 2.45; // 2.45
-
     // Be2
-    alpha = 4.0; // 10.6
-    beta = 0.4;
+    alpha = 3.76; // 10.6
+    beta = 0.49;
     nParticles = 8;
     charge = 4;
     dist = 2.45;
@@ -94,7 +87,7 @@ void VMCApp::runApplicationDiatomic()
     solver.setAlpha(alpha);
     solver.setBeta(beta);
     solver.setR(dist);
-//    solver.setThermalizationSteps(0); // default = 1e5
+    solver.setThermalizationSteps(0); // default = 1e5
 //    solver.setMinimizing(false); // default = false
 //    solver.setOnebody(true); // default = false
 //    solver.setBlocking(true); // default = false
@@ -109,6 +102,8 @@ void VMCApp::runApplicationDiatomic()
         cout << "Energy = " << solver.getEnergy() << endl;
         cout << "Variance = " << solver.getVariance() << endl;
         cout << "Acceptance ratio = " << solver.getAcceptanceRate() << endl;
+        if (nParticles == 2)
+            cout << "<r12> = " << solver.getr12() << endl;
     }
 }
 
@@ -195,12 +190,12 @@ void VMCApp::minimizeMolecules()
     guess << 2.0 << 0.4;
     nParticles = 8;
     charge = 4;
-    minR = 0.5;
-    maxR = 10;
-    dR = 1.0;
+    minR = 2;
+    maxR = 6;
+    dR = 0.5;
 
     string orbitalType = "Diatomic";
-    int nCycles = 1e5;
+    int nCycles = 1e6;
     Solver *solver = new SolverMCIS(myRank, numprocs, nParticles, charge, orbitalType);
 
     ////
@@ -210,7 +205,7 @@ void VMCApp::minimizeMolecules()
 //    solver->setBlocking(true); // default = false
 //    solver->setUseJastrow(false); // default = true
 //    solver->setClosedform(false); // default = true
-    int iterMax = 30;
+    int iterMax = 10;
     ////
 
     MoleculeMinimizer *m = new MoleculeMinimizer(myRank, numprocs, nParameters, solver);

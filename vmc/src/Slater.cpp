@@ -49,6 +49,8 @@ void Slater::initialize(const mat &r)
 {
     rNew = rOld = r;
 
+    cout << "rNew = " << endl << rNew << endl;
+
     for (int i = 0; i < N; i++) // loop over particles
     {
         for (int j = 0; j < N; j++) // loop over orbitals
@@ -67,6 +69,8 @@ void Slater::initialize(const mat &r)
     slaterDOWNinvNew = slaterDOWNinvOld;
 
     ratioUP = ratioDOWN = 1.0;
+
+    cout << "wf slater = " << wavefunction() << endl;
 }
 
 void Slater::setAlpha(const double &newAlpha)
