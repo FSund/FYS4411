@@ -6,7 +6,7 @@ Slater::Slater()
     exit(1);
 }
 
-Slater::Slater(const int &nParticles, const string &orbitalType):
+Slater::Slater(const int &nParticles, const string &orbitalType_):
     nParticles(nParticles),
     nDimensions(3),
     rOld(mat(nParticles, nDimensions)),
@@ -25,13 +25,17 @@ Slater::Slater(const int &nParticles, const string &orbitalType):
     dwavefunction(rowvec(nDimensions)),
     grad(rowvec(nDimensions))
 {
-    if (orbitalType == "Hydrogenic")
+    if (orbitalType_ == "Hydrogenic")
+    {
         orbitals = new Hydrogenic();
-    else if (orbitalType == "Diatomic")
+    }
+    else if (orbitalType_ == "Diatomic")
+    {
         orbitals = new Diatomic();
+    }
     else
     {
-        cout << "! Orbitaltype " << orbitalType << " not implemented yet" << endl;
+        cout << "! Orbitaltype " << orbitalType_ << " not implemented yet" << endl;
         exit(1);
     }
 }
@@ -53,6 +57,7 @@ void Slater::initialize(const mat &r)
             slaterDOWNold(i,j) = orbitals->wavefunction(rOld.row(i+N), j);
         }
     }
+
     slaterUPinvOld   = inv(slaterUPold);
     slaterDOWNinvOld = inv(slaterDOWNold);
 

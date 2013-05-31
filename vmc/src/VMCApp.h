@@ -20,9 +20,11 @@ class VMCApp
 public:
     VMCApp(int &myRank, int &numprocs);
     void runApplication();
-    void diatomic();
+    void runApplicationDiatomic();
     void minimize();
     void minimizeMolecules();
+    void minimizeMoleculesConstR();
+    void timing();
 private:
 //    void variational_paramenters();
 //    void minimum();

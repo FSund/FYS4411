@@ -16,10 +16,10 @@ vec SteepestDescent::runMinimizer(vec &guess, int &nCycles, int iterMax_)
     cout << "Starting steepest descent minimization" << endl;
 
 //    double tolerance = 1e-10;
-    int iterMax = iterMax_;
+    int iterMax = iterMax_; // default = 100
     int n = 10;
-    double gamma0 = 1.0;
-    double k = 0.75;
+    double gamma0 = 2.0;
+    double k = 0.5;
     double gamma;
 
     vec r(nParameters);
